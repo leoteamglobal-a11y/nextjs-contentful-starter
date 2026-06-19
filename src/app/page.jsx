@@ -3,6 +3,8 @@ import { Hero } from '../components/Hero.jsx';
 import { Stats } from '../components/Stats.jsx';
 import { getPageFromSlug } from '../utils/content.js';
 
+export const revalidate = 3600;
+
 const componentMap = {
   hero: Hero,
   stats: Stats,

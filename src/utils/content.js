@@ -3,14 +3,14 @@ import { createClient } from 'contentful';
 const PAGE_CONTENT_TYPE_ID = 'page';
 const IS_DEV = process.env.NODE_ENV === 'development';
 
-async function getEntries(content_type, queryParams) {
-  const client = createClient({
-    accessToken: IS_DEV ? process.env.CONTENTFUL_PREVIEW_TOKEN : process.env.CONTENTFUL_DELIVERY_TOKEN,
-    space: process.env.CONTENTFUL_SPACE_ID,
-    host: IS_DEV ? 'preview.contentful.com' : 'cdn.contentful.com',
-  });
+const client = createClient({
+  accessToken: IS_DEV ? process.env.CONTENTFUL_PREVIEW_TOKEN : process.env.CONTENTFUL_DELIVERY_TOKEN,
+  space: process.env.CONTENTFUL_SPACE_ID,
+  host: IS_DEV ? 'preview.contentful.com' : 'cdn.contentful.com',
+});
 
-  const entries = await client.getEntries({ content_type, ...queryParams, include: 10 });
+async function getEntries(content_type, queryParams) {
+  const entries = await client.getEntries({ content_type, ...queryParams, include: 2 });
   return entries;
 }
 
@@ -23,12 +23,9 @@ export async function getPagePaths() {
 }
 
 export async function getPageFromSlug(slug) {
-  const { items } = await getEntries(PAGE_CONTENT_TYPE_ID, { 'fields.slug': slug });
-  let page = (items ?? [])[0];
-  if (!page && slug !== '/' && slug.startsWith('/')) {
-    const { items } = await getEntries(PAGE_CONTENT_TYPE_ID, { 'fields.slug': slug.slice(1) });
-    page = (items ?? [])[0];
-  }
+  const slugVariants = slug !== '/' && slug.startsWith('/') ? [slug, slug.slice(1)] : [slug];
+  const { items } = await getEntries(PAGE_CONTENT_TYPE_ID, { 'fields.slug[in]': slugVariants.join(',') });
+  const page = (items ?? [])[0];
   if (!page) throw new Error(`Page not found for slug: ${slug}`);
   return mapEntry(page);
 }

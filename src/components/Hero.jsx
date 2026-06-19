@@ -28,6 +28,7 @@ export const Hero = (props) => {
               src={props.image.src}
               alt={props.image.alt}
               fill
+              priority
               className='object-cover'
               sizes="(max-width: 767px) 100vw, (max-width: 1200px) 50vw, 600px"
               data-sb-field-path="image"

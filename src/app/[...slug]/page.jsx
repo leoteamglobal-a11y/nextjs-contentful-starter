@@ -1,7 +1,20 @@
 import { notFound } from 'next/navigation';
 import { Hero } from '../../components/Hero.jsx';
 import { Stats } from '../../components/Stats.jsx';
-import { getPageFromSlug } from '../../utils/content.js';
+import { getPageFromSlug, getPagePaths } from '../../utils/content.js';
+
+export const revalidate = 3600;
+
+export async function generateStaticParams() {
+  try {
+    const paths = await getPagePaths();
+    return paths
+      .filter((p) => p !== '/')
+      .map((p) => ({ slug: p.slice(1).split('/') }));
+  } catch {
+    return [];
+  }
+}
 
 const componentMap = {
   hero: Hero,
