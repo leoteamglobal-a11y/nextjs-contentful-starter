@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useTradovate } from './useTradovate';
+import { useZoneConfirm } from './useZoneConfirm';
 
 function useGermanSignals() {
   const [tvSignals, setTvSignals] = useState([]);
@@ -123,6 +124,8 @@ export default function TerminalClient() {
   const vwap = tv.quote?.vwap ?? 21425.50;
   const tapeData = isLive ? tv.tape : simTapeList;
   const bookData = isLive ? tv.dom : simBook;
+  const topSignal = tvSignals[0] ?? null;
+  const confirm = useZoneConfirm(topSignal, bookData, tapeData);
 
   const change = price - open;
   const changePct = open ? (change / open) * 100 : 0;
@@ -350,11 +353,36 @@ export default function TerminalClient() {
                       <div><span className="text-gray-500">TP2</span> <span className="text-green-300">{s.tp2?.toFixed(2)}</span></div>
                       {risk > 0 && <div className="col-span-2 text-gray-500 text-[10px]">Riesgo zona: {risk.toFixed(2)} pts</div>}
                     </div>
+                    {/* Zone confirmation */}
+                    {confirm && (
+                      <div className={`mt-2 rounded p-1.5 text-xs border
+                        ${confirm.color === 'green' ? 'bg-green-900/40 border-green-700' :
+                          confirm.color === 'yellow' ? 'bg-yellow-900/40 border-yellow-700' :
+                          'bg-red-900/40 border-red-700'}`}>
+                        <div className="flex items-center justify-between mb-1">
+                          <span className={`font-bold ${confirm.color === 'green' ? 'text-green-400' : confirm.color === 'yellow' ? 'text-yellow-400' : 'text-red-400'}`}>
+                            {confirm.color === 'green' ? '✓' : confirm.color === 'yellow' ? '~' : '✗'} ORDER FLOW: {confirm.label}
+                          </span>
+                          <span className="text-gray-400">{confirm.score}/100</span>
+                        </div>
+                        {confirm.reasons.map((r, i) => (
+                          <div key={i} className="text-gray-400 text-[10px]">· {r}</div>
+                        ))}
+                        <div className="flex gap-3 mt-1 text-[10px] text-gray-500">
+                          <span>Delta: <span className={confirm.delta >= 0 ? 'text-green-400' : 'text-red-400'}>{confirm.delta >= 0 ? '+' : ''}{confirm.delta}</span></span>
+                          <span>Compras: {confirm.buyVol}</span>
+                          <span>Ventas: {confirm.sellVol}</span>
+                        </div>
+                      </div>
+                    )}
                     <button
                       onClick={() => setActiveSignal(s)}
-                      className={`w-full mt-2 py-1.5 rounded font-bold text-sm ${isLong ? 'bg-green-600 hover:bg-green-500' : 'bg-red-600 hover:bg-red-500'} text-white`}
+                      disabled={confirm?.color === 'red'}
+                      className={`w-full mt-2 py-1.5 rounded font-bold text-sm transition-colors
+                        ${confirm?.color === 'red' ? 'bg-gray-700 cursor-not-allowed text-gray-500' :
+                          isLong ? 'bg-green-600 hover:bg-green-500 text-white' : 'bg-red-600 hover:bg-red-500 text-white'}`}
                     >
-                      Ejecutar {s.dir}
+                      {confirm?.color === 'red' ? 'Order flow débil — espera' : `Ejecutar ${s.dir}`}
                     </button>
                   </div>
                 );
