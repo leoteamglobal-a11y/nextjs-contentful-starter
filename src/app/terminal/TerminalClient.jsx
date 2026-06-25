@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useTradovate } from './useTradovate';
 import { useZoneConfirm } from './useZoneConfirm';
+import { useOrderFlow } from './useOrderFlow';
 
 function useGermanSignals() {
   const [tvSignals, setTvSignals] = useState([]);
@@ -125,7 +126,8 @@ export default function TerminalClient() {
   const tapeData = isLive ? tv.tape : simTapeList;
   const bookData = isLive ? tv.dom : simBook;
   const topSignal = tvSignals[0] ?? null;
-  const confirm = useZoneConfirm(topSignal, bookData, tapeData);
+  const confirm   = useZoneConfirm(topSignal, bookData, tapeData);
+  const flow      = useOrderFlow(bookData, tapeData, price);
 
   const change = price - open;
   const changePct = open ? (change / open) * 100 : 0;
@@ -268,7 +270,7 @@ export default function TerminalClient() {
       </div>
 
       {/* Main Grid */}
-      <div className="grid grid-cols-3 gap-0" style={{ height: 'calc(100vh - 200px)' }}>
+      <div className="grid grid-cols-4 gap-0" style={{ height: 'calc(100vh - 200px)' }}>
 
         {/* TAPE */}
         <div className="border-r border-gray-800 flex flex-col overflow-hidden">
@@ -445,6 +447,94 @@ export default function TerminalClient() {
             </button>
           </div>
         </div>
+
+        {/* FLOW — Order Flow Strategy Panel */}
+        <div className="flex flex-col overflow-hidden border-l border-gray-800">
+          <div className="px-3 py-1.5 bg-gray-900 border-b border-gray-800 text-xs uppercase tracking-wider shrink-0 flex items-center justify-between">
+            <span className="text-blue-400 font-bold">FLOW</span>
+            <button onClick={flow.resetDelta} className="text-gray-600 hover:text-gray-400 text-[10px]">Reset Δ</button>
+          </div>
+
+          {/* Delta meter */}
+          <div className="px-3 py-2 border-b border-gray-800 shrink-0">
+            <div className="flex items-center justify-between text-xs mb-1">
+              <span className="text-gray-500">Delta acumulado</span>
+              <span className={`font-bold ${flow.delta >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                {flow.delta >= 0 ? '+' : ''}{flow.delta}
+              </span>
+            </div>
+            <div className="h-2 bg-gray-800 rounded overflow-hidden">
+              <div
+                className={`h-full rounded transition-all ${flow.delta >= 0 ? 'bg-green-500' : 'bg-red-500'}`}
+                style={{ width: `${Math.min(Math.abs(flow.delta) / 10, 100)}%`, marginLeft: flow.delta < 0 ? 'auto' : 0 }}
+              />
+            </div>
+          </div>
+
+          {/* DOM Imbalance */}
+          <div className="px-3 py-2 border-b border-gray-800 shrink-0">
+            <div className="flex items-center justify-between text-xs mb-1">
+              <span className="text-gray-500">DOM Imbalance</span>
+              <span className={`font-bold ${
+                flow.imbalance.signal === 1 ? 'text-green-400' :
+                flow.imbalance.signal === -1 ? 'text-red-400' : 'text-gray-400'}`}>
+                {flow.imbalance.signal === 1 ? '▲ BIDS' : flow.imbalance.signal === -1 ? '▼ ASKS' : '─ NEUTRO'}
+              </span>
+            </div>
+            <div className="flex gap-1 text-[10px]">
+              <div className="flex-1 text-center py-0.5 rounded bg-green-900/40 text-green-400">
+                B {flow.imbalance.bidTotal}
+              </div>
+              <div className="flex-1 text-center py-0.5 rounded bg-red-900/40 text-red-400">
+                A {flow.imbalance.askTotal}
+              </div>
+              <div className="text-gray-500 flex items-center px-1">
+                {flow.imbalance.ratio?.toFixed(1)}:1
+              </div>
+            </div>
+          </div>
+
+          {/* FLOW Signal */}
+          <div className="flex-1 p-2">
+            {!flow.signal ? (
+              <div className="text-gray-700 text-xs text-center pt-6 space-y-1">
+                <div className="text-2xl">○</div>
+                <div>Sin señal FLOW</div>
+                <div className="text-[10px] text-gray-800">Esperando confluencia...</div>
+              </div>
+            ) : (
+              <div className={`rounded border-2 p-3 ${flow.signal.dir === 'LONG' ? 'border-blue-500 bg-blue-950/50' : 'border-orange-500 bg-orange-950/50'}`}>
+                <div className="flex items-center justify-between mb-2">
+                  <span className={`text-xl font-bold ${flow.signal.dir === 'LONG' ? 'text-blue-400' : 'text-orange-400'}`}>
+                    {flow.signal.dir === 'LONG' ? '▲' : '▼'} FLOW {flow.signal.dir}
+                  </span>
+                  <span className={`text-sm font-bold px-2 py-0.5 rounded ${
+                    flow.signal.grade === 'A+' ? 'bg-yellow-500 text-black' :
+                    flow.signal.grade === 'B'  ? 'bg-blue-700 text-white' : 'bg-gray-700 text-gray-300'}`}>
+                    {flow.signal.grade}
+                  </span>
+                </div>
+                <div className="text-xs text-gray-400 mb-2">{flow.signal.score}/100 puntos</div>
+                <div className="space-y-1 mb-3">
+                  {flow.signal.reasons.map((r, i) => (
+                    <div key={i} className="text-[11px] text-gray-300 flex items-start gap-1">
+                      <span className={flow.signal.dir === 'LONG' ? 'text-blue-400' : 'text-orange-400'}>✓</span>
+                      {r}
+                    </div>
+                  ))}
+                </div>
+                <button
+                  onClick={() => executeSignal({ dir: flow.signal.dir, ep: price, sl: flow.signal.dir === 'LONG' ? price - 10 * 0.25 : price + 10 * 0.25 })}
+                  className={`w-full py-2 rounded font-bold text-sm ${
+                    flow.signal.dir === 'LONG' ? 'bg-blue-600 hover:bg-blue-500' : 'bg-orange-600 hover:bg-orange-500'} text-white`}
+                >
+                  Ejecutar FLOW {flow.signal.dir}
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+
       </div>
 
       {/* Position Bar */}
