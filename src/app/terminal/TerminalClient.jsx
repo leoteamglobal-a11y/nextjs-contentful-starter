@@ -3,6 +3,23 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useTradovate } from './useTradovate';
 
+function useGermanSignals() {
+  const [tvSignals, setTvSignals] = useState([]);
+
+  useEffect(() => {
+    const es = new EventSource('/api/signal/stream');
+    es.onmessage = (e) => {
+      try {
+        const sig = JSON.parse(e.data);
+        setTvSignals(prev => [sig, ...prev].slice(0, 10));
+      } catch (_) {}
+    };
+    return () => es.close();
+  }, []);
+
+  return tvSignals;
+}
+
 const SYMBOL = process.env.NEXT_PUBLIC_TRADE_SYMBOL || 'NQM5';
 const TICK = 0.25;
 const TICK_VALUE = parseFloat(process.env.NEXT_PUBLIC_TICK_VALUE || '5'); // $5 NQ, $0.50 MNQ
@@ -30,6 +47,8 @@ function makeSimBook(price) {
 export default function TerminalClient() {
   const tv = useTradovate(SYMBOL);
   const isLive = tv.status === 'connected';
+  const tvSignals = useGermanSignals();
+  const [activeSignal, setActiveSignal] = useState(null);
 
   // Sim state (used when not connected)
   const [simPrice, setSimPrice] = useState(21450.00);
@@ -154,6 +173,27 @@ export default function TerminalClient() {
     }
   }, [position, localPnl, isLive, tv, livePos]);
 
+  const executeSignal = useCallback(async (sig) => {
+    if (!sig) return;
+    const action = sig.dir === 'LONG' ? 'Buy' : 'Sell';
+    if (isLive) {
+      setOrderStatus(`Ejecutando ${sig.dir} @ ${sig.ep?.toFixed(2)}...`);
+      const r = await tv.placeOrder(action, qty);
+      setOrderStatus(r?.orderId ? `Orden ${sig.dir} #${r.orderId} enviada` : `Error: ${r?.errorText}`);
+    } else {
+      setLocalPos({ side: sig.dir === 'LONG' ? 'L' : 'S', qty, entry: sig.ep || simPriceRef.current });
+      setLocalPnl(0);
+      setOrderStatus(`${sig.dir} simulado @ ${sig.ep?.toFixed(2)}`);
+    }
+    setActiveSignal(null);
+    setTimeout(() => setOrderStatus(''), 4000);
+  }, [isLive, tv, qty]);
+
+  // Auto-execute when button clicked from signal panel
+  useEffect(() => {
+    if (activeSignal) executeSignal(activeSignal);
+  }, [activeSignal]);
+
   const statusColor = {
     disconnected: 'text-gray-500',
     connecting: 'text-yellow-400',
@@ -274,25 +314,63 @@ export default function TerminalClient() {
           </div>
         </div>
 
-        {/* SIGNALS + CONTROLS */}
+        {/* GERMAN ZONES SIGNALS + CONTROLS */}
         <div className="flex flex-col overflow-hidden">
-          <div className="px-3 py-1.5 bg-gray-900 border-b border-gray-800 text-gray-400 text-xs uppercase tracking-wider shrink-0">
-            Señales de Entrada
+          <div className="px-3 py-1.5 bg-gray-900 border-b border-gray-800 text-xs uppercase tracking-wider shrink-0 flex items-center justify-between">
+            <span className="text-yellow-400 font-bold">GERMAN ZONES</span>
+            <span className="text-gray-600 text-[10px]">TradingView → webhook</span>
           </div>
-          <div className="flex-1 overflow-hidden p-2 space-y-1">
-            {signals.length === 0 && (
-              <div className="text-gray-600 text-xs text-center pt-4">Esperando señales...</div>
+
+          {/* Active signal panel */}
+          <div className="shrink-0 p-2">
+            {tvSignals.length === 0 ? (
+              <div className="text-gray-600 text-xs text-center py-3 border border-dashed border-gray-800 rounded">
+                Esperando señal de TradingView...
+              </div>
+            ) : (
+              (() => {
+                const s = tvSignals[0];
+                const isLong = s.dir === 'LONG';
+                const risk = s.ep && s.sl ? Math.abs(s.ep - s.sl) : 0;
+                const age = Math.floor((Date.now() - s.ts) / 60000);
+                return (
+                  <div className={`rounded border-2 p-2 ${isLong ? 'border-green-500 bg-green-950/50' : 'border-red-500 bg-red-950/50'}`}>
+                    <div className="flex items-center justify-between mb-1">
+                      <span className={`text-lg font-bold ${isLong ? 'text-green-400' : 'text-red-400'}`}>
+                        {isLong ? '▲ LONG' : '▼ SHORT'}
+                        {s.aplus && <span className="ml-2 text-yellow-400 text-sm">⭐ A+</span>}
+                        {s.flip && <span className="ml-2 text-purple-400 text-sm">FLIP</span>}
+                      </span>
+                      <span className="text-gray-500 text-[10px]">{age === 0 ? 'ahora' : `${age}m`}</span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-x-3 gap-y-0.5 text-xs mt-1">
+                      <div><span className="text-gray-500">EP</span> <span className="text-white font-bold">{s.ep?.toFixed(2)}</span></div>
+                      <div><span className="text-gray-500">SL</span> <span className="text-red-400">{s.sl?.toFixed(2)}</span></div>
+                      <div><span className="text-gray-500">TP1</span> <span className="text-green-400">{s.tp1?.toFixed(2)}</span></div>
+                      <div><span className="text-gray-500">TP2</span> <span className="text-green-300">{s.tp2?.toFixed(2)}</span></div>
+                      {risk > 0 && <div className="col-span-2 text-gray-500 text-[10px]">Riesgo zona: {risk.toFixed(2)} pts</div>}
+                    </div>
+                    <button
+                      onClick={() => setActiveSignal(s)}
+                      className={`w-full mt-2 py-1.5 rounded font-bold text-sm ${isLong ? 'bg-green-600 hover:bg-green-500' : 'bg-red-600 hover:bg-red-500'} text-white`}
+                    >
+                      Ejecutar {s.dir}
+                    </button>
+                  </div>
+                );
+              })()
             )}
-            {signals.map((s, i) => (
-              <div
-                key={i}
-                className={`px-2 py-1.5 rounded text-xs border
-                  ${s.type === 'LONG' ? 'bg-green-900/30 border-green-700 text-green-300' : 'bg-red-900/30 border-red-700 text-red-300'}`}
-              >
-                <span className={`font-bold mr-2 ${s.type === 'LONG' ? 'text-green-400' : 'text-red-400'}`}>
-                  {s.type === 'LONG' ? '▲ LONG' : '▼ SHORT'}
-                </span>
-                {s.msg}
+          </div>
+
+          {/* Signal history */}
+          <div className="flex-1 overflow-hidden px-2 space-y-1">
+            {tvSignals.slice(1).map((s, i) => (
+              <div key={i} className={`flex items-center gap-2 px-2 py-1 rounded text-xs ${s.dir === 'LONG' ? 'text-green-500' : 'text-red-500'} bg-gray-900`}>
+                <span className="font-bold">{s.dir === 'LONG' ? '▲' : '▼'}</span>
+                <span className="text-gray-400">EP {s.ep?.toFixed(2)}</span>
+                <span className="text-gray-600">SL {s.sl?.toFixed(2)}</span>
+                {s.aplus && <span className="text-yellow-500 text-[10px]">A+</span>}
+                <span className="ml-auto text-gray-700 text-[10px]">{Math.floor((Date.now() - s.ts) / 60000)}m</span>
               </div>
             ))}
           </div>
