@@ -143,7 +143,7 @@ export function useOrderFlow(dom, tape, price) {
     } else {
       setSignal(null);
     }
-  }, [dom, price]);
+  }, [dom, price, tape]);
 
   const resetDelta = () => { deltaRef.current = 0; prevDeltaRef.current = 0; setDelta(0); };
 
