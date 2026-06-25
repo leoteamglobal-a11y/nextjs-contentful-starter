@@ -67,9 +67,18 @@ function useGermanSignals() {
 }
 
 const SYMBOL    = process.env.NEXT_PUBLIC_TRADE_SYMBOL || 'MNQM5';
-const TV_SYMBOL = process.env.NEXT_PUBLIC_TV_SYMBOL   || 'CME_MICRO:MNQ1!';
 const TICK      = 0.25;
 const TICK_VALUE = parseFloat(process.env.NEXT_PUBLIC_TICK_VALUE || '0.5'); // $0.50 MNQ
+
+// Símbolos de gráfico. Los futuros CME (NQ/MNQ) necesitan login/suscripción en
+// el embed de TradingView; los CFD/índices cargan siempre sin login.
+const CHART_SYMBOLS = [
+  { key: 'US100', sym: 'CAPITALCOM:US100',   note: 'CFD Nasdaq · carga siempre' },
+  { key: 'NDX',   sym: 'TVC:NDX',            note: 'Índice Nasdaq 100 · carga siempre' },
+  { key: 'NAS100',sym: 'OANDA:NAS100USD',    note: 'CFD Nasdaq (OANDA)' },
+  { key: 'NQ',    sym: 'CME_MINI:NQ1!',      note: 'Futuro NQ · precio = MNQ (requiere login TV)' },
+  { key: 'MNQ',   sym: 'CME_MICRO:MNQ1!',    note: 'Micro MNQ (requiere login TV)' },
+];
 
 function randomTick(base) {
   return Math.round((base + (Math.random() - 0.495) * 3) / TICK) * TICK;
@@ -94,6 +103,7 @@ export default function TerminalClient() {
   const isLive = tv.status === 'connected';
   const tvSignals = useGermanSignals();
   const [activeSignal, setActiveSignal] = useState(null);
+  const [chartSym, setChartSym] = useState(CHART_SYMBOLS[0]);
 
   const [simPrice, setSimPrice]       = useState(21450.00);
   const [simHod, setSimHod]           = useState(21480.00);
@@ -298,13 +308,27 @@ export default function TerminalClient() {
 
         {/* LEFT: TradingView Chart */}
         <div className="flex-1 border-r border-gray-700 flex flex-col" style={{ minWidth: 0 }}>
-          <div className="px-3 py-1 bg-gray-900 border-b border-gray-800 text-gray-400 text-xs uppercase tracking-wider shrink-0 flex items-center gap-2">
-            <span className="text-purple-400 font-bold">MNQ</span>
-            <span>· 1m · TradingView</span>
-            <span className="ml-auto text-gray-600 text-[10px]">CME_MICRO:MNQ1!</span>
+          <div className="px-3 py-1 bg-gray-900 border-b border-gray-800 text-gray-400 text-xs shrink-0 flex items-center gap-2">
+            <span className="text-purple-400 font-bold uppercase tracking-wider">Gráfico</span>
+            <div className="flex items-center gap-1">
+              {CHART_SYMBOLS.map(c => (
+                <button
+                  key={c.key}
+                  onClick={() => setChartSym(c)}
+                  title={c.note}
+                  className={`px-2 py-0.5 text-[10px] rounded border transition-colors ${
+                    chartSym.key === c.key
+                      ? 'bg-purple-600 border-purple-400 text-white font-bold'
+                      : 'border-gray-700 text-gray-400 hover:border-gray-500'}`}
+                >
+                  {c.key}
+                </button>
+              ))}
+            </div>
+            <span className="ml-auto text-gray-600 text-[10px]">{chartSym.note}</span>
           </div>
           <div className="flex-1" style={{ minHeight: 0 }}>
-            <TradingViewChart tvSymbol={TV_SYMBOL} />
+            <TradingViewChart tvSymbol={chartSym.sym} />
           </div>
         </div>
 
