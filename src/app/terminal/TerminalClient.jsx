@@ -69,6 +69,9 @@ function useGermanSignals() {
 const SYMBOL    = process.env.NEXT_PUBLIC_TRADE_SYMBOL || 'MNQM5';
 const TICK      = 0.25;
 const TICK_VALUE = parseFloat(process.env.NEXT_PUBLIC_TICK_VALUE || '0.5'); // $0.50 MNQ
+// Precio base de la SIMULACIÓN (solo cuando Tradovate no está conectado).
+// Aproximado al Nasdaq real para que coincida con el gráfico en vivo.
+const SIM_BASE  = parseFloat(process.env.NEXT_PUBLIC_SIM_BASE || '29900');
 
 // Símbolos de gráfico. Los futuros CME (NQ/MNQ) necesitan login/suscripción en
 // el embed de TradingView; los CFD/índices cargan siempre sin login.
@@ -77,7 +80,7 @@ const CHART_SYMBOLS = [
   { key: 'NDX',   sym: 'TVC:NDX',            note: 'Índice Nasdaq 100 · carga siempre' },
   { key: 'NAS100',sym: 'OANDA:NAS100USD',    note: 'CFD Nasdaq (OANDA)' },
   { key: 'NQ',    sym: 'CME_MINI:NQ1!',      note: 'Futuro NQ · precio = MNQ (requiere login TV)' },
-  { key: 'MNQ',   sym: 'CME_MICRO:MNQ1!',    note: 'Micro MNQ (requiere login TV)' },
+  { key: 'MNQ',   sym: 'CME_MINI:MNQ1!',     note: 'Micro MNQ · precio exacto (requiere login TV)' },
 ];
 
 function randomTick(base) {
@@ -105,12 +108,12 @@ export default function TerminalClient() {
   const [activeSignal, setActiveSignal] = useState(null);
   const [chartSym, setChartSym] = useState(CHART_SYMBOLS[0]);
 
-  const [simPrice, setSimPrice]       = useState(21450.00);
-  const [simHod, setSimHod]           = useState(21480.00);
-  const [simLod, setSimLod]           = useState(21380.00);
+  const [simPrice, setSimPrice]       = useState(SIM_BASE);
+  const [simHod, setSimHod]           = useState(SIM_BASE + 60);
+  const [simLod, setSimLod]           = useState(SIM_BASE - 80);
   const [simTapeList, setSimTapeList] = useState([]);
-  const [simBook, setSimBook]         = useState(() => makeSimBook(21450.00));
-  const simPriceRef = useRef(21450.00);
+  const [simBook, setSimBook]         = useState(() => makeSimBook(SIM_BASE));
+  const simPriceRef = useRef(SIM_BASE);
   const simTapeRef  = useRef([]);
 
   const [localPos, setLocalPos]     = useState(null);
@@ -168,8 +171,8 @@ export default function TerminalClient() {
   const price    = isLive ? (tv.quote?.bidPrice ?? simPrice) : simPrice;
   const hod      = isLive ? (tv.quote?.high ?? simHod) : simHod;
   const lod      = isLive ? (tv.quote?.low ?? simLod) : simLod;
-  const open     = isLive ? (tv.quote?.open ?? 21400) : 21400;
-  const vwap     = tv.quote?.vwap ?? 21425.50;
+  const open     = isLive ? (tv.quote?.open ?? SIM_BASE - 50) : SIM_BASE - 50;
+  const vwap     = tv.quote?.vwap ?? (SIM_BASE - 20);
   const tapeData = isLive ? tv.tape : simTapeList;
   const bookData = isLive ? tv.dom  : simBook;
   const topSignal = tvSignals[0] ?? null;
