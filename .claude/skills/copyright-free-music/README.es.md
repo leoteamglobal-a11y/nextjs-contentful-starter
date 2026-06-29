@@ -36,7 +36,36 @@ Escribe `/copyright-free-music` o pídele a Claude cosas como:
    - **Remix** (usas el master/acapella original) → necesitas permiso del
      sello **y** del editor. No hay licencia automática: hay que pedirlo.
 
+## Dónde conseguir las acapellas (por seguridad para lanzar)
+
+**🟢 Verde — listas para LANZAR (royalty-free / CC-BY):**
+- Free Vocals (freevocals.com) — la más segura, cleared para streaming
+- ccMixter — acapellas/stems CC hechos para remix (revisa BY/NC)
+- Looperman (tags Creative Commons y Remix-Stems)
+- Ghosthack — packs vocales gratis
+- Splice / Loopcloud (de pago) — toplines por BPM/tono, licenciados
+
+**🟡 Amarillo — catálogos mixtos, revisa licencia de cada track:**
+- Voclr.it, Acapellas4U, Looperman (general), SongStems.net, Acapellas.eu
+
+**🔴 Rojo — NO lo lances (es infracción aunque esté "gratis"):**
+- Acapellas de temas Top-40 subidas por usuarios = rips → solo práctica/DJ
+- Voz extraída de un tema con copyright (LALAL.ai/UVR/Spleeter) → necesitas
+  permiso del sello + editor para lanzar
+- "Master Packs" de artistas famosos = normalmente no oficiales
+
+## Temas FAMOSOS que SÍ puedes remezclar legal (ahora mismo)
+
+Única vía legal para un tema conocido: stems oficiales de un concurso, o
+clásicos en dominio público. Los sitios de concursos cambian a diario, entra
+en vivo:
+- **RemiEXS** (remiexs.com/remixcontest) — agregador de casi todos los concursos
+- **Skio Music** (skiomusic.com/contests/remix) — descargas stems oficiales
+- **LabelRadar** (Beatport) — sellos house/EDM
+- **Dominio público**: Musopen, awesome-cc0
+
 ## Realidad de plataformas
 
 Content ID detecta el audio con copyright **aunque lo remezcles o le cambies
-el pitch/tempo**. Para evitar claims, usa audio ya autorizado (rutas 1 y 2).
+el pitch/tempo**. Para evitar claims, usa audio ya autorizado (rutas verde y
+concursos oficiales).

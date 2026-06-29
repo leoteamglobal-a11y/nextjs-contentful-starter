@@ -97,6 +97,37 @@ real path (don't pretend it's free):
 - **Spotify / Apple**: distributors require cover/remix licensing before they
   accept the upload.
 
+## Step 6 — Where to actually GET acapellas (sorted by release-safety)
+
+**🟢 Safe to RELEASE (royalty-free / CC-BY, cleared for commercial):**
+- Free Vocals (freevocals.com) — studio acapellas, cleared for streaming
+- ccMixter (ccmixter.org) — CC acapellas/stems built for remixing (check BY/NC)
+- Looperman → Creative Commons & Remix-Stems tags
+- Ghosthack — free royalty-free vocal packs
+- Splice / Loopcloud (paid) — toplines & acapellas by BPM/key, fully licensed
+
+**🟡 Mixed catalogs — verify each track's license before release:**
+- Voclr.it, Acapellas4U, Looperman (general), SongStems.net, Acapellas.eu
+
+**🔴 Do NOT release (infringement even when "free"):**
+- User-uploaded Top-40 / famous-song acapellas = unlicensed rips → personal/DJ
+  practice only
+- Vocals extracted from a copyrighted track via LALAL.ai / UVR / Spleeter →
+  legal tool, but releasing the remix needs label + publisher permission
+- "Stems Master Pack" of famous artists on community sites = usually unofficial
+
+## Step 7 — Famous tracks you CAN remix legally (right now)
+
+The only legit way to remix a *known* song: official stems via a remix contest,
+or public-domain classics. Contest sites block scrapers and change daily — the
+user must open them live:
+
+- RemiEXS (remiexs.com/remixcontest) — aggregator of nearly all open contests
+- Skio Music (skiomusic.com/contests/remix) — enter, download official stems
+- LabelRadar (greenroom.beatport.com/labels/labelradar/remix) — house/EDM labels
+- Beatportal Remix Contests; EDMProd's "11 places" list
+- Public domain: Musopen, awesome-cc0 — expired-copyright classics, fully free
+
 ## How to respond
 
 1. Identify use case + whether they want a specific copyrighted song.
