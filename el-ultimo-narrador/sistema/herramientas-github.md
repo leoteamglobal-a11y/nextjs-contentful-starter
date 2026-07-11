@@ -37,6 +37,31 @@ Cuando hagamos formato largo (Nivel B/C) y queramos sacar Shorts automáticament
 ## ❌ Lo que NO adoptamos (y por qué)
 Los generadores "todo-en-uno" faceless (auto-script + stock + TTS + auto-upload) producen contenido plano y sin alma — el opuesto de "mini-documental Netflix". Usarlos nos metería en el mar de slop del que queremos diferenciarnos. Nuestra ventaja es la **calidad cinematográfica + la voz de marca + la verificación histórica**. Eso no se automatiza con un repo de estos.
 
+## 🧠 CLAUDE SKILLS de optimización viral / growth *(lo que Leo pidió)*
+
+> Estas son **skills instalables** que Claude (yo) puede usar dentro del estudio para optimizar títulos, ganchos, miniaturas, SEO y detección de tendencias. Aviso de productor: hay muchas "granjas de skills" genéricas — cribamos por calidad y encaje con nuestra marca.
+
+### Los mejores (por reputación y encaje)
+- **zubair-trabzada/ai-marketing-claude** (2.1k★) — suite de 15 skills de marketing para Claude Code con subagentes: copy, calendarios de contenido, **inteligencia competitiva**, reportes. El más sólido.
+- **kostja94/marketing-skills** (725★) — **160+ skills** de SEO, contenido, canales y estrategias. Sin lock-in. Mina de oro para el Depto de YouTube.
+- **OpenClaudia/openclaudia-skills** (559★) — 34 skills de SEO, contenido, growth y analítica.
+- **minhnv0807/ai-business-skills** (489★) — skills bilingües con **región LATAM** — encaja con la serie insignia S3 y el público hispano.
+- **bradautomates/head-of-content** (138★) — research de contenido para redes; para el **Radar Editorial**.
+- **AzkiVIP/creator-growth-suite** — skills específicas de oportunidades de contenido + optimización de **miniatura/título/CTR** (poco probada pero justo en el tema).
+
+### Directorios para minar
+- **ComposioHQ/awesome-claude-skills** (67k★) y **VoltAgent/awesome-agent-skills** (28k★) — catálogos enormes de skills.
+
+### ⚡ Lo que ya tienes SIN instalar nada (importante)
+El **Filtro de Viralidad** (agente 14) puede usar el **predictor de viralidad de Higgsfield** que ya está conectado en la sesión: analiza fuerza del gancho, retención y atención sobre un video real. Para *predecir* viralidad, esa es la mejor opción; las skills de arriba son para *optimizar* el empaquetado (títulos, ganchos, SEO, tendencias).
+
+### 🎯 Mi recomendación (productor)
+1. Para **predecir** viralidad de un video montado → **Higgsfield virality_predictor** (ya conectado, cero instalación).
+2. Para **optimizar** títulos/ganchos/SEO/tendencias → cherry-pick de **ai-marketing-claude** + **marketing-skills**. No instalar todo (gobernanza: solo lo que aporte).
+3. Puedo **instalar 1-2 skills concretas** en `.claude/skills/` del repo si quieres probarlas dentro del estudio.
+
+---
+
 ## 🎯 Prioridad de adopción (productor)
 1. **Subtítulos quemados** (KillerSubtitles / captions-cli) — impacto directo en retención, bajo esfuerzo.
 2. **Subida + SEO por API** (TriviaUploadAutomation / Notion2Tube) — ahorra tiempo operativo cuando publiquemos en volumen.
