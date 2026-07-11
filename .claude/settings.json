@@ -1,0 +1,26 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__claude_ai_Higgsfield__job_status",
+      "mcp__tradingview__capture_screenshot",
+      "mcp__claude-in-chrome__navigate",
+      "mcp__computer-use__screenshot",
+      "mcp__tradingview__chart_get_state",
+      "mcp__tradingview__tv_health_check",
+      "mcp__claude-in-chrome__find",
+      "mcp__tradingview__quote_get",
+      "Bash(ffprobe *)",
+      "mcp__claude-in-chrome__tabs_context_mcp",
+      "mcp__tradingview__data_get_pine_tables",
+      "mcp__tradingview__data_get_pine_boxes",
+      "mcp__tradingview__ui_find_element",
+      "mcp__tradingview__data_get_pine_labels",
+      "Bash(.venv/bin/pytest *)",
+      "mcp__claude_ai_Higgsfield__balance",
+      "mcp__plugin_claude-video-vision_claude-video-vision__video_info",
+      "mcp__computer-use__wait",
+      "mcp__plugin_claude-video-vision_claude-video-vision__video_analyze",
+      "mcp__tradingview__data_get_ohlcv"
+    ]
+  }
+}
