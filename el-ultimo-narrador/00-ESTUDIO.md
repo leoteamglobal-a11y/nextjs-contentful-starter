@@ -29,7 +29,9 @@ el-ultimo-narrador/
 │   ├── biblia-de-marca.md         → voz, firma visual, intro/cierre, tagline
 │   ├── puntuacion.md              → Score /100 (umbral 85) + checklist productor ejecutivo
 │   ├── series.md                  → 10 series (S3 Latinoamérica = insignia; marca = paraguas)
-│   ├── consejo-creativo.md        → 9 mesas + Abogado del Diablo + Consejo por niveles + carriles
+│   ├── consejo-creativo.md        → comité: 9 mesas + Panel Audio/Viralidad (10-14) + niveles + carriles
+│   ├── productora-departamentos.md → organigrama completo: todos los departamentos-agente (arte, DF, VFX, ADR, continuista…)
+│   ├── contabilidad-tokens.md     → presupuesto y coste real por video
 │   └── crecimiento.md             → escalera de contenido A/B/C + distribución 1→4 + monetización
 │
 ├── bibliotecas/                   FASE 2-4 · Los moldes y activos
@@ -88,7 +90,7 @@ el-ultimo-narrador/
 
 ## ⚙️ El proceso industrial (cómo se hace un video)
 
-Todo video pasa por el **Consejo Creativo** (`sistema/consejo-creativo.md`, 9 mesas + Panel de Locución/Voz/Viralidad, agentes 10-14). En resumen:
+**Estructura del estudio:** el **Consejo Creativo** (`consejo-creativo.md`) es el comité que aprueba y critica; **La Productora** (`productora-departamentos.md`) es la tripulación de departamentos que ejecuta cada área (arte, DF, vestuario, VFX estilo Nuke/Houdini, ADR, continuista, etc.); **Contabilidad de Tokens** vigila el coste. En resumen, cada video:
 
 1. **Elegir historia** del banco (`ideas/database.md`) y su **serie** (`series.md`).
 2. **Puntuar** con `sistema/puntuacion.md`. ¿≥ 85/100? Sigue. ¿No? Se descarta o reformula.
