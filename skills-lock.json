@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "skills": {
+    "social-trend-finder": {
+      "source": "kweeyo09/social-trend-finder",
+      "sourceType": "github",
+      "skillPath": "SKILL.md",
+      "computedHash": "60335c2cc247a6f960b2362d690fc31f833a0c281fa9374fe9d7e2c158c907ef"
+    }
+  }
+}

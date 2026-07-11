@@ -70,6 +70,8 @@ Mapeados a los roles que YA existen (por gobernanza: son recursos, no roles nuev
 
 **Veredicto:** el único que aporta algo que NO tenemos es **social-trend-finder** (tendencias en vivo para el Radar Editorial). El resto **ya lo construimos** (ganchos, filtro de viralidad, estructuras) → por gobernanza, no los adoptamos salvo para enriquecer puntualmente `ganchos.md`.
 
+> **Estado (2026-07-11): instalada en `.claude/skills/social-trend-finder`, pero SIN datos reales.** El feed central del repo del autor (`kweeyo09/social-trend-finder`) está en placeholder — nunca corrió su GitHub Action para poblarlo. Probé `prepare_digest.py`: los 4 feeds (TikTok/IG/Reddit/YouTube) devuelven 0 items. Decisión: **dejarla instalada tal cual, sin usar** (no forkear ni pagar ScrapeCreators hasta que haya señal real de que hace falta) — mismo criterio que en trading: no invertir en algo no validado con data gratis. No re-evaluar esto de nuevo salvo que el feed upstream se llene solo o cambie el plan.
+
 ### 🎯 Mi recomendación (productor)
 1. Para **predecir** viralidad de un video montado → **Higgsfield virality_predictor** (ya conectado, cero instalación).
 2. Para **optimizar** títulos/ganchos/SEO/tendencias → cherry-pick de **ai-marketing-claude** + **marketing-skills**. No instalar todo (gobernanza: solo lo que aporte).
