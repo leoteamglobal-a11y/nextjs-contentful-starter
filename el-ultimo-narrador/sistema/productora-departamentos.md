@@ -131,6 +131,7 @@ Regla: cada video atraviesa los departamentos en orden. Cada uno entrega su part
 ## 🟪 FILTRO Y PUBLICACIÓN
 - **QC / Control de Calidad** → revisión final de errores (continuidad, audio, artefactos).
 - **🔥 Filtro de Viralidad** (agente 14) → sobre el montaje, con predictor de viralidad.
+- **📺 Departamento de YouTube** → empaquetado (título+miniatura), SEO, publicación, playlists, community, analítica y distribución 1→4. Doc propio: `departamento-youtube.md`.
 - **🎩 Dirección General** → aprueba y publica.
 
 ---

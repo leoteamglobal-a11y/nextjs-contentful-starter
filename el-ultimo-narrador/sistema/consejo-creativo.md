@@ -33,9 +33,9 @@
 - Optimiza los prompts para Higgsfield / VEO / Flow / Kling.
 - Reutiliza personajes (`personajes.md`) y escenarios (`escenarios.md`) para **reducir tokens** y reforzar identidad.
 
-### 7. 📈 Experto en YouTube
-- Título (mejor de 10), miniatura, SEO, CTA y hora de publicación (según `00-estrategia.md` y datos de Fase 6).
-- Asigna la serie y el número de episodio.
+### 7. 📈 Departamento de YouTube *(ampliado — ver `departamento-youtube.md`)*
+- No es un rol: es un **departamento completo** (Packaging, SEO, Retención Shorts, Publicación, Playlists, Community, Analítica, Growth, Cumplimiento, Multiplataforma).
+- Entrega: título (mejor de 10) + miniatura empaquetados como unidad, SEO, CTA, serie/episodio, y ficha de publicación (horario, hashtags, comentario fijado, distribución 1→4).
 
 ### 8. 😈 Abogado del Diablo *(la mesa que sube la calidad de 7 a 9)*
 Su única misión es **destruir la idea**. Responde sin piedad:

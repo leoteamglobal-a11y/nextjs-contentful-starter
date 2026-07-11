@@ -31,6 +31,7 @@ el-ultimo-narrador/
 │   ├── series.md                  → 10 series (S3 Latinoamérica = insignia; marca = paraguas)
 │   ├── consejo-creativo.md        → comité: 9 mesas + Panel Audio/Viralidad (10-14) + niveles + carriles
 │   ├── productora-departamentos.md → organigrama completo: todos los departamentos-agente (arte, DF, VFX, ADR, continuista…)
+│   ├── departamento-youtube.md    → canal, algoritmo y crecimiento (packaging, SEO, publicación, community, analítica)
 │   ├── contabilidad-tokens.md     → presupuesto y coste real por video
 │   └── crecimiento.md             → escalera de contenido A/B/C + distribución 1→4 + monetización
 │
