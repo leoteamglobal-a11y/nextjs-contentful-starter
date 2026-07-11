@@ -121,7 +121,7 @@ Leyenda de columnas: **V**=Viral · **R**=Retención · **C**=CTR · **Vi**=Visu
 | 76 | El hombre hallado muerto en una playa con un código imposible en el bolsillo (Somerton) | 5 | 5 | 5 | 5 | 5 | 4 | **29** |
 | 77 | La colonia entera que desapareció sin dejar más que una palabra tallada (Roanoke) | 5 | 5 | 5 | 5 | 5 | 4 | **29** |
 | 78 | El mapa que dibujó la Antártida sin hielo… 300 años antes de descubrirla (Piri Reis) 🔎 | 5 | 5 | 5 | 5 | 5 | 4 | **29** |
-| 79 | El faro donde tres hombres se esfumaron dejando la mesa servida (Flannan) | 5 | 5 | 5 | 5 | 5 | 4 | **29** |
+| 79 | El faro donde tres hombres se esfumaron sin dejar rastro (Flannan) ✅🎬 GUION → `producciones/002-faro-flannan.md` | 5 | 5 | 5 | 5 | 5 | 4 | **29** |
 | 80 | La máquina griega de 2000 años que era una computadora (Antikythera) | 5 | 5 | 5 | 5 | 4 | 4 | **28** |
 | 81 | El sonido más profundo del océano que nadie logra explicar (The Bloop) | 4 | 5 | 5 | 5 | 5 | 4 | **28** |
 | 82 | Las líneas gigantes en el desierto que solo se ven desde el cielo (Nazca) | 4 | 5 | 4 | 5 | 4 | 4 | **26** |
