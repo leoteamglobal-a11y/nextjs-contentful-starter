@@ -41,6 +41,7 @@ el-ultimo-narrador/
 │   ├── musica-sfx.md              → paletas sonoras
 │   ├── miniaturas.md              → fórmulas de miniatura de alto CTR
 │   ├── primeras-frases.md         → primeras líneas exactas reutilizables (distinto de ganchos)
+│   ├── locucion-y-voz.md          → estándar de lenguaje, entonación, dicción, voz y viralidad
 │   ├── herramientas-ia.md         → qué motor usar (Flow/Veo 3.1 principal · Higgsfield · Kling)
 │   └── prompts-maestros.md        → prompts para cada etapa (Claude/Flow/Higgsfield/Kling)
 │
@@ -87,7 +88,7 @@ el-ultimo-narrador/
 
 ## ⚙️ El proceso industrial (cómo se hace un video)
 
-Todo video pasa por el **Consejo Creativo** (`sistema/consejo-creativo.md`, 9 mesas). En resumen:
+Todo video pasa por el **Consejo Creativo** (`sistema/consejo-creativo.md`, 9 mesas + Panel de Locución/Voz/Viralidad, agentes 10-14). En resumen:
 
 1. **Elegir historia** del banco (`ideas/database.md`) y su **serie** (`series.md`).
 2. **Puntuar** con `sistema/puntuacion.md`. ¿≥ 85/100? Sigue. ¿No? Se descarta o reformula.
