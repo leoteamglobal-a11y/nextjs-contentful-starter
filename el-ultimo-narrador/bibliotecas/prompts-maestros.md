@@ -40,7 +40,7 @@ fichas RETRATO). El plano cambia cada 5-6s. Marca la escena del giro.
 Genera el prompt para [motor: Higgsfield/VEO/Kling]. Formato:
 [RETRATO del personaje literal] + [acción] + [escenario de escenarios.md] +
 [plano y lente: ej. 35mm, plano medio] + [movimiento de cámara] + [luz] +
-[base de estilo del canal] + "hyper-detailed, cinematic, 8k, Netflix documentary look".
+[base de estilo del canal] + "hyper-detailed, cinematic, 8k, prestige streaming documentary grade".
 Personajes IDÉNTICOS en todas las escenas. Devuélveme un prompt por escena,
 numerados, listos para copiar.
 ```

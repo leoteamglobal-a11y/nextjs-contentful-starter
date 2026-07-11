@@ -27,6 +27,8 @@ Por qué es nuestro caballo de batalla para las secuencias con personajes:
 
 > Ventaja estratégica: Ingredients + 9:16 nativo hacen de Flow la opción más eficiente para nuestro formato exacto, con la mejor continuidad de personaje.
 
+> ⚠️ **Marca de agua visible de Google (esperada, NO es un bug):** todo clip exportado de Flow/Veo trae un pequeño ícono de destello de 4 puntas quemado en la esquina inferior derecha (marcador de "contenido generado con IA", política de Google, distinto del incidente real del logo de Netflix). Confirmado visualmente en #001 (2026-07-11). No intentar "arreglarlo" regenerando — si molesta para publicación, la solución es recorte de encuadre (crop) en el montaje final, no un problema de prompt.
+
 ---
 
 ## 🥈 Higgsfield — MOVIMIENTO DE CÁMARA Y ESTILO

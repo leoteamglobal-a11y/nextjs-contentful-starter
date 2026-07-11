@@ -3,7 +3,7 @@
 > Cada vez que generamos un escenario espectacular, lo guardamos aquí con su prompt. Con el tiempo tendrás cientos listos para reciclar → menos tokens, más consistencia visual.
 
 **Base de estilo del canal (pegar en TODOS los prompts):**
-`cinematic documentary, shallow depth of field, teal-and-orange grade, deep blacks, subtle film grain, volumetric light, 8k, hyper-detailed, Netflix documentary look, 9:16 vertical`
+`cinematic documentary, shallow depth of field, teal-and-orange grade, deep blacks, subtle film grain, volumetric light, 8k, hyper-detailed, prestige streaming documentary grade, 9:16 vertical`
 
 ---
 
