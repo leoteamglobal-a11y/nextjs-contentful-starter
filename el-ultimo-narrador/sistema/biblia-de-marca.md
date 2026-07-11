@@ -10,6 +10,7 @@
 - **Tono:** grave, cálido, pausado en las revelaciones, acelerado en la tensión.
 - **Persona narrativa:** habla en presente y en 2ª persona cuando quiere meterte en la escena ("imagina que abres esa puerta…").
 - **Voz IA recomendada:** una sola voz masculina grave en español neutro, consistente en TODOS los videos (ElevenLabs / la que elijas — pero SIEMPRE la misma). Anótala aquí una vez elegida: `VOZ OFICIAL: __________`
+  - 🟡 **PROPUESTA (candidata, pendiente de aprobación final de Leo):** voz **"Orion"** — ElevenLabs vía Higgsfield, motor `text2speech_v2`, `voice_id: ed69c516-92d2-4b30-a967-617737a342e5`. Usada en la narración completa del video #001 (56.7s) para evaluar si encaja con el tono "narrador que descubrió un secreto". No marcar como `VOZ OFICIAL` hasta que Leo la escuche sobre el montaje y confirme.
 - **Ritmo de locución:** ~150-165 palabras por minuto. En 60s = **150-165 palabras de guion**. Ni una más.
 - **Prohibido decir:** "Hoy hablaremos de…", "En este video…", "¿Sabías que…?", "Bienvenidos". Prohibido sonar a Wikipedia.
 
@@ -23,6 +24,8 @@ Firma de apertura opcional (1-2s):
 ---
 
 ## 🎨 Firma visual (el "look Netflix")
+
+> ⚠️ **Nunca usar "Netflix" (ni otra marca) literal dentro de un prompt de imagen/video.** Ya pasó: un modelo lo interpretó como "pon el logo" y quemó el wordmark real de Netflix en una imagen (retrato de Troffea, #001, 2026-07-11). Usar siempre el equivalente sin marca: `prestige streaming documentary grade` / "documental premium". "Netflix" queda solo como referencia interna de tono, nunca en el texto que se manda a generar.
 
 - **Relación de aspecto:** vertical 9:16 (Shorts/TikTok/Reels) como formato madre; versión 16:9 para YouTube largo si aplica.
 - **Grado de color (LUT):** cinematográfico, contraste alto, negros profundos, ligera dominante **teal & orange** (sombras frías, pieles cálidas). Look "documental premium", nunca saturado tipo mobile.
