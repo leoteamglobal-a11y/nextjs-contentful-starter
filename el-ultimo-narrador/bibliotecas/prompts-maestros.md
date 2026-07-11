@@ -44,7 +44,7 @@ Genera el prompt para [motor: Higgsfield/VEO/Kling]. Formato:
 Personajes IDÉNTICOS en todas las escenas. Devuélveme un prompt por escena,
 numerados, listos para copiar.
 ```
-> Nota por motor: **Higgsfield/Kling** → describe movimiento de cámara explícito. **VEO** → admite frases narrativas más largas y físicas. **Flow** → encadena tomas; mantén el RETRATO en cada nodo.
+> Nota por motor (ver `herramientas-ia.md`): **Flow (Veo 3.1)** = motor principal → ancla el personaje con *Ingredients to Video* (sube el RETRATO como imagen de referencia), monta en SceneBuilder, exporta 9:16 4K, silencia el diálogo generado. **Higgsfield** → cuando el plano vive del movimiento de cámara (describe el movimiento explícito). **Kling** → respaldo para acción/multitudes.
 
 ## 5. 🗣️ Narración (locución)
 ```

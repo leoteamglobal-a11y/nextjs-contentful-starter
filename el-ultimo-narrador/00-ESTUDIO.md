@@ -35,7 +35,8 @@ el-ultimo-narrador/
 │   ├── escenarios.md              → prompts de escenarios espectaculares reutilizables
 │   ├── musica-sfx.md              → paletas sonoras
 │   ├── miniaturas.md              → fórmulas de miniatura de alto CTR
-│   └── prompts-maestros.md        → prompts para cada etapa (Claude/VEO/Higgsfield/Flow/Kling)
+│   ├── herramientas-ia.md         → qué motor usar (Flow/Veo 3.1 principal · Higgsfield · Kling)
+│   └── prompts-maestros.md        → prompts para cada etapa (Claude/Flow/Higgsfield/Kling)
 │
 ├── ideas/
 │   └── database.md                → banco de historias puntuadas (120 → 500)
