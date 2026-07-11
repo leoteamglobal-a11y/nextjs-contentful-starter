@@ -58,8 +58,8 @@ Formato de casa fijado por Dirección: **Short vertical de 60s** (9:16). Todo aq
 - Revisar políticas (contenido sensible) → encaja con las líneas rojas de `00-estrategia.md`.
 - Preparar el canal para el Programa de Socios (Fase 1 de `crecimiento.md`).
 
-### 12. 🌍 Distribuidor Multiplataforma
-- Adapta la pieza maestra a TikTok, Reels y Facebook (`crecimiento.md`). Casa = YouTube.
+### 12. 🌍 Distribución Multiplataforma → *promovido a departamento propio*
+- Ahora es el **Departamento de Distribución Multiplataforma** (`multiplataforma.md`): domina las diferencias de TikTok, Reels y Facebook. Casa = YouTube.
 
 ---
 
