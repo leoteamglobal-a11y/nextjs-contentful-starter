@@ -98,7 +98,7 @@ Leyenda de columnas: **V**=Viral · **R**=Retención · **C**=CTR · **Vi**=Visu
 
 | # | Idea | V | R | C | Vi | O | IA | Score |
 |---|------|---|---|---|----|---|----|-------|
-| 61 | El pueblo entero que empezó a bailar sin parar hasta morir (1518) 🔎 | 5 | 5 | 5 | 5 | 5 | 4 | **29** |
+| 61 | El pueblo entero que empezó a bailar sin parar hasta morir (1518) ✅🎬 PRODUCIDO → `producciones/001-baile-1518.md` | 5 | 5 | 5 | 5 | 5 | 4 | **29** |
 | 62 | La isla de las muñecas colgadas en México y el niño que nadie salvó | 5 | 5 | 5 | 5 | 4 | 5 | **29** |
 | 63 | El Hombre Polilla: la profecía antes del derrumbe del puente | 5 | 5 | 5 | 4 | 4 | 4 | **27** |
 | 64 | La leyenda del "aceite de serpiente" y por qué significa estafa | 4 | 4 | 5 | 4 | 5 | 4 | **26** |

@@ -13,11 +13,10 @@
 - **Momento de consumo:** scroll de descanso (transporte, cama, pausas). Por eso: gancho brutal en 3s o pierden el interés.
 - **Qué quieren sentir:** "wow, no sabía esto" para contárselo a alguien.
 
-## 2. La promesa del canal (una sola frase)
-> **"En 60 segundos, una historia real que cambia cómo ves el mundo."**
->
-> ✏️ Alternativa: *"Las historias verdaderas que el mundo estuvo a punto de olvidar."*
+## 2. La promesa del canal (una sola frase) — ✅ FIJADA
+> **"En 60 segundos, una historia real que el mundo estuvo a punto de olvidar — y que cambiará cómo lo ves todo."**
 
+Fusiona beneficio (te cambia la mirada) + alma de marca (historias rescatadas del olvido).
 Esta promesa se cumple SIEMPRE. Es el contrato con el espectador.
 
 ## 3. Mezcla de emociones objetivo (identidad emocional)

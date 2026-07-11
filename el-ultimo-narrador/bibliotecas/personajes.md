@@ -54,6 +54,15 @@ En cada prompt de escena, inserta el bloque `RETRATO` del personaje + la acción
 
 ---
 
+## Personajes creados en producciones (reutilizables)
+
+### Frau Troffea (video #001 — baile de 1518)
+`RETRATO Troffea:` woman ~35 years old, pale gaunt face, hollow tired eyes, long dark disheveled hair, simple worn grey-brown 16th-century linen dress, bare bleeding feet, trance-like exhausted expression.
+Notas de continuidad: siempre pies descalzos y ensangrentados, mirada vacía en trance. Época: 1518, Estrasburgo.
+🔎 Verificación de parecido: ok (personaje sin retrato histórico conocido → libre).
+
+---
+
 ## Plantilla para añadir un personaje nuevo
 ```
 ### [Nombre]
