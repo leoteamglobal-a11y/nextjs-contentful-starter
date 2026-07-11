@@ -4,6 +4,8 @@
 
 Regla: cambia **una sola variable** a la vez, o no sabrás qué la movió.
 
+> **Regla del 10% (Concilio):** ~1 de cada 10 videos se reserva para experimentar (otra voz, ritmo, miniatura, CTA, duración, estructura). El otro 90% sigue el sistema validado. Así el estudio evoluciona **sin perder estabilidad**.
+
 ---
 
 ## Experimentos de arranque sugeridos

@@ -16,6 +16,8 @@ Si solo lees un archivo, lee este. Es el índice y el cerebro del estudio.
 
 **Complejidad proporcional al valor.** Un Short cualquiera pasa por el Consejo Nivel 1 (Claude+ChatGPT). Un piloto de serie o documental largo, por el Nivel 2. No malgastamos comité en lo rutinario.
 
+**Regla de gobernanza (org congelado).** Por cada rol nuevo, debe eliminarse otro o probar con datos que mejora calidad/tiempo/riesgo. Ningún rol se añade por inercia. Ver `sistema/roles-y-gobernanza.md`. **El estudio ya está completo; ahora se produce.**
+
 ---
 
 ## 🗺️ Mapa del estudio
