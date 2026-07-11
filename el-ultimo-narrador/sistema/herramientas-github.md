@@ -55,6 +55,21 @@ Los generadores "todo-en-uno" faceless (auto-script + stock + TTS + auto-upload)
 ### ⚡ Lo que ya tienes SIN instalar nada (importante)
 El **Filtro de Viralidad** (agente 14) puede usar el **predictor de viralidad de Higgsfield** que ya está conectado en la sesión: analiza fuerza del gancho, retención y atención sobre un video real. Para *predecir* viralidad, esa es la mejor opción; las skills de arriba son para *optimizar* el empaquetado (títulos, ganchos, SEO, tendencias).
 
+### 🎯 Skills de short-form / hooks / tendencias (búsqueda enfocada)
+Mapeados a los roles que YA existen (por gobernanza: son recursos, no roles nuevos):
+
+| Skill | ★ | A qué rol nuestro sirve | ¿Lo necesitamos? |
+|---|---|---|---|
+| **kweeyo09/social-trend-finder** | — | 🔭 Radar Editorial + Multiplataforma: busca **sonidos y hashtags en tendencia** (TikTok/IG/Reddit) | ✅ **SÍ — llena un hueco real** (no teníamos capacidad de tendencias en vivo) |
+| **rediumvex/viral-hooks-skill** | 61 | Enriquece `ganchos.md`: 100 fórmulas de gancho en 10 gatillos psicológicos | ➕ Opcional — amplía nuestra librería |
+| **abhilashme/viral-hook** | — | 🔥 Filtro de Viralidad: puntúa y reescribe los **primeros 3s** contra una taxonomía | ➕ Opcional — ya lo hacemos, pero da una 2ª vara |
+| **Splitwolf1/adlab** | — | ⏱️ Director de Retención: **teardown** de por qué funciona un Short | ➕ Referencia |
+| **criscatalyst/script-writer-skill** | — | Guionista (Hook→Build→Value→Payoff→CTA) | ❌ Ya lo cubren nuestras estructuras |
+
+> Aviso: varios tienen 0★ (sin probar). Tratar como inspiración a cribar, no instalar a ciegas.
+
+**Veredicto:** el único que aporta algo que NO tenemos es **social-trend-finder** (tendencias en vivo para el Radar Editorial). El resto **ya lo construimos** (ganchos, filtro de viralidad, estructuras) → por gobernanza, no los adoptamos salvo para enriquecer puntualmente `ganchos.md`.
+
 ### 🎯 Mi recomendación (productor)
 1. Para **predecir** viralidad de un video montado → **Higgsfield virality_predictor** (ya conectado, cero instalación).
 2. Para **optimizar** títulos/ganchos/SEO/tendencias → cherry-pick de **ai-marketing-claude** + **marketing-skills**. No instalar todo (gobernanza: solo lo que aporte).
