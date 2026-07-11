@@ -116,7 +116,7 @@ Leyenda de columnas: **V**=Viral · **R**=Retención · **C**=CTR · **Vi**=Visu
 | # | Idea | V | R | C | Vi | O | IA | Score |
 |---|------|---|---|---|----|---|----|-------|
 | 73 | El libro que nadie ha podido leer en 600 años (Manuscrito Voynich) | 5 | 5 | 5 | 5 | 5 | 4 | **29** |
-| 74 | La señal del espacio que duró 72 segundos y jamás se repitió (señal Wow!) | 5 | 5 | 5 | 5 | 5 | 4 | **29** |
+| 74 | La señal del espacio que duró 72 segundos y jamás se repitió (señal Wow!) ✅🎬 GUION → `producciones/003-senal-wow.md` | 5 | 5 | 5 | 5 | 5 | 4 | **29** |
 | 75 | El pasajero que aterrizó con un pasaporte de un país que no existe 🔎 | 5 | 5 | 5 | 4 | 5 | 4 | **28** |
 | 76 | El hombre hallado muerto en una playa con un código imposible en el bolsillo (Somerton) | 5 | 5 | 5 | 5 | 5 | 4 | **29** |
 | 77 | La colonia entera que desapareció sin dejar más que una palabra tallada (Roanoke) | 5 | 5 | 5 | 5 | 5 | 4 | **29** |
