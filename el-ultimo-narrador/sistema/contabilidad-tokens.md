@@ -49,6 +49,9 @@ Serie más rentable: ___
 ---
 
 ## Registro inicial
-| # | Título | Total créditos | vs Tope | Notas |
-|---|--------|----------------|---------|-------|
-| 001 | El baile de 1518 | *(a registrar tras generar)* | — | 3 motores; Troffea como Ingredient reutilizable |
+| # | Título | Asset | Modelo | Seed | Créditos | Notas |
+|---|--------|-------|--------|------|----------|-------|
+| 001 | El baile de 1518 | Miniatura #2 | soul_v2 (2K) | 644896 | *(anotar)* | rostro Troffea en trance |
+| 001 | El baile de 1518 | Escena 1 | soul_v2 (2K) | 364525 | *(anotar)* | Troffea baila sola en niebla |
+
+> Anota los créditos consumidos desde tu panel de Higgsfield para cerrar el coste real del video.
