@@ -8,9 +8,13 @@ Si solo lees un archivo, lee este. Es el índice y el cerebro del estudio.
 
 ## 🧭 Filosofía
 
+> **PRINCIPIO RECTOR (Concilio):** *"No buscamos producir más videos. Buscamos construir un sistema que haga que cada video sea mejor que el anterior."*
+
 **Sistema, no colección.** Un canal muere cuando cada video se hace "como salga". Un estudio sobrevive porque tiene un método: elegir historia → pasarla por el filtro → producirla con moldes probados → medir → mejorar. Producir el video #300 debe ser tan consistente como el #1.
 
-**Validar antes de escalar.** No construimos 1,000 historias antes del primer video. Construimos el sistema mínimo, publicamos 3 videos, medimos qué funciona en NUESTRO nicho, y *después* escalamos con datos reales.
+**Validar antes de escalar.** No construimos 1,000 historias antes del primer video. Construimos el sistema mínimo, publicamos 3 videos (el **lote piloto**), medimos qué funciona en NUESTRO nicho, y *después* escalamos con datos reales.
+
+**Complejidad proporcional al valor.** Un Short cualquiera pasa por el Consejo Nivel 1 (Claude+ChatGPT). Un piloto de serie o documental largo, por el Nivel 2. No malgastamos comité en lo rutinario.
 
 ---
 
@@ -24,8 +28,9 @@ el-ultimo-narrador/
 │   ├── 00-estrategia.md           → FASE 0: público, promesa, emoción, qué NO publicar
 │   ├── biblia-de-marca.md         → voz, firma visual, intro/cierre, tagline
 │   ├── puntuacion.md              → Score /100 (umbral 85) + checklist productor ejecutivo
-│   ├── series.md                  → 8 series del canal (S3 Latinoamérica = arma secreta)
-│   └── consejo-creativo.md        → las 9 mesas + Abogado del Diablo + multi-modelo
+│   ├── series.md                  → 10 series (S3 Latinoamérica = insignia; marca = paraguas)
+│   ├── consejo-creativo.md        → 9 mesas + Abogado del Diablo + Consejo por niveles + carriles
+│   └── crecimiento.md             → escalera de contenido A/B/C + distribución 1→4 + monetización
 │
 ├── bibliotecas/                   FASE 2-4 · Los moldes y activos
 │   ├── patrones-virales.md        → 30 moldes de historia que funcionan
@@ -35,6 +40,7 @@ el-ultimo-narrador/
 │   ├── escenarios.md              → prompts de escenarios espectaculares reutilizables
 │   ├── musica-sfx.md              → paletas sonoras
 │   ├── miniaturas.md              → fórmulas de miniatura de alto CTR
+│   ├── primeras-frases.md         → primeras líneas exactas reutilizables (distinto de ganchos)
 │   ├── herramientas-ia.md         → qué motor usar (Flow/Veo 3.1 principal · Higgsfield · Kling)
 │   └── prompts-maestros.md        → prompts para cada etapa (Claude/Flow/Higgsfield/Kling)
 │
@@ -44,9 +50,14 @@ el-ultimo-narrador/
 ├── producciones/
 │   └── PLANTILLA.md               → los 10 elementos de cada video
 │
-└── laboratorio/                   FASE 6 · El bucle que aprende con datos
-    ├── resultados.md              → métricas reales por video + patrones
-    └── experimentos.md            → hipótesis A/B a propósito
+├── laboratorio/                   FASE 6 · El bucle que aprende con datos
+│   ├── resultados.md              → métricas reales por video + patrones
+│   ├── experimentos.md            → hipótesis A/B a propósito
+│   └── postmortem.md              → revisión a 30 días de cada video
+│
+└── concilio/                      Actas del Concilio Claude ⇄ ChatGPT
+    ├── ronda-01-claude-a-chatgpt.md
+    └── ronda-02-claude-a-chatgpt.md
 ```
 
 ---

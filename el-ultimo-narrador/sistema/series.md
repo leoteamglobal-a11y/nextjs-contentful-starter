@@ -4,6 +4,8 @@
 
 **Regla:** cada video pertenece a UNA serie. En el título/miniatura se ve la marca de la serie (ej. "El origen de… #7"). Numeramos los episodios.
 
+> ⚖️ **Marco de marca (Concilio Ronda 2, aportación de ChatGPT):** la marca principal SIEMPRE es **El Último Narrador** (el paraguas). Las series son *colecciones dentro* de la marca, no la sustituyen. S3 (Latinoamérica) es la **insignia** — la que más empuja — pero el canal nunca queda encerrado en un solo nicho. Las series fortalecen la marca; no la reemplazan.
+
 ---
 
 ## Las 8 series del canal
@@ -18,6 +20,8 @@
 | S6 | **Ciudades perdidas y lugares imposibles** | Asombro | Lugares, Misterios | #97, #100, #101, #103, #106, #77 |
 | S7 | **Grandes traiciones** | Suspenso | Empresas, Historia | #27, #30, #10, #28 |
 | S8 | **Misterios sin resolver** | Misterio | Misterios | #73, #74, #76, #78, #79, #83, #84 |
+| S9 | **Imperios olvidados** *(prop. ChatGPT)* | Admiración | Historia, Lugares | #50, #51, #55, #97 |
+| S10 | **Historias que parecen falsas (y son reales)** *(prop. ChatGPT)* | Asombro | Curiosidades, Historia | #60, #109, #111, #114, #116, #120 |
 
 ---
 

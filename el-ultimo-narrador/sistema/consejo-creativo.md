@@ -53,18 +53,38 @@ Su única misión es **destruir la idea**. Responde sin piedad:
 
 ---
 
-## 🧩 El Consejo de Sabios (multi-modelo) — versión sensata
+## 🧩 El Consejo de Sabios (multi-modelo) — SISTEMA DE NIVELES
 
-No pasamos cada video por 5 modelos (eso frena la producción). Repartimos por **fortaleza**, solo donde aporta:
+> Convergencia del Concilio (Ronda 2): la complejidad debe ser **proporcional al valor esperado** del contenido. No todos los videos merecen el mismo comité.
 
-| Modelo | Rol | Cuándo usarlo |
+### Nivel 1 — el 90% de los videos
+Solo **dos actores**: **Claude** (motor: 9 mesas + investigación/verificación web + producción) y **ChatGPT** (arquitectura creativa + estrategia + retención + crítica). Suficiente y rápido.
+
+### Nivel 2 — el 10% de alto valor
+Cuando el video es un **lanzamiento de serie, un documental largo (Nivel B/C), un patrocinado o un piloto importante**, se suma:
+- Búsqueda web reforzada (verificación profunda).
+- Otro modelo (Perplexity/Gemini) **solo si aporta algo específico**.
+
+| Actor | Rol | Cuándo |
 |---|---|---|
-| **Claude (yo)** | Productor Ejecutivo permanente + las 9 mesas + investigación/verificación web | Siempre. Es el motor del estudio. |
-| **ChatGPT** | Estrategia y visión de conjunto; segundo par de ojos | En decisiones de rumbo del canal, no en cada video. |
-| **Perplexity / Gemini** | Verificación de fuentes en datos 🔎 dudosos | Solo cuando un dato es delicado y quieres triple-check. |
-| **Higgsfield / VEO / Kling / Flow** | Producción visual | En la generación. |
+| **Claude** | Sistema operativo, investigación, producción, documentación, automatización | Siempre (N1 y N2) |
+| **ChatGPT** | Arquitectura del estudio, narrativa, retención, estrategia, optimización, dirección creativa | Siempre (N1 y N2) |
+| **Búsqueda web / otro modelo** | Verificación profunda / perspectiva extra | Solo Nivel 2 |
+| **Flow / Higgsfield / Kling** | Producción visual | En la generación |
 
-> Regla del productor: el multi-modelo entra en el **20% de decisiones caras** (rumbo del canal, datos delicados), no en el 80% operativo. Así ganas perspectiva sin perder velocidad.
+> Regla: *la complejidad es proporcional al valor esperado.* Un Short cualquiera = Nivel 1. El piloto de una serie = Nivel 2.
+
+---
+
+## 🛣️ Carriles del estudio (división de trabajo — Concilio Ronda 2)
+
+| Miembro | Carril |
+|---|---|
+| **Claude** | Sistema operativo · investigación · producción de paquetes · generación de imagen/video · documentación · automatización |
+| **ChatGPT** | Arquitectura del estudio · narrativa · retención · estrategia · optimización · análisis crítico · **dirección creativa** |
+| **Leo** | Director General · decisión final · visión · priorización |
+
+**Handoff para no pisarnos:** ChatGPT define el *qué y el porqué* creativo (marcos, ángulos, dirección). Claude ejecuta el *cómo* (produce, investiga, documenta y genera en el repo). Cuando hay solape en "narrativa/retención", ChatGPT propone el marco y Claude lo aplica al guion concreto y lo pasa por las 9 mesas.
 
 ---
 
