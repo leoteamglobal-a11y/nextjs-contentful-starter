@@ -61,6 +61,16 @@ En cada prompt de escena, inserta el bloque `RETRATO` del personaje + la acción
 Notas de continuidad: siempre pies descalzos y ensangrentados, mirada vacía en trance. Época: 1518, Estrasburgo.
 🔎 Verificación de parecido: ok (personaje sin retrato histórico conocido → libre).
 
+### Victor Lustig (video #004 — la Torre Eiffel vendida dos veces)
+`RETRATO Lustig:` man ~35 years old, slicked-back dark hair with sharp side part, thin pencil moustache, sharp intelligent eyes, charming confident half-smile, impeccable 1920s three-piece pinstripe suit with pocket watch chain, silk tie, polished leather shoes, aristocratic composed posture masking calculation.
+Notas de continuidad: siempre con la misma sonrisa confiada y el mismo maletín en escenas de viaje/huida (refuerza el eco visual del giro). Época: 1925, París.
+🔎 Verificación de parecido: ok (no hay fotografía histórica ampliamente reconocible del rostro real → interpretación libre del arquetipo "estafador elegante de los años 20").
+
+### André Poisson (video #004 — la Torre Eiffel vendida dos veces)
+`RETRATO Poisson:` man ~45 years old, portly build, receding hairline, well-groomed moustache, nervous darting eyes, expensive but slightly overdone 1920s suit, sweat visible on brow, ingratiating anxious smile, posture of someone trying too hard to belong.
+Notas de continuidad: siempre visiblemente ansioso/inseguro, nunca relajado. Época: 1925, París.
+🔎 Verificación de parecido: ok (interpretación libre, sin retrato histórico ampliamente documentado).
+
 ---
 
 ## Plantilla para añadir un personaje nuevo

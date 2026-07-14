@@ -132,7 +132,7 @@ Leyenda de columnas: **V**=Viral · **R**=Retención · **C**=CTR · **Vi**=Visu
 
 | # | Idea | V | R | C | Vi | O | IA | Score |
 |---|------|---|---|---|----|---|----|-------|
-| 85 | El estafador que "vendió" la Torre Eiffel… dos veces | 5 | 5 | 5 | 4 | 5 | 4 | **28** |
+| 85 | El estafador que "vendió" la Torre Eiffel… dos veces ✅🎬 PAQUETE COMPLETO → `producciones/004-eiffel-lustig.md` | 5 | 5 | 5 | 4 | 5 | 4 | **28** |
 | 86 | El hombre que sobrevivió a las dos bombas atómicas | 5 | 5 | 5 | 4 | 5 | 4 | **28** |
 | 87 | El genio que murió pobre y hoy tiene una calle en cada ciudad (Tesla) | 4 | 5 | 4 | 4 | 3 | 4 | **24** |
 | 88 | El explorador que se comió sus propias botas para sobrevivir en la Antártida | 5 | 5 | 5 | 5 | 5 | 4 | **29** |
