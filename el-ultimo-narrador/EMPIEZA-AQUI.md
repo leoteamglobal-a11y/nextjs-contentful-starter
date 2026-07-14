@@ -31,10 +31,11 @@ Abre `producciones/001-baile-1518.md` (paquete completo) y `producciones/001-LIB
 
 ---
 
-## Ya tienes listos (3 guiones)
-- **#001** baile de 1518 — paquete completo + libreto de voz.
-- **#002** faro de Flannan — guion + partitura.
-- **#003** señal Wow! — guion + partitura.
+## Ya tienes listos (3 guiones, en orden de binge-watching)
+- **#001** baile de 1518 — paquete completo + libreto de voz + rough cut de 100s ya generado (falta voz, trim a 60s y upscale 4K).
+- **#003** señal Wow! — guion + partitura (paquete visual pendiente).
+- **#004** la Torre Eiffel vendida dos veces (Victor Lustig) — paquete completo (storyboard + prompts + personajes), pendiente producir en Flow.
+- *(#002, faro de Flannan, queda pausado por decisión de Leo — no está en la cadena de CTAs por ahora.)*
 
 ## Mapa del estudio
 Todo empieza en **`00-ESTUDIO.md`** (el manual maestro).

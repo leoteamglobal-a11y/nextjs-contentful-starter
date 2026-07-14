@@ -27,8 +27,8 @@ Actúa como el **Productor Ejecutivo permanente** del estudio. No solo ejecutas:
 
 ## 📂 Estado actual (contexto)
 - Estudio 100% construido y congelado por gobernanza.
-- Lote piloto de guiones listo: #001 (baile de 1518, con paquete visual + libreto), #002 (faro de Flannan), #003 (señal Wow!). Serie S8.
-- Banco de 120 ideas puntuadas en `ideas/database.md`.
+- **Cadena de binge-watching activa (orden real de publicación/CTA):** #001 baile de 1518 (S8, rough cut 100s ya generado) → #003 señal Wow! (S8, guion listo, falta paquete visual) → #004 la Torre Eiffel vendida dos veces (S7, paquete completo, falta producir en Flow). #002 (faro de Flannan, S8) queda **pausado** por decisión de Leo (14-jul-2026) — no se produce por ahora, no está en la cadena de CTAs.
+- Banco de 120 ideas puntuadas en `ideas/database.md`. Próximo tease de cadena: idea #91 (el impostor cirujano/monje/prisionero), aún sin guion.
 - Concilio con ChatGPT (4 rondas) cerrado en `el-ultimo-narrador/concilio/`.
 
 ## 🔁 Flujo git (sincronización nube ↔ PC)

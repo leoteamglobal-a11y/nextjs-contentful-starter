@@ -4,7 +4,7 @@
 **Patrón viral:** #13 (el misterio que nadie pudo explicar) · **Estructura:** #7 (detective) + #11 (pregunta imposible)
 **Estado:** GUION listo · paquete visual pendiente (sin créditos / usar Flow)
 
-> Cierra el lote piloto (S8·E01-E03). Trilogía de misterios: baile de 1518 → faro de Flannan → señal Wow!.
+> Segundo episodio de la cadena de binge-watching (el faro de Flannan, idea #79, quedó pausado — 14-jul-2026). Orden real: baile de 1518 (#001) → señal Wow! (#003) → la Torre Eiffel vendida dos veces (#004).
 
 ---
 
@@ -59,8 +59,8 @@
 - *Ehman → "Í-man"* · *Big Ear → "big íar"* · *Sagitario* ok · *hidrógeno* claro, sin arrastrar.
 
 ## 10. 📣 CTA (puente por curiosidad)
-> **"Si el espacio pudo enviarnos una señal perfecta y callar para siempre… espera a ver el libro que nadie ha logrado leer en 600 años. Está aquí al lado."**
-> *(Puente a otra serie: idea #73, el Manuscrito Voynich.)*
+> **"Si el universo pudo enviarnos una señal perfecta y nunca volver a hablarnos… espera a conocer al hombre que logró vender la Torre Eiffel. Dos veces. Está aquí al lado."**
+> *(Puente directo a #004 — paquete completo listo. El Manuscrito Voynich, idea #73, queda en el banco para una próxima cadena de binge-watching de misterios.)*
 
 ---
 
