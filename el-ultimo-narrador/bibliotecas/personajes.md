@@ -71,6 +71,11 @@ Notas de continuidad: siempre con la misma sonrisa confiada y el mismo maletín 
 Notas de continuidad: siempre visiblemente ansioso/inseguro, nunca relajado. Época: 1925, París.
 🔎 Verificación de parecido: ok (interpretación libre, sin retrato histórico ampliamente documentado).
 
+### Jerry Ehman (video #003 — la señal Wow!)
+`RETRATO Ehman:` man ~40 years old, thick-rimmed square glasses, neatly trimmed brown moustache, short combed dark hair with 1970s sideburns, light blue short-sleeve collared shirt with a pocket protector holding pens, focused intense expression, slightly hunched posture from hours at a desk.
+Notas de continuidad: siempre con gafas y el bolsillo con lapiceros; nunca cambia de vestuario entre escenas (mismo turno de noche). Época: 1977, Ohio.
+🔎 Verificación de parecido: pendiente (persona real documentada — si se dispone de fotografía de referencia real, priorizarla sobre esta descripción genérica antes de generar).
+
 ---
 
 ## Plantilla para añadir un personaje nuevo

@@ -58,6 +58,38 @@
 ## 5. 🔤 Dicción (agente 12)
 - *Ehman → "Í-man"* · *Big Ear → "big íar"* · *Sagitario* ok · *hidrógeno* claro, sin arrastrar.
 
+## 4b. 🎞️ Storyboard (10 escenas × ~6s)
+
+| Esc | Tiempo | Qué ocurre | Qué se ve | Cámara | Luz | Emoción | Color | Composición |
+|-----|--------|-----------|-----------|--------|-----|---------|-------|-------------|
+| 1 | 0-6s | El observatorio en silencio | Campo del radiotelescopio Big Ear (Ohio, 1977) de noche, cielo estrellado | Aéreo lento descendiendo | Noche despejada, luz de estrellas | Calma expectante | Azul profundo | Antena pequeña bajo cielo inmenso |
+| 2 | 6-12s | Ehman revisa los datos | Sala de control con terminales y una impresora de matriz de puntos, Ehman solo en su escritorio | Plano medio, cámara fija | Luz fluorescente fría + brillo de pantallas | Concentración | Verde/gris frío | Figura pequeña rodeada de máquinas |
+| 3 | 12-18s | La señal imposible | Macro del listado impreso, números disparándose en una fila | Macro + leve zoom-in | Luz de escritorio | Sorpresa | Ámbar sobre gris | Números llenando el cuadro |
+| 4 | 18-24s | La frecuencia del hidrógeno | Visualización estilizada de ondas viajando por el espacio hacia la Tierra desde Sagitario | Travelling a través de campo estelar | Luz estelar difusa | Asombro cósmico | Azul/violeta | Onda cruzando el cuadro en diagonal |
+| 5 | 24-30s | Escribe "Wow!" | Macro extremo de una mano circulando "6EQUJ5" en rojo y escribiendo "Wow!" al margen | Macro cenital | Luz de lámpara de escritorio | Revelación íntima | Ámbar cálido | Papel llenando el cuadro |
+| 6 | 30-36s | Años de búsqueda | Montaje: el telescopio apuntando noche tras noche, hojas de calendario/estaciones cambiando de fondo | Time-lapse, cámara fija con jump cuts | Alternando noche/amanecer | Persistencia | Desaturado progresivo | Antena constante, fondo cambia |
+| 7 | 36-42s | El silencio se repite | Ehman frente a una pantalla/impresora vacía, sin nada que anotar | Plano medio estático | Luz fría de pantalla | Resignación | Gris azulado | Figura sola, espacio negativo grande |
+| 8 | 42-48s | La hipótesis descartada | Un cometa cruzando el espacio, luego desvaneciéndose/disolviéndose como tachado | Travelling lateral que se disuelve | Luz estelar fría | Descarte | Azul frío desaturándose a negro | Cometa cruzando y desapareciendo |
+| 9 | 48-55s | GIRO: 50 años después | Corte a un observatorio moderno, mismo cielo, mismo silencio — eco visual de Esc 1 | Aéreo descendiendo, mismo movimiento que Esc 1 | Noche moderna, luces LED tenues | Vértigo del tiempo | Azul profundo (idéntico a Esc 1) | Composición espejo de la Esc 1 |
+| 10 | 55-60s | Cierre + tagline | Vuelve el papel original con "Wow!" en cámara, pull-back hacia el cielo estrellado infinito | Macro que se abre a plano general | Amanecer tenue sobre estrellas | Asombro final | Dorado/negro (marca) | Papel pequeño, cielo inmenso |
+
+## 5b. 🎥 Prompts cinematográficos (por escena)
+
+> **Bible de personaje (consistencia — copiar literal en cada escena):**
+> `RETRATO Ehman:` man ~40 years old, thick-rimmed square glasses, neatly trimmed brown moustache, short combed dark hair with 1970s sideburns, light blue short-sleeve collared shirt with a pocket protector holding pens, focused intense expression, slightly hunched posture from hours at a desk.
+> **Base de estilo del canal:** `cinematic documentary, shallow depth of field, teal-and-orange grade, deep blacks, subtle film grain, volumetric light, 8k, hyper-detailed, prestige streaming documentary grade, 9:16 vertical`
+
+- **Esc 1:** `slow aerial descent toward the Big Ear radio telescope field at night, Ohio 1977, vast starry sky above, silent isolated observatory + [base de estilo]`
+- **Esc 2:** `[RETRATO Ehman] alone at a desk in a 1970s control room full of dot-matrix printers and terminals, cold fluorescent light, screen glow + [base de estilo]`
+- **Esc 3:** `extreme macro of a computer printout with rows of numbers suddenly spiking, slow zoom-in, warm desk lamp light + [base de estilo]`
+- **Esc 4:** `stylized tracking shot through a starfield, a radio wave traveling in a diagonal line from the direction of Sagittarius toward Earth, diffuse blue-violet starlight + [base de estilo]`
+- **Esc 5:** `extreme macro top-down shot of [RETRATO Ehman]'s hand circling "6EQUJ5" in red pen and writing "Wow!" in the margin, warm desk lamp light + [base de estilo]`
+- **Esc 6:** `time-lapse montage, the radio telescope pointing at the same patch of sky night after night, seasons subtly changing in the background, jump cuts + [base de estilo]`
+- **Esc 7:** `[RETRATO Ehman] sitting static in front of a blank screen and empty printout, cold screen light, negative space, resigned stillness + [base de estilo]`
+- **Esc 8:** `lateral tracking shot of a comet streaking across space, then dissolving into darkness as if crossed out, cold starlight fading to black + [base de estilo]`
+- **Esc 9:** `slow aerial descent toward a modern observatory at night, mirroring scene 1's exact camera movement, same starry sky, dim modern LED lights + [base de estilo]`
+- **Esc 10:** `extreme macro of the original "Wow!" printout pulling back into a wide shot of an infinite starry sky at dawn, golden-and-black palette + [base de estilo]`
+
 ## 10. 📣 CTA (puente por curiosidad)
 > **"Si el universo pudo enviarnos una señal perfecta y nunca volver a hablarnos… espera a conocer al hombre que logró vender la Torre Eiffel. Dos veces. Está aquí al lado."**
 > *(Puente directo a #004 — paquete completo listo. El Manuscrito Voynich, idea #73, queda en el banco para una próxima cadena de binge-watching de misterios.)*
@@ -65,7 +97,9 @@
 ---
 
 ## Pendiente (cuando haya créditos o en Flow)
-- [ ] Storyboard (10 escenas): sala de control 70s, papel con "6EQUJ5" y "Wow!" a mano, cielo estrellado hacia Sagitario, telescopio Big Ear.
+- [x] Storyboard (10 escenas) + prompts cinematográficos. ✅
+- [x] Personaje: `RETRATO Ehman` (astrónomo años 70, gafas, camisa de la época). ✅ (guardado en `bibliotecas/personajes.md`)
 - [ ] Miniatura (F5): primer plano del papel con "Wow!" rodeado a mano + texto "NADIE LO EXPLICA".
-- [ ] Personaje: `RETRATO Ehman` (astrónomo años 70, gafas, camisa de la época).
 - [ ] Música: drone cósmico + pulso de radio; silencio tras "nunca volvió".
+- [ ] **En Flow:** crear a Ehman como *Ingredient*; generar las 10 escenas con *Ingredients to Video*; montar en *SceneBuilder*; exportar 9:16, upscale 4K.
+- [ ] Grabar narración con la voz oficial (pendiente de fijar, ver #001).
