@@ -27,8 +27,14 @@ Actúa como el **Productor Ejecutivo permanente** del estudio. No solo ejecutas:
 
 ## 📂 Estado actual (contexto)
 - Estudio 100% construido y congelado por gobernanza.
-- **Cadena de binge-watching activa (orden real de publicación/CTA):** #001 baile de 1518 (S8, rough cut 100s ya generado) → #003 señal Wow! (S8, guion listo, falta paquete visual) → #004 la Torre Eiffel vendida dos veces (S7, paquete completo, falta producir en Flow). #002 (faro de Flannan, S8) queda **pausado** por decisión de Leo (14-jul-2026) — no se produce por ahora, no está en la cadena de CTAs.
-- Banco de 120 ideas puntuadas en `ideas/database.md`. Próximo tease de cadena: idea #91 (el impostor cirujano/monje/prisionero), aún sin guion.
+- **Cadena de binge-watching activa (orden real de publicación/CTA), 5 episodios con paquete completo:**
+  1. #001 baile de 1518 (S8) — rough cut 100s ya generado, falta voz + trim 60s + upscale 4K.
+  2. #003 señal Wow! (S8) — paquete completo (storyboard+prompts), falta producir en Flow.
+  3. #004 la Torre Eiffel vendida dos veces / Victor Lustig (S7·E01) — paquete completo, falta producir en Flow.
+  4. #005 el impostor Ferdinand Demara (S7·E02) — paquete completo, falta producir en Flow.
+  5. #006 Ching Shih, la pirata que ningún imperio pudo vencer (S7·E03 provisional — **requiere confirmación de Leo**, ver nota de gobernanza en el propio archivo) — paquete completo, falta producir en Flow. Su CTA cierra volviendo a S8 (idea #73, Manuscrito Voynich, aún sin guion).
+  - #002 (faro de Flannan, S8) queda **pausado** por decisión de Leo (14-jul-2026), fuera de la cadena de CTAs.
+- Banco de 120 ideas puntuadas en `ideas/database.md`. Ideas #85, #91, #93 ya marcadas como producidas con enlace a su paquete.
 - Concilio con ChatGPT (4 rondas) cerrado en `el-ultimo-narrador/concilio/`.
 
 ## 🔁 Flujo git (sincronización nube ↔ PC)

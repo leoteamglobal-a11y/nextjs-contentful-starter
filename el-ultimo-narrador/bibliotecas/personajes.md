@@ -71,6 +71,16 @@ Notas de continuidad: siempre con la misma sonrisa confiada y el mismo maletín 
 Notas de continuidad: siempre visiblemente ansioso/inseguro, nunca relajado. Época: 1925, París.
 🔎 Verificación de parecido: ok (interpretación libre, sin retrato histórico ampliamente documentado).
 
+### Ferdinand Demara (video #005 — el impostor que operó soldados)
+`RETRATO Demara:` man ~30 years old, tall and heavyset build, round face with soft jawline, dark hair combed neatly back, calm unreadable expression, intelligent watchful eyes, easy convincing smile when needed.
+Notas de continuidad: mismo rostro/complexión en todas las escenas; cambia SOLO el vestuario según el rol que finge (monje = hábito trapense marrón · subdirector de cárcel = uniforme institucional gris con placa · profesor = saco de tweed con coderas · cirujano naval = bata blanca sobre uniforme de la Marina Real Canadiense). Época: 1951, Guerra de Corea (+ flashbacks de años previos).
+🔎 Verificación de parecido: pendiente (persona real documentada — si se dispone de fotografía de referencia real, priorizarla).
+
+### Ching Shih (video #006 — la pirata que ningún imperio pudo vencer)
+`RETRATO Ching Shih:` woman ~30 years old, strong angular face, dark hair pulled back tightly in a practical style, piercing determined eyes, weathered hands, dark practical early-1800s Chinese maritime robes with a wide sash (early scenes); finer silk robes in the closing retirement scene, commanding upright posture.
+Notas de continuidad: mismo rostro/complexión siempre; cambia de vestuario práctico de guerra a sedas finas solo en la escena de retiro (Esc 10). Época: 1801-1810, sur de China.
+🔎 Verificación de parecido: ok (sin retrato histórico contemporáneo confiable conocido → interpretación libre respetuosa del período).
+
 ### Jerry Ehman (video #003 — la señal Wow!)
 `RETRATO Ehman:` man ~40 years old, thick-rimmed square glasses, neatly trimmed brown moustache, short combed dark hair with 1970s sideburns, light blue short-sleeve collared shirt with a pocket protector holding pens, focused intense expression, slightly hunched posture from hours at a desk.
 Notas de continuidad: siempre con gafas y el bolsillo con lapiceros; nunca cambia de vestuario entre escenas (mismo turno de noche). Época: 1977, Ohio.

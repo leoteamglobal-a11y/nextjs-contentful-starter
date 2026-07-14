@@ -138,9 +138,9 @@ Leyenda de columnas: **V**=Viral · **R**=Retención · **C**=CTR · **Vi**=Visu
 | 88 | El explorador que se comió sus propias botas para sobrevivir en la Antártida | 5 | 5 | 5 | 5 | 5 | 4 | **29** |
 | 89 | La mujer que se hizo pasar por hombre para ser médico toda su vida 🔎 | 5 | 5 | 5 | 4 | 5 | 4 | **28** |
 | 90 | El matemático que predijo su propia muerte con una ecuación (De Moivre) 🔎 | 5 | 5 | 5 | 4 | 5 | 4 | **28** |
-| 91 | El impostor que fue cirujano, monje y prisionero sin estudiar nada | 5 | 5 | 5 | 4 | 5 | 4 | **28** |
+| 91 | El impostor que fue cirujano, monje y prisionero sin estudiar nada ✅🎬 PAQUETE COMPLETO → `producciones/005-impostor-demara.md` | 5 | 5 | 5 | 4 | 5 | 4 | **28** |
 | 92 | El hombre que caminó al Polo Sur y regresó… para que nadie le creyera | 4 | 5 | 4 | 5 | 5 | 4 | **27** |
-| 93 | La reina pirata que hizo temblar al imperio chino (Ching Shih) | 5 | 5 | 5 | 5 | 5 | 4 | **29** |
+| 93 | La reina pirata que hizo temblar al imperio chino (Ching Shih) ✅🎬 PAQUETE COMPLETO → `producciones/006-ching-shih.md` | 5 | 5 | 5 | 5 | 5 | 4 | **29** |
 | 94 | El niño ciego que aprendió a "ver" con el sonido como un murciélago 🔎 | 5 | 5 | 5 | 4 | 5 | 4 | **28** |
 | 95 | El hombre que pasó 40 años construyendo un castillo solo, de noche (Coral Castle) | 5 | 5 | 5 | 5 | 5 | 4 | **29** |
 | 96 | El cartero que construyó un palacio con las piedras que recogía cada día | 4 | 5 | 4 | 5 | 5 | 4 | **27** |
