@@ -9,8 +9,9 @@
 - **Personalidad:** un narrador que descubrió un secreto y no puede esperar a contártelo. Íntimo, no académico. Como un amigo brillante en una sobremesa a medianoche.
 - **Tono:** grave, cálido, pausado en las revelaciones, acelerado en la tensión.
 - **Persona narrativa:** habla en presente y en 2ª persona cuando quiere meterte en la escena ("imagina que abres esa puerta…").
-- **Voz IA recomendada:** una sola voz masculina grave en español neutro, consistente en TODOS los videos (ElevenLabs / la que elijas — pero SIEMPRE la misma). Anótala aquí una vez elegida: `VOZ OFICIAL: __________`
-  - 🟡 **PROPUESTA (candidata, pendiente de aprobación final de Leo):** voz **"Orion"** — ElevenLabs vía Higgsfield, motor `text2speech_v2`, `voice_id: ed69c516-92d2-4b30-a967-617737a342e5`. Usada en la narración completa del video #001 (56.7s) para evaluar si encaja con el tono "narrador que descubrió un secreto". No marcar como `VOZ OFICIAL` hasta que Leo la escuche sobre el montaje y confirme.
+- **Voz IA recomendada:** una sola voz masculina grave en español neutro, consistente en TODOS los videos.
+  - ✅ **VOZ OFICIAL: "Hector Pineiro - Narrador Misterio"** — ElevenLabs directo (API key propia del usuario, no vía Higgsfield), `voice_id: obFqURkm39iiEiDvnsdG`, modelo `eleven_multilingual_v2`, acento peninsular, registro "deep"/narrative_story. Es la misma voz ya usada en el episodio publicado del canal (EP12, baile de 1518, YouTube 11-jul-2026) — no es una propuesta nueva, es la voz establecida del canal. Config sugerida: `stability: 0.5, similarity_boost: 0.8`.
+  - 🟡 Candidata descartada: "Orion" (Higgsfield/ElevenLabs, `ed69c516-92d2-4b30-a967-617737a342e5`) — quedó como propuesta sin confirmar del sistema de producción nuevo; no se usa, la voz real del canal es Hector Pineiro.
 - **Ritmo de locución:** ~150-165 palabras por minuto. En 60s = **150-165 palabras de guion**. Ni una más.
 - **Prohibido decir:** "Hoy hablaremos de…", "En este video…", "¿Sabías que…?", "Bienvenidos". Prohibido sonar a Wikipedia.
 
