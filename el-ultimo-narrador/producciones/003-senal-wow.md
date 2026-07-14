@@ -75,17 +75,18 @@
 
 ## 5b. 🎥 Prompts cinematográficos (por escena)
 
-> **Bible de personaje (consistencia — copiar literal en cada escena):**
-> `RETRATO Ehman:` man ~40 years old, thick-rimmed square glasses, neatly trimmed brown moustache, short combed dark hair with 1970s sideburns, light blue short-sleeve collared shirt with a pocket protector holding pens, focused intense expression, slightly hunched posture from hours at a desk.
+> **Bible de personaje (consistencia — copiar literal en cada escena; nombre real SOLO interno, nunca en el prompt que se manda a Flow):**
+> `RETRATO astrónomo (Flow: "Astronomo Radiotelescopio"):` man ~40 years old, thick-rimmed square glasses, neatly trimmed brown moustache, short combed dark hair with 1970s sideburns, light blue short-sleeve collared shirt with a pocket protector holding pens, focused intense expression, slightly hunched posture from hours at a desk.
 > **Base de estilo del canal:** `cinematic documentary, shallow depth of field, teal-and-orange grade, deep blacks, subtle film grain, volumetric light, 8k, hyper-detailed, prestige streaming documentary grade, 9:16 vertical`
+> ⚠️ Nunca escribir "Ehman" (ni otro nombre real) en el texto del prompt — usar "the astronomer" / el Ingredient de personaje ya adjunto. Ya bloqueó Flow una vez (política de personas famosas), no repetir.
 
 - **Esc 1:** `slow aerial descent toward the Big Ear radio telescope field at night, Ohio 1977, vast starry sky above, silent isolated observatory + [base de estilo]`
-- **Esc 2:** `[RETRATO Ehman] alone at a desk in a 1970s control room full of dot-matrix printers and terminals, cold fluorescent light, screen glow + [base de estilo]`
+- **Esc 2:** `the astronomer alone at a desk in a 1970s control room full of dot-matrix printers and terminals, cold fluorescent light, screen glow + [base de estilo]`
 - **Esc 3:** `extreme macro of a computer printout with rows of numbers suddenly spiking, slow zoom-in, warm desk lamp light + [base de estilo]`
 - **Esc 4:** `stylized tracking shot through a starfield, a radio wave traveling in a diagonal line from the direction of Sagittarius toward Earth, diffuse blue-violet starlight + [base de estilo]`
-- **Esc 5:** `extreme macro top-down shot of [RETRATO Ehman]'s hand circling "6EQUJ5" in red pen and writing "Wow!" in the margin, warm desk lamp light + [base de estilo]`
+- **Esc 5:** `extreme macro top-down shot of the astronomer's hand circling "6EQUJ5" in red pen and writing "Wow!" in the margin, warm desk lamp light + [base de estilo]`
 - **Esc 6:** `time-lapse montage, the radio telescope pointing at the same patch of sky night after night, seasons subtly changing in the background, jump cuts + [base de estilo]`
-- **Esc 7:** `[RETRATO Ehman] sitting static in front of a blank screen and empty printout, cold screen light, negative space, resigned stillness + [base de estilo]`
+- **Esc 7:** `the astronomer sitting static in front of a blank screen and empty printout, cold screen light, negative space, resigned stillness + [base de estilo]`
 - **Esc 8:** `lateral tracking shot of a comet streaking across space, then dissolving into darkness as if crossed out, cold starlight fading to black + [base de estilo]`
 - **Esc 9:** `slow aerial descent toward a modern observatory at night, mirroring scene 1's exact camera movement, same starry sky, dim modern LED lights + [base de estilo]`
 - **Esc 10:** `extreme macro of the original "Wow!" printout pulling back into a wide shot of an infinite starry sky at dawn, golden-and-black palette + [base de estilo]`
@@ -98,8 +99,9 @@
 
 ## Pendiente (cuando haya créditos o en Flow)
 - [x] Storyboard (10 escenas) + prompts cinematográficos. ✅
-- [x] Personaje: `RETRATO Ehman` (astrónomo años 70, gafas, camisa de la época). ✅ (guardado en `bibliotecas/personajes.md`)
+- [x] Personaje: `RETRATO astrónomo` (Flow: "Astronomo Radiotelescopio", genérico — nunca el nombre real). ✅ (guardado en `bibliotecas/personajes.md`)
+- [x] Narración grabada con la voz oficial Hector Pineiro (ElevenLabs). ✅ `003-senal-wow-voz.mp3`, 64.18s.
+- [x] **En Flow:** las 10 escenas generadas (14-jul-2026). Escena 2 bloqueada una vez por política de personas famosas (nombre real "Ehman" en el prompt) — corregido renombrando el personaje y usando "the astronomer" en todos los prompts; escenas 3-10 sin incidencias.
+- [ ] Montar en *SceneBuilder*: match-cut Esc1/Esc9, silenciar audio nativo de Flow, overlay narración, música/SFX según §7, exportar 9:16 4K.
 - [ ] Miniatura (F5): primer plano del papel con "Wow!" rodeado a mano + texto "NADIE LO EXPLICA".
 - [ ] Música: drone cósmico + pulso de radio; silencio tras "nunca volvió".
-- [ ] **En Flow:** crear a Ehman como *Ingredient*; generar las 10 escenas con *Ingredients to Video*; montar en *SceneBuilder*; exportar 9:16, upscale 4K.
-- [ ] Grabar narración con la voz oficial (pendiente de fijar, ver #001).

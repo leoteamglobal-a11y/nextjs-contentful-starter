@@ -95,10 +95,10 @@ Notas de continuidad: el mismo rostro representa al hombre muerto (escenas 1-2) 
 Notas de continuidad: siempre con turbante y vestimenta naval otomana; nunca cambia de vestuario (una sola época, 1513). Época: Estambul, 1513.
 🔎 Verificación de parecido: pendiente (figura histórica real documentada — si hay grabado/retrato de época conocido, priorizarlo).
 
-### Jerry Ehman (video #003 — la señal Wow!)
-`RETRATO Ehman:` man ~40 years old, thick-rimmed square glasses, neatly trimmed brown moustache, short combed dark hair with 1970s sideburns, light blue short-sleeve collared shirt with a pocket protector holding pens, focused intense expression, slightly hunched posture from hours at a desk.
+### El astrónomo del Big Ear (video #003 — la señal Wow!; persona real: Jerry Ehman — NUNCA usar el nombre real en prompts de Flow, política de personas famosas ya bloqueó la generación una vez)
+`RETRATO astrónomo` (Flow: personaje "Astronomo Radiotelescopio"): man ~40 years old, thick-rimmed square glasses, neatly trimmed brown moustache, short combed dark hair with 1970s sideburns, light blue short-sleeve collared shirt with a pocket protector holding pens, focused intense expression, slightly hunched posture from hours at a desk.
 Notas de continuidad: siempre con gafas y el bolsillo con lapiceros; nunca cambia de vestuario entre escenas (mismo turno de noche). Época: 1977, Ohio.
-🔎 Verificación de parecido: pendiente (persona real documentada — si se dispone de fotografía de referencia real, priorizarla sobre esta descripción genérica antes de generar).
+🔎 Verificación de parecido: pendiente (persona real documentada — si se dispone de fotografía de referencia real, priorizarla sobre esta descripción genérica antes de generar). En prompts de Flow, referirse siempre como "the astronomer", nunca por el nombre real.
 
 ---
 
