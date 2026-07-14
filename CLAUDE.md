@@ -27,14 +27,18 @@ Actúa como el **Productor Ejecutivo permanente** del estudio. No solo ejecutas:
 
 ## 📂 Estado actual (contexto)
 - Estudio 100% construido y congelado por gobernanza.
-- **Cadena de binge-watching activa (orden real de publicación/CTA), 5 episodios con paquete completo:**
+- **Cadena de binge-watching activa (orden real de publicación/CTA), 8 episodios con paquete completo, ninguno producido aún en Flow salvo #001 (rough cut parcial):**
   1. #001 baile de 1518 (S8) — rough cut 100s ya generado, falta voz + trim 60s + upscale 4K.
-  2. #003 señal Wow! (S8) — paquete completo (storyboard+prompts), falta producir en Flow.
+  2. #003 señal Wow! (S8) — paquete completo, falta producir en Flow.
   3. #004 la Torre Eiffel vendida dos veces / Victor Lustig (S7·E01) — paquete completo, falta producir en Flow.
   4. #005 el impostor Ferdinand Demara (S7·E02) — paquete completo, falta producir en Flow.
-  5. #006 Ching Shih, la pirata que ningún imperio pudo vencer (S7·E03 provisional — **requiere confirmación de Leo**, ver nota de gobernanza en el propio archivo) — paquete completo, falta producir en Flow. Su CTA cierra volviendo a S8 (idea #73, Manuscrito Voynich, aún sin guion).
+  5. #006 Ching Shih, la pirata que ningún imperio pudo vencer (S7·E03 provisional — **requiere confirmación de gobernanza de Leo**, ver nota en el archivo) — paquete completo.
+  6. #007 el manuscrito Voynich (S8) — paquete completo.
+  7. #008 el hombre de Somerton / Carl Webb (S8) — paquete completo.
+  8. #009 el mapa de Piri Reis (S8) — paquete completo. Su CTA teasea el próximo: idea #81 "The Bloop", aún sin guion.
   - #002 (faro de Flannan, S8) queda **pausado** por decisión de Leo (14-jul-2026), fuera de la cadena de CTAs.
-- Banco de 120 ideas puntuadas en `ideas/database.md`. Ideas #85, #91, #93 ya marcadas como producidas con enlace a su paquete.
+- Banco de 120 ideas puntuadas en `ideas/database.md`. Ideas #73, #76, #78, #85, #91, #93 ya marcadas como producidas con enlace a su paquete.
+- Todos los personajes nuevos (Lustig, Poisson, Demara, Ching Shih, Ehman, Hombre de Somerton, Detective 1948, Piri Reis + arquetipo Criptógrafo) guardados en `bibliotecas/personajes.md` para reutilizar.
 - Concilio con ChatGPT (4 rondas) cerrado en `el-ultimo-narrador/concilio/`.
 
 ## 🔁 Flujo git (sincronización nube ↔ PC)

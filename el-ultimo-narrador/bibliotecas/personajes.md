@@ -49,6 +49,9 @@ En cada prompt de escena, inserta el bloque `RETRATO` del personaje + la acción
 ### La Cronista / Testigo
 `RETRATA Cronista:` mujer de ~30 años, cabello oscuro recogido, vestimenta neutra de época, rostro expresivo, presente en escenas de "testigo" de los hechos.
 
+### El Criptógrafo (años 40, sala de códigos)
+`RETRATO Criptógrafo:` man ~40 years old, 1940s military dress shirt with loosened tie, round wire-frame glasses, short cropped hair, tired intense eyes from sleepless analysis, ink-stained fingers, focused frustrated expression.
+
 ### La Sombra (el narrador simbólico)
 `RETRATO Sombra:` figura encapuchada de espaldas o a contraluz, con una linterna/vela; nunca se ve el rostro. Es la personificación de "El Último Narrador". Aparece en intro/cierre.
 
@@ -80,6 +83,17 @@ Notas de continuidad: mismo rostro/complexión en todas las escenas; cambia SOLO
 `RETRATO Ching Shih:` woman ~30 years old, strong angular face, dark hair pulled back tightly in a practical style, piercing determined eyes, weathered hands, dark practical early-1800s Chinese maritime robes with a wide sash (early scenes); finer silk robes in the closing retirement scene, commanding upright posture.
 Notas de continuidad: mismo rostro/complexión siempre; cambia de vestuario práctico de guerra a sedas finas solo en la escena de retiro (Esc 10). Época: 1801-1810, sur de China.
 🔎 Verificación de parecido: ok (sin retrato histórico contemporáneo confiable conocido → interpretación libre respetuosa del período).
+
+### El Hombre de Somerton / Carl Webb (video #008 — el código sin descifrar)
+`RETRATO Hombre de Somerton:` man ~45 years old, well-built, 1.80m tall, grey-blue eyes, gingery-brown hair greying at the sides, formal well-tailored 1940s suit, neutral unreadable expression (lifeless in beach scenes, calm and ordinary in the later "Carl Webb alive" reveal).
+`RETRATO Detective 1948:` man ~40 years old, tired weathered face, trench coat over a plain suit, fedora hat, notebook in hand, methodical observant expression.
+Notas de continuidad: el mismo rostro representa al hombre muerto (escenas 1-2) y al Carl Webb vivo (escena 9) — mismo actor/Ingredient, cambia solo vestuario y contexto (traje formal 1940s vs. ropa de taller). Época: 1948-2022, Australia.
+🔎 Verificación de parecido: pendiente (persona real, identidad confirmada por ADN en 2022 pero sin confirmación forense oficial final al momento de la investigación — tratar con cautela en el guion, ya reflejado como "Ampliamente aceptado").
+
+### Piri Reis (video #009 — el mapa que "probaba" una civilización perdida)
+`RETRATO Piri Reis:` man ~50 years old, greying trimmed beard, white Ottoman turban, dignified naval officer's robes in deep red and navy, intelligent focused eyes, weathered navigator's hands, calm scholarly bearing.
+Notas de continuidad: siempre con turbante y vestimenta naval otomana; nunca cambia de vestuario (una sola época, 1513). Época: Estambul, 1513.
+🔎 Verificación de parecido: pendiente (figura histórica real documentada — si hay grabado/retrato de época conocido, priorizarlo).
 
 ### Jerry Ehman (video #003 — la señal Wow!)
 `RETRATO Ehman:` man ~40 years old, thick-rimmed square glasses, neatly trimmed brown moustache, short combed dark hair with 1970s sideburns, light blue short-sleeve collared shirt with a pocket protector holding pens, focused intense expression, slightly hunched posture from hours at a desk.
