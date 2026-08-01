@@ -3,45 +3,103 @@
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { estimateMonthly, formatMoney } from './lib/finance.js';
+import { NEIGHBORHOODS, COUNTY_DEFAULTS, DEFAULT_COMMISSION } from './lib/miami.js';
+import { useLang } from './i18n/context.jsx';
 
 export function Calculator() {
-  const [nightlyRate, setNightlyRate] = useState(80);
-  const [occupancy, setOccupancy] = useState(65);
-  const [commissionPct, setCommissionPct] = useState(20);
+  const { t } = useLang();
+  const [county, setCounty] = useState('miami-dade');
+  const [hood, setHood] = useState('custom');
+  const [nightlyRate, setNightlyRate] = useState(COUNTY_DEFAULTS['miami-dade'].rate);
+  const [occupancy, setOccupancy] = useState(COUNTY_DEFAULTS['miami-dade'].occ);
+  const [commissionPct, setCommissionPct] = useState(DEFAULT_COMMISSION);
+  const [costs, setCosts] = useState(200);
+
+  const hoods = useMemo(() => NEIGHBORHOODS.filter((n) => n.county === county), [county]);
+  const activeHood = NEIGHBORHOODS.find((n) => n.id === hood);
+
+  function onCounty(e) {
+    const c = e.target.value;
+    setCounty(c);
+    setHood('custom');
+    setNightlyRate(COUNTY_DEFAULTS[c].rate);
+    setOccupancy(COUNTY_DEFAULTS[c].occ);
+  }
+  function onHood(e) {
+    const id = e.target.value;
+    setHood(id);
+    const n = NEIGHBORHOODS.find((x) => x.id === id);
+    if (n) {
+      setNightlyRate(n.rate);
+      setOccupancy(n.occ);
+    }
+  }
 
   const result = useMemo(
-    () => estimateMonthly({ nightlyRate, occupancy, commissionPct, monthlyCosts: 0 }),
-    [nightlyRate, occupancy, commissionPct],
+    () => estimateMonthly({ nightlyRate, occupancy, commissionPct, monthlyCosts: costs }),
+    [nightlyRate, occupancy, commissionPct, costs],
   );
 
   return (
     <div className="grid gap-8 md:grid-cols-2">
-      <div className="space-y-6">
-        <Slider label="Tarifa promedio por noche" value={nightlyRate} min={20} max={400} step={5}
+      <div className="space-y-5">
+        <div className="grid grid-cols-2 gap-3">
+          <Select label={t('calc.county')} value={county} onChange={onCounty}
+            options={[['miami-dade', t('calc.counties.miami-dade')], ['broward', t('calc.counties.broward')]]} />
+          <Select label={t('calc.neighborhood')} value={hood} onChange={onHood}
+            options={[['custom', t('calc.neighborhoodCustom')], ...hoods.map((n) => [n.id, n.name])]} />
+        </div>
+
+        {activeHood && (
+          <p className={`text-xs font-medium ${activeHood.tag === 'restricted' ? 'text-amber-600' : 'text-emerald-600'}`}>
+            {activeHood.tag === 'restricted' ? '⚠️ ' : '✓ '}
+            {activeHood.tag === 'restricted' ? t('calc.tagRestricted') : t('calc.tagOk')}
+          </p>
+        )}
+
+        <Slider label={t('calc.rate')} value={nightlyRate} min={80} max={600} step={5}
           onChange={setNightlyRate} format={(v) => formatMoney(v)} />
-        <Slider label="Ocupación esperada" value={occupancy} min={20} max={95} step={1}
+        <Slider label={t('calc.occupancy')} value={occupancy} min={30} max={90} step={1}
           onChange={setOccupancy} format={(v) => `${v}%`} />
-        <Slider label="Tu comisión como co-host" value={commissionPct} min={10} max={30} step={1}
+        <Slider label={t('calc.commission')} value={commissionPct} min={12} max={25} step={1}
           onChange={setCommissionPct} format={(v) => `${v}%`} />
+        <Slider label={t('calc.costs')} value={costs} min={0} max={1000} step={25}
+          onChange={setCosts} format={(v) => formatMoney(v)} />
       </div>
 
-      <div className="flex flex-col justify-center gap-4 p-6 text-white bg-gray-900 rounded-2xl">
-        <div>
-          <p className="text-sm text-gray-400">Ingreso mensual de la propiedad</p>
-          <p className="text-2xl font-bold">{formatMoney(result.grossRevenue)}</p>
+      <div className="flex flex-col justify-center gap-3 p-6 text-white bg-gray-900 rounded-2xl">
+        <Row k={t('calc.resNights')} v={result.nightsPerMonth} muted />
+        <Row k={t('calc.resGross')} v={formatMoney(result.grossRevenue)} />
+        <Row k={t('calc.resCommission')} v={`−${formatMoney(result.yourCommission)}`} />
+        <Row k={t('calc.resCosts')} v={`−${formatMoney(costs)}`} />
+        <div className="p-4 mt-2 bg-rose-950/60 rounded-xl">
+          <p className="text-sm text-rose-300">{t('calc.resNet')}</p>
+          <p className="text-4xl font-extrabold text-rose-400">{formatMoney(result.ownerNet)}</p>
+          <p className="mt-1 text-sm text-gray-400">≈ {formatMoney(result.ownerNet * 12)} {t('calc.resYear')}</p>
         </div>
-        <div className="pt-4 border-t border-gray-700">
-          <p className="text-sm text-rose-300">Tu ganancia mensual (comisión)</p>
-          <p className="text-4xl font-extrabold text-rose-400">{formatMoney(result.yourCommission)}</p>
-          <p className="mt-1 text-sm text-gray-400">
-            ≈ {formatMoney(result.yourCommissionYearly)} al año, por 1 sola propiedad
-          </p>
-        </div>
-        <p className="text-xs text-gray-500">
-          Estimación con ~{result.nightsPerMonth} noches ocupadas/mes. Los números reales dependen de tu mercado.
-        </p>
+        <p className="text-xs text-gray-500">{t('calc.note')}</p>
       </div>
     </div>
+  );
+}
+
+function Row({ k, v, muted }) {
+  return (
+    <div className="flex items-baseline justify-between">
+      <span className={`text-sm ${muted ? 'text-gray-500' : 'text-gray-300'}`}>{k}</span>
+      <span className={`font-bold tabular-nums ${muted ? 'text-gray-400' : 'text-white'}`}>{v}</span>
+    </div>
+  );
+}
+
+function Select({ label, value, onChange, options }) {
+  return (
+    <label className="block">
+      <span className="block mb-1 text-sm font-medium text-gray-700">{label}</span>
+      <select value={value} onChange={onChange} className={inputCls}>
+        {options.map(([val, lbl]) => <option key={val} value={val}>{lbl}</option>)}
+      </select>
+    </label>
   );
 }
 
@@ -50,24 +108,18 @@ function Slider({ label, value, min, max, step, onChange, format }) {
     <div>
       <div className="flex items-center justify-between mb-2">
         <label className="font-medium text-gray-700">{label}</label>
-        <span className="font-bold text-rose-600">{format(value)}</span>
+        <span className="font-bold text-rose-600 tabular-nums">{format(value)}</span>
       </div>
-      <input
-        type="range"
-        min={min}
-        max={max}
-        step={step}
-        value={value}
-        onChange={(e) => onChange(Number(e.target.value))}
-        className="w-full accent-rose-600"
-      />
+      <input type="range" min={min} max={max} step={step} value={value}
+        onChange={(e) => onChange(Number(e.target.value))} className="w-full accent-rose-600" />
     </div>
   );
 }
 
 export function LeadForm() {
+  const { t } = useLang();
   const [form, setForm] = useState({ name: '', contact: '', city: '', properties: 1, message: '' });
-  const [status, setStatus] = useState('idle'); // idle | sending | done | error
+  const [status, setStatus] = useState('idle');
   const [error, setError] = useState('');
 
   const update = (field) => (e) => setForm((f) => ({ ...f, [field]: e.target.value }));
@@ -76,8 +128,6 @@ export function LeadForm() {
     e.preventDefault();
     setStatus('sending');
     setError('');
-
-    // Respaldo local: nunca se pierde un prospecto aunque falle el servidor.
     try {
       const backup = JSON.parse(localStorage.getItem('airbnb_leads') || '[]');
       backup.unshift({ ...form, receivedAt: new Date().toISOString() });
@@ -85,12 +135,11 @@ export function LeadForm() {
     } catch {
       /* localStorage no disponible */
     }
-
     try {
       const res = await fetch('/api/leads', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
+        body: JSON.stringify({ ...form, source: 'landing-miami' }),
       });
       const data = await res.json();
       if (!res.ok || !data.ok) throw new Error(data.error || 'No se pudo enviar.');
@@ -105,13 +154,10 @@ export function LeadForm() {
     return (
       <div className="p-8 text-center bg-white shadow-lg rounded-2xl">
         <div className="mb-4 text-5xl">🎉</div>
-        <h3 className="mb-2 text-2xl font-bold text-gray-900">¡Solicitud recibida!</h3>
-        <p className="text-gray-600">
-          Gracias, {form.name.split(' ')[0]}. Te contactaremos pronto para agendar una llamada y calcular
-          el potencial de tu propiedad. También guardamos tu solicitud en este dispositivo.
-        </p>
+        <h3 className="mb-2 text-2xl font-bold text-gray-900">{t('lead.successTitle')}</h3>
+        <p className="text-gray-600">{t('lead.successBody')}</p>
         <Link href="/airbnb/panel" className="inline-block px-6 py-3 mt-6 font-semibold text-white transition rounded-lg bg-rose-600 hover:bg-rose-500">
-          Ver el panel de gestión →
+          {t('lead.successPanel')}
         </Link>
       </div>
     );
@@ -119,38 +165,31 @@ export function LeadForm() {
 
   return (
     <form onSubmit={handleSubmit} className="p-6 space-y-4 bg-white shadow-lg sm:p-8 rounded-2xl">
-      <h3 className="text-2xl font-bold text-gray-900">Solicita tu evaluación gratuita</h3>
-      <p className="text-sm text-gray-500">Déjanos tus datos y te decimos cuánto puede generar tu propiedad.</p>
-
-      <Field label="Nombre completo *">
+      <h3 className="text-2xl font-bold text-gray-900">{t('lead.formTitle')}</h3>
+      <p className="text-sm text-gray-500">{t('lead.formSub')}</p>
+      <Field label={t('lead.name')}>
         <input required value={form.name} onChange={update('name')} className={inputCls} placeholder="Ana Martínez" />
       </Field>
-      <Field label="Teléfono o email *">
-        <input required value={form.contact} onChange={update('contact')} className={inputCls} placeholder="+52 55 1234 5678" />
+      <Field label={t('lead.contact')}>
+        <input required value={form.contact} onChange={update('contact')} className={inputCls} placeholder="+1 305 123 4567" />
       </Field>
       <div className="grid grid-cols-2 gap-4">
-        <Field label="Ciudad">
-          <input value={form.city} onChange={update('city')} className={inputCls} placeholder="CDMX" />
+        <Field label={t('lead.city')}>
+          <input value={form.city} onChange={update('city')} className={inputCls} placeholder="Brickell, Miami" />
         </Field>
-        <Field label="¿Cuántas propiedades?">
+        <Field label={t('lead.properties')}>
           <input type="number" min={0} value={form.properties} onChange={update('properties')} className={inputCls} />
         </Field>
       </div>
-      <Field label="Cuéntanos sobre tu propiedad (opcional)">
-        <textarea value={form.message} onChange={update('message')} rows={3} className={inputCls}
-          placeholder="Depto de 2 recámaras en el centro, actualmente vacío..." />
+      <Field label={t('lead.message')}>
+        <textarea value={form.message} onChange={update('message')} rows={3} className={inputCls} placeholder={t('lead.messagePlaceholder')} />
       </Field>
-
-      {status === 'error' && <p className="text-sm text-red-600">⚠️ {error}</p>}
-
-      <button
-        type="submit"
-        disabled={status === 'sending'}
-        className="w-full px-6 py-3 font-semibold text-white transition rounded-lg bg-rose-600 hover:bg-rose-500 disabled:opacity-60"
-      >
-        {status === 'sending' ? 'Enviando…' : 'Quiero mi evaluación gratis'}
+      {status === 'error' && <p className="text-sm text-red-600">{t('lead.errorPrefix')}{error}</p>}
+      <button type="submit" disabled={status === 'sending'}
+        className="w-full px-6 py-3 font-semibold text-white transition rounded-lg bg-rose-600 hover:bg-rose-500 disabled:opacity-60">
+        {status === 'sending' ? t('lead.sending') : t('lead.submit')}
       </button>
-      <p className="text-xs text-center text-gray-400">Sin compromiso. Respondemos en menos de 24 horas.</p>
+      <p className="text-xs text-center text-gray-400">{t('lead.disclaimer')}</p>
     </form>
   );
 }
