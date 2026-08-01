@@ -1,0 +1,202 @@
+<style>
+  :root{
+    --teal:#0E9AA0; --teal-2:#1FB6BC; --teal-ink:#0B5E5B; --teal-soft:#E4F4F2;
+    --gold:#B98A32;
+    --paper:#FAFBFB; --card:#FFFFFF; --ink:#102123; --muted:#5C6B6C;
+    --line:#E5ECEB; --line-2:#EEF3F2;
+    --shadow:0 18px 40px -30px rgba(11,94,91,.55);
+    --maxw:820px;
+  }
+  @media (prefers-color-scheme:dark){
+    :root{
+      --teal:#2DD4BF; --teal-2:#22C3C9; --teal-ink:#8CEADE; --teal-soft:#0E3A37;
+      --gold:#E4BE72;
+      --paper:#0A1618; --card:#0F2123; --ink:#EAF1F0; --muted:#93A5A4;
+      --line:#20393A; --line-2:#182D2E;
+      --shadow:0 22px 48px -30px rgba(0,0,0,.8);
+    }
+  }
+  :root[data-theme="dark"]{
+    --teal:#2DD4BF; --teal-2:#22C3C9; --teal-ink:#8CEADE; --teal-soft:#0E3A37;
+    --gold:#E4BE72;
+    --paper:#0A1618; --card:#0F2123; --ink:#EAF1F0; --muted:#93A5A4;
+    --line:#20393A; --line-2:#182D2E;
+    --shadow:0 22px 48px -30px rgba(0,0,0,.8);
+  }
+  :root[data-theme="light"]{
+    --teal:#0E9AA0; --teal-2:#1FB6BC; --teal-ink:#0B5E5B; --teal-soft:#E4F4F2;
+    --gold:#B98A32;
+    --paper:#FAFBFB; --card:#FFFFFF; --ink:#102123; --muted:#5C6B6C;
+    --line:#E5ECEB; --line-2:#EEF3F2;
+    --shadow:0 18px 40px -30px rgba(11,94,91,.55);
+  }
+
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{margin:0;background:var(--paper);color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    line-height:1.6;font-size:16px}
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 22px}
+  h1,h2,h3{margin:0;text-wrap:balance;line-height:1.15}
+  p{margin:0}
+  .serif{font-family:Georgia,"Times New Roman",serif}
+  .i{font-style:italic}
+
+  header{padding:64px 0 40px;border-bottom:1px solid var(--line)}
+  .brand{display:flex;align-items:center;gap:9px;font-weight:800;letter-spacing:.2px}
+  .brand .mk{width:26px;height:26px;border-radius:7px;display:grid;place-items:center;color:#fff;font-size:13px;font-weight:800;
+    background:linear-gradient(135deg,var(--teal),var(--teal-2))}
+  .eyebrow{margin-top:26px;font-size:12.5px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--teal)}
+  h1.title{margin-top:12px;font-size:clamp(30px,6vw,46px);font-weight:800;letter-spacing:-.02em}
+  h1.title .i{color:var(--teal-ink);font-weight:600}
+  .lede{margin-top:16px;color:var(--muted);font-size:18px;max-width:62ch}
+  .lede b{color:var(--ink)}
+
+  section{padding:44px 0;border-bottom:1px solid var(--line-2)}
+  .kicker{font-size:12px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--gold)}
+  h2{font-size:clamp(22px,4vw,30px);font-weight:800;letter-spacing:-.015em;margin-top:8px}
+  .sub{color:var(--muted);margin-top:8px;max-width:60ch}
+
+  /* onboarding steps */
+  .steps{margin-top:24px;display:flex;flex-direction:column;gap:0}
+  .st{display:flex;gap:16px;padding:15px 0;border-bottom:1px dashed var(--line)}
+  .st:last-child{border-bottom:0}
+  .st .dot{flex:none;width:30px;height:30px;border-radius:50%;display:grid;place-items:center;
+    background:var(--teal);color:#fff;font-weight:800;font-size:13px}
+  .st h3{font-size:16px;font-weight:800}
+  .st p{color:var(--muted);font-size:14px;margin-top:2px}
+
+  /* cards */
+  .cards{margin-top:22px;display:flex;flex-direction:column;gap:14px}
+  .row{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px;box-shadow:var(--shadow)}
+  .row h3{font-size:16px;font-weight:800;display:flex;align-items:center;gap:9px}
+  .row h3 .ic{width:26px;height:26px;border-radius:8px;background:var(--teal-soft);color:var(--teal-ink);
+    display:grid;place-items:center;font-size:14px;flex:none}
+  ul.clean{margin:12px 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:9px}
+  ul.clean li{display:flex;gap:11px;font-size:14.5px;color:var(--muted)}
+  ul.clean li .b{color:var(--teal);font-weight:800;flex:none}
+  ul.clean li b{color:var(--ink)}
+
+  .note{background:var(--teal-soft);color:var(--teal-ink);border-radius:12px;padding:12px 15px;font-size:13.5px;margin-top:18px}
+  .note b{color:var(--teal-ink)}
+  .warn{border-left:3px solid var(--gold)}
+
+  /* printable checklist */
+  .check{margin-top:20px;display:grid;gap:10px}
+  @media(min-width:640px){.check{grid-template-columns:1fr 1fr}}
+  .ck{display:flex;gap:12px;align-items:flex-start;background:var(--card);border:1px solid var(--line);
+    border-radius:12px;padding:13px 15px}
+  .ck .bx{flex:none;width:20px;height:20px;border-radius:5px;border:2px solid var(--teal);margin-top:1px}
+  .ck p{font-size:14.5px;color:var(--ink)}
+
+  .goal{margin-top:8px;background:linear-gradient(135deg,var(--teal),var(--teal-2));color:#fff;
+    border-radius:20px;padding:30px 26px;box-shadow:var(--shadow)}
+  .goal .kicker{color:rgba(255,255,255,.8)}
+  .goal h2{color:#fff;margin-top:6px}
+  .goal p{color:rgba(255,255,255,.92);margin-top:10px;font-size:16px;max-width:56ch}
+
+  footer{padding:34px 0 60px;color:var(--muted);font-size:13px}
+
+  @media print{
+    body{font-size:12pt}
+    .goal,.note{box-shadow:none}
+    section{break-inside:avoid}
+  }
+</style>
+
+<header>
+  <div class="wrap">
+    <div class="brand"><span class="mk">C</span> CasaHost</div>
+    <div class="eyebrow">Operación · Montar tu negocio</div>
+    <h1 class="title">Cómo montar tu <span class="serif i">operación</span></h1>
+    <p class="lede">Lo que haces para <b>recibir una propiedad</b> y <b>armar tu equipo de limpieza</b> — para poder cumplir desde el día que cierras tu primer dueño. Incluye un checklist de limpieza listo para imprimir y dárselo a tu equipo.</p>
+  </div>
+</header>
+
+<section>
+  <div class="wrap">
+    <div class="kicker">Propiedad nueva</div>
+    <h2>Onboarding en 9 pasos</h2>
+    <p class="sub">Tu rutina fija: cada propiedad nueva pasa por los mismos pasos, en orden, desde la firma hasta que renta.</p>
+    <div class="steps">
+      <div class="st"><div class="dot">1</div><div><h3>Firma del contrato</h3><p>Contrato CasaHost firmado + datos del dueño y la propiedad en tu panel.</p></div></div>
+      <div class="st"><div class="dot">2</div><div><h3>Visita e inventario</h3><p>Fotos del estado actual; qué hay y qué falta (toallas, sábanas, utensilios).</p></div></div>
+      <div class="st"><div class="dot">3</div><div><h3>Preparar la propiedad</h3><p>Dejarla “lista para huésped”: limpia, equipada y con lo básico (café, papel, amenidades).</p></div></div>
+      <div class="st"><div class="dot">4</div><div><h3>Fotografía profesional</h3><p>El factor #1 para conseguir reservas. No lo saltes.</p></div></div>
+      <div class="st"><div class="dot">5</div><div><h3>Crear el anuncio</h3><p>Título, descripción, reglas y precio de arranque competitivo.</p></div></div>
+      <div class="st"><div class="dot">6</div><div><h3>Acceso automático</h3><p>Cerradura inteligente o caja de llaves para check-in sin que vayas tú.</p></div></div>
+      <div class="st"><div class="dot">7</div><div><h3>Publicar</h3><p>En Airbnb + Vrbo + Booking vía channel manager.</p></div></div>
+      <div class="st"><div class="dot">8</div><div><h3>Automatizar</h3><p>Mensajes automáticos a huéspedes + precios dinámicos.</p></div></div>
+      <div class="st"><div class="dot">9</div><div><h3>Coordinar limpieza</h3><p>Agendar el primer turno y dejar el checklist al equipo.</p></div></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="kicker">Tu equipo</div>
+    <h2>Cómo armar tu limpieza</h2>
+    <p class="sub">No limpias tú — coordinas. La limpieza es la causa #1 de malas reseñas, así que aquí no se improvisa.</p>
+
+    <div class="cards">
+      <div class="row">
+        <h3><span class="ic">📍</span> Dónde conseguirlos (Miami)</h3>
+        <ul class="clean">
+          <li><span class="b">→</span><span>Empresas de <b>turnover cleaning</b> (limpieza entre huéspedes, distinta a la de casa).</span></li>
+          <li><span class="b">→</span><span>Apps: <b>Turno, TIDY, Thumbtack</b>.</span></li>
+          <li><span class="b">→</span><span>Grupos de <b>Facebook de hosts de Miami</b> (pide recomendaciones).</span></li>
+          <li><span class="b">→</span><span>Referidos de otros co-hosts — los mejores llegan así.</span></li>
+        </ul>
+      </div>
+      <div class="row">
+        <h3><span class="ic">❓</span> Qué preguntarles</h3>
+        <ul class="clean">
+          <li><span class="b">1</span><span>¿Experiencia en <b>turnover de Airbnb</b>, no solo limpieza normal?</span></li>
+          <li><span class="b">2</span><span>¿Hacen <b>check de daños</b> y avisan con fotos?</span></li>
+          <li><span class="b">3</span><span>¿Reponen amenidades si tú se las dejas?</span></li>
+          <li><span class="b">4</span><span>¿Qué tan rápido entran tras un check-out?</span></li>
+          <li><span class="b">5</span><span>¿Precio por turno? <b>(1–2 rec ≈ $60–$120)</b></span></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="note warn"><b>Regla de oro:</b> ten siempre <b>2 equipos</b> (uno principal + uno de respaldo). Si tu limpiador falla un sábado con check-in a las 3pm, necesitas plan B.</div>
+    <div class="note"><b>¿Quién paga?</b> La limpieza la paga el <b>huésped</b> (cleaning fee de Airbnb) → va al equipo. No sale de tu comisión. Tú solo coordinas y verificas.</div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="kicker">Para imprimir · dáselo a tu equipo</div>
+    <h2>Checklist de limpieza estándar</h2>
+    <p class="sub">Para que <b>siempre</b> quede igual, sin importar quién limpie. Imprime esta página y déjala en la propiedad.</p>
+    <div class="check">
+      <div class="ck"><div class="bx"></div><p>Cambiar TODA la ropa de cama y toallas</p></div>
+      <div class="ck"><div class="bx"></div><p>Baños: inodoro, ducha, espejos, reponer papel</p></div>
+      <div class="ck"><div class="bx"></div><p>Cocina: platos, superficies, nevera sin comida vieja</p></div>
+      <div class="ck"><div class="bx"></div><p>Pisos: aspirar y trapear</p></div>
+      <div class="ck"><div class="bx"></div><p>Sacar toda la basura</p></div>
+      <div class="ck"><div class="bx"></div><p>Reponer amenidades (café, jabón, papel)</p></div>
+      <div class="ck"><div class="bx"></div><p>Revisar que todo funcione (luces, A/C, TV, wifi)</p></div>
+      <div class="ck"><div class="bx"></div><p>Foto final de cada cuarto (prueba de que quedó listo)</p></div>
+      <div class="ck"><div class="bx"></div><p>Reportar cualquier daño con foto</p></div>
+      <div class="ck"><div class="bx"></div><p>Cerrar y dejar el acceso como estaba</p></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="goal">
+      <div class="kicker">Ya tienes el negocio completo</div>
+      <h2>Base legal + marketing + operación</h2>
+      <p>Con tu LLC + EIN, tus playbooks de captación y de reservas, y esta operación montada, ya tienes todo para atender a tu primer dueño con calidad profesional. Ahora es cuestión de conseguirlo y ejecutar.</p>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    CasaHost · Guía de operación · Cada propiedad, los mismos pasos. La consistencia es lo que te hace profesional.
+  </div>
+</footer>
