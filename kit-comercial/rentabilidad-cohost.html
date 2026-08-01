@@ -1,0 +1,179 @@
+<style>
+  :root{
+    --teal:#0E9AA0; --teal-2:#1FB6BC; --teal-ink:#0B5E5B; --teal-soft:#E4F4F2;
+    --gold:#B98A32;
+    --paper:#FAFBFB; --card:#FFFFFF; --ink:#102123; --muted:#5C6B6C;
+    --line:#E5ECEB; --line-2:#EEF3F2; --track:#E3F0EC;
+    --shadow:0 18px 40px -30px rgba(11,94,91,.55);
+    --maxw:760px;
+  }
+  @media (prefers-color-scheme:dark){
+    :root{
+      --teal:#2DD4BF; --teal-2:#22C3C9; --teal-ink:#8CEADE; --teal-soft:#0E3A37;
+      --gold:#E4BE72;
+      --paper:#0A1618; --card:#0F2123; --ink:#EAF1F0; --muted:#93A5A4;
+      --line:#20393A; --line-2:#182D2E; --track:#183234;
+      --shadow:0 22px 48px -30px rgba(0,0,0,.8);
+    }
+  }
+  :root[data-theme="dark"]{
+    --teal:#2DD4BF; --teal-2:#22C3C9; --teal-ink:#8CEADE; --teal-soft:#0E3A37;
+    --gold:#E4BE72; --paper:#0A1618; --card:#0F2123; --ink:#EAF1F0; --muted:#93A5A4;
+    --line:#20393A; --line-2:#182D2E; --track:#183234;
+    --shadow:0 22px 48px -30px rgba(0,0,0,.8);
+  }
+  :root[data-theme="light"]{
+    --teal:#0E9AA0; --teal-2:#1FB6BC; --teal-ink:#0B5E5B; --teal-soft:#E4F4F2;
+    --gold:#B98A32; --paper:#FAFBFB; --card:#FFFFFF; --ink:#102123; --muted:#5C6B6C;
+    --line:#E5ECEB; --line-2:#EEF3F2; --track:#E3F0EC;
+    --shadow:0 18px 40px -30px rgba(11,94,91,.55);
+  }
+
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{margin:0;background:var(--paper);color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;line-height:1.6}
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 22px}
+  h1,h2,h3{margin:0;text-wrap:balance;line-height:1.15}
+  p{margin:0}
+  .serif{font-family:Georgia,"Times New Roman",serif}
+
+  header{padding:56px 0 30px}
+  .brand{display:flex;align-items:center;gap:9px;font-weight:800}
+  .brand .mk{width:26px;height:26px;border-radius:7px;display:grid;place-items:center;color:#fff;font-size:13px;font-weight:800;
+    background:linear-gradient(135deg,var(--teal),var(--teal-2))}
+  .eyebrow{margin-top:24px;font-size:12.5px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--teal)}
+  h1.title{margin-top:12px;font-size:clamp(28px,5.5vw,40px);font-weight:800;letter-spacing:-.02em}
+  h1.title .i{color:var(--teal-ink);font-style:italic;font-weight:600}
+  .lede{margin-top:14px;color:var(--muted);font-size:17px;max-width:60ch}
+
+  .calc{margin:26px 0 40px;display:grid;gap:22px}
+  @media(min-width:720px){.calc{grid-template-columns:1fr 1fr;align-items:start}}
+
+  .controls{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:22px;box-shadow:var(--shadow)}
+  .ctl{margin-bottom:20px}.ctl:last-child{margin-bottom:0}
+  .chead{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px}
+  .clab{font-weight:600;font-size:14.5px}
+  .cval{color:var(--teal);font-weight:800;font-size:16px;font-variant-numeric:tabular-nums}
+  input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:6px;border-radius:999px;background:var(--track);outline:none;margin:0}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:20px;height:20px;border-radius:50%;background:var(--teal);cursor:pointer;border:3px solid var(--card);box-shadow:0 2px 8px rgba(0,0,0,.2)}
+  input[type=range]::-moz-range-thumb{width:20px;height:20px;border-radius:50%;background:var(--teal);cursor:pointer;border:3px solid var(--card)}
+  input[type=range]:focus-visible{outline:2px solid var(--teal);outline-offset:4px}
+  .chelp{font-size:12px;color:var(--muted);margin:6px 0 0}
+
+  .results{background:var(--ink);color:#fff;border-radius:20px;padding:24px;box-shadow:var(--shadow)}
+  :root[data-theme="light"] .results{background:#0C1E20}
+  .rrow{display:flex;justify-content:space-between;align-items:center;padding:11px 0;border-bottom:1px solid rgba(255,255,255,.1);font-size:14.5px}
+  .rrow span{color:rgba(255,255,255,.75)}
+  .rrow b{font-weight:700;font-variant-numeric:tabular-nums}
+  .rnet{margin-top:16px;background:linear-gradient(135deg,var(--teal),var(--teal-2));border-radius:14px;padding:16px 18px}
+  .rnet .l{font-size:13px;color:rgba(255,255,255,.85)}
+  .rnet .v{font-size:30px;font-weight:800;font-variant-numeric:tabular-nums;margin-top:2px}
+  .rnet small{display:block;color:rgba(255,255,255,.85);font-size:12.5px;margin-top:3px}
+  .margin{margin-top:12px;font-size:13px;color:rgba(255,255,255,.8);text-align:center}
+
+  .goalbox{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:22px;box-shadow:var(--shadow);margin-bottom:44px}
+  .goalbox h2{font-size:20px;font-weight:800}
+  .goalbox p{color:var(--muted);font-size:14.5px;margin-top:6px}
+  .goalline{margin-top:16px;background:var(--teal-soft);border-radius:14px;padding:18px 20px;text-align:center}
+  .goalline .big{font-size:34px;font-weight:800;color:var(--teal-ink);font-variant-numeric:tabular-nums}
+  .goalline .cap{color:var(--teal-ink);font-size:14px;margin-top:2px}
+
+  .note{background:var(--teal-soft);color:var(--teal-ink);border-radius:12px;padding:13px 16px;font-size:13.5px;margin-bottom:50px}
+  .note b{color:var(--teal-ink)}
+  footer{padding:10px 0 60px;color:var(--muted);font-size:12.5px}
+</style>
+
+<header>
+  <div class="wrap">
+    <div class="brand"><span class="mk">C</span> CasaHost</div>
+    <div class="eyebrow">Para ti · No para el dueño</div>
+    <h1 class="title">¿Cuánto ganas <span class="serif i">tú</span> como co-host?</h1>
+    <p class="lede">Mueve los valores según tu realidad y mira tu ganancia real — después de tus costos. Y cuántas propiedades necesitas para llegar a tu meta.</p>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="calc">
+    <div class="controls">
+      <div class="ctl">
+        <div class="chead"><label class="clab" for="props">Propiedades que gestionas</label><b class="cval" id="v-props">5</b></div>
+        <input id="props" type="range" min="1" max="20" step="1" value="5">
+      </div>
+      <div class="ctl">
+        <div class="chead"><label class="clab" for="gross">Ingreso bruto promedio por propiedad / mes</label><b class="cval" id="v-gross">$3,500</b></div>
+        <input id="gross" type="range" min="1500" max="8000" step="100" value="3500">
+        <p class="chelp">Lo que genera la propiedad al mes (antes de tu comisión).</p>
+      </div>
+      <div class="ctl">
+        <div class="chead"><label class="clab" for="comm">Tu comisión</label><b class="cval" id="v-comm">18%</b></div>
+        <input id="comm" type="range" min="12" max="24" step="1" value="18">
+      </div>
+      <div class="ctl">
+        <div class="chead"><label class="clab" for="cost">Tu costo por propiedad / mes</label><b class="cval" id="v-cost">$150</b></div>
+        <input id="cost" type="range" min="0" max="600" step="10" value="150">
+        <p class="chelp">Software (channel manager, precios) + el valor de tu tiempo. La limpieza NO va aquí (la paga el huésped).</p>
+      </div>
+    </div>
+
+    <div class="results">
+      <div class="rrow"><span>Comisión bruta / mes</span><b id="r-comm">$3,150</b></div>
+      <div class="rrow"><span>Tus costos / mes</span><b id="r-cost">−$750</b></div>
+      <div class="rnet">
+        <div class="l">Tu ganancia neta / mes</div>
+        <div class="v" id="r-net">$2,400</div>
+        <small id="r-year">≈ $28,800 al año</small>
+      </div>
+      <div class="margin" id="r-margin">Margen: 76%</div>
+    </div>
+  </div>
+
+  <div class="goalbox">
+    <h2>¿Cuántas propiedades para tu meta?</h2>
+    <p>Con los mismos números de arriba (por propiedad), esto es lo que necesitas para el ingreso que quieres.</p>
+    <div class="ctl" style="margin-top:16px">
+      <div class="chead"><label class="clab" for="meta">Quiero ganar al mes</label><b class="cval" id="v-meta">$5,000</b></div>
+      <input id="meta" type="range" min="1000" max="15000" step="250" value="5000">
+    </div>
+    <div class="goalline">
+      <div class="big" id="g-props">9</div>
+      <div class="cap" id="g-cap">propiedades para llegar a tu meta</div>
+    </div>
+  </div>
+
+  <div class="note"><b>Nota:</b> es un estimado con promedios — tus números reales dependen de tus zonas y tus costos. La limpieza no cuenta como costo tuyo (la paga el huésped vía la cleaning fee).</div>
+</div>
+
+<footer><div class="wrap">CasaHost · Calculadora de rentabilidad del co-host</div></footer>
+
+<script>
+(function(){
+  var g=function(i){return document.getElementById(i);};
+  var props=g('props'),gross=g('gross'),comm=g('comm'),cost=g('cost'),meta=g('meta');
+  function m(n){var neg=n<0;n=Math.abs(n);return (neg?'−$':'$')+Math.round(n).toLocaleString('en-US');}
+  function u(){
+    var P=+props.value,G=+gross.value,C=+comm.value/100,K=+cost.value;
+    var commGross=P*G*C, costTotal=P*K, net=commGross-costTotal;
+    var margin=commGross>0?Math.round(net/commGross*100):0;
+    g('v-props').textContent=P;
+    g('v-gross').textContent=m(G);
+    g('v-comm').textContent=C*100+'%';
+    g('v-cost').textContent=m(K);
+    g('r-comm').textContent=m(commGross);
+    g('r-cost').textContent='−'+m(costTotal);
+    g('r-net').textContent=m(net);
+    g('r-year').textContent='≈ '+m(net*12)+' al año';
+    g('r-margin').textContent='Margen: '+margin+'%';
+    // goal: net per property
+    var netPerProp=(G*C)-K;
+    var target=+meta.value;
+    g('v-meta').textContent=m(target);
+    var need = netPerProp>0 ? Math.ceil(target/netPerProp) : Infinity;
+    g('g-props').textContent = isFinite(need)? need : '—';
+    g('g-cap').textContent = !isFinite(need) ? 'con estos números pierdes dinero por propiedad — sube comisión o baja costos'
+      : (need===1?'propiedad para llegar a tu meta':'propiedades para llegar a tu meta');
+  }
+  [props,gross,comm,cost,meta].forEach(function(e){e.addEventListener('input',u);});
+  u();
+})();
+</script>
