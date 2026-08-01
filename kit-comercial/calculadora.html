@@ -86,6 +86,8 @@
     font-variant-numeric: tabular-nums; font-weight: 700; font-size: 17px; color: var(--rose);
   }
   .chelp{font-size:12.5px;color:var(--ink-soft);margin:6px 0 0;line-height:1.4}
+  .zsel{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:var(--surface-2);color:var(--ink);font:inherit;font-weight:600;outline:none}
+  .zsel:focus{box-shadow:0 0 0 3px var(--rose-soft)}
   input[type="range"] {
     -webkit-appearance: none; appearance: none; width: 100%; height: 6px;
     border-radius: 999px; background: var(--surface-2); outline: none; margin: 0;
@@ -165,6 +167,28 @@
       <!-- Controles -->
       <section class="panel" aria-label="Parámetros de tu propiedad">
         <h2>Los datos de tu propiedad</h2>
+
+        <div class="control">
+          <div class="control-head"><label for="zone">Tu zona en Miami</label></div>
+          <select id="zone" class="zsel">
+            <option value="">Personalizado</option>
+            <optgroup label="Miami-Dade">
+              <option value="brickell">Brickell</option>
+              <option value="downtown">Downtown Miami</option>
+              <option value="wynwood">Wynwood</option>
+              <option value="south-beach">South Beach (Miami Beach)</option>
+              <option value="sunny-isles">Sunny Isles Beach</option>
+              <option value="doral">Doral</option>
+            </optgroup>
+            <optgroup label="Broward">
+              <option value="fort-lauderdale">Fort Lauderdale Beach</option>
+              <option value="hollywood">Hollywood</option>
+              <option value="pompano">Pompano Beach</option>
+              <option value="hallandale">Hallandale Beach</option>
+            </optgroup>
+          </select>
+          <p class="chelp">¿No sabes tus números? Elige tu zona y llenamos la tarifa y la ocupación típicas del mercado por ti.</p>
+        </div>
 
         <div class="control">
           <div class="control-head">
@@ -273,6 +297,12 @@
     document.getElementById('ctaBtn').addEventListener('click', function (e) {
       e.preventDefault();
       this.textContent = '¡Gracias! Te contactaremos pronto';
+    });
+
+    var ZONES = { brickell:[315,60], downtown:[260,55], wynwood:[231,58], 'south-beach':[375,50], 'sunny-isles':[300,50], doral:[200,50], 'fort-lauderdale':[212,65], hollywood:[214,68], pompano:[196,62], hallandale:[251,45] };
+    document.getElementById('zone').addEventListener('change', function (e) {
+      var z = ZONES[e.target.value];
+      if (z) { rate.value = z[0]; occ.value = z[1]; update(); }
     });
 
     update();
