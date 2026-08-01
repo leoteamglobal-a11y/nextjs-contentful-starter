@@ -1,7 +1,7 @@
 import PanelClient from './PanelClient.jsx';
 
 export const metadata = {
-  title: 'Panel de gestión — CoHost Pro',
+  title: 'Panel de gestión — CasaHost',
   description: 'CRM para administrar dueños, propiedades y reservas de tu negocio de co-hosting en Airbnb.',
 };
 

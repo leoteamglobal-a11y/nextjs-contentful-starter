@@ -23,10 +23,10 @@ export default function PanelClient() {
       <header className="bg-white border-b border-gray-200">
         <div className="flex items-center justify-between max-w-6xl px-6 py-4 mx-auto">
           <div className="flex items-center gap-3">
-            <Link href="/airbnb" className="text-lg font-extrabold text-rose-600">CoHost<span className="text-gray-900">Pro</span></Link>
+            <Link href="/casahost.html" className="text-lg font-extrabold text-teal-600">Casa<span className="text-gray-900">Host</span></Link>
             <span className="px-2 py-0.5 text-xs font-semibold text-gray-500 bg-gray-100 rounded">Panel</span>
           </div>
-          <Link href="/airbnb" className="text-sm text-gray-500 hover:text-rose-600">← Volver al sitio</Link>
+          <Link href="/casahost.html" className="text-sm text-gray-500 hover:text-teal-600">← Volver al sitio</Link>
         </div>
         <nav className="flex gap-1 max-w-6xl px-4 mx-auto -mb-px overflow-x-auto">
           {TABS.map((t) => (
@@ -34,7 +34,7 @@ export default function PanelClient() {
               key={t.key}
               onClick={() => setTab(t.key)}
               className={`px-4 py-3 text-sm font-medium whitespace-nowrap border-b-2 transition ${
-                tab === t.key ? 'border-rose-600 text-rose-600' : 'border-transparent text-gray-500 hover:text-gray-800'
+                tab === t.key ? 'border-teal-600 text-teal-600' : 'border-transparent text-gray-500 hover:text-gray-800'
               }`}
             >
               <span className="mr-1">{t.icon}</span>{t.label}
@@ -117,7 +117,7 @@ function Dashboard({ owners, properties, reservations, setTab }) {
       </div>
 
       {empty && (
-        <div className="p-8 text-center border-2 border-dashed border-rose-200 rounded-2xl bg-rose-50">
+        <div className="p-8 text-center border-2 border-dashed border-teal-200 rounded-2xl bg-teal-50">
           <div className="mb-3 text-4xl">🚀</div>
           <h3 className="text-lg font-bold">Empieza tu operación</h3>
           <p className="mt-1 mb-4 text-gray-600">Agrega tu primer dueño y su propiedad para arrancar el CRM.</p>
@@ -148,7 +148,7 @@ function Dashboard({ owners, properties, reservations, setTab }) {
                   <p className="text-sm text-gray-500">{r.propName}</p>
                 </div>
                 <div className="text-right">
-                  <p className="text-sm font-medium text-rose-600">{r.checkIn}</p>
+                  <p className="text-sm font-medium text-teal-600">{r.checkIn}</p>
                   <p className="text-xs text-gray-400">{r.nights} noche(s)</p>
                 </div>
               </li>
@@ -162,7 +162,7 @@ function Dashboard({ owners, properties, reservations, setTab }) {
 
 function StatCard({ label, value, hint, tone }) {
   const toneCls =
-    tone === 'rose' ? 'bg-rose-600 text-white' : tone === 'dark' ? 'bg-gray-900 text-white' : 'bg-white border border-gray-100';
+    tone === 'rose' ? 'bg-teal-600 text-white' : tone === 'dark' ? 'bg-gray-900 text-white' : 'bg-white border border-gray-100';
   const hintCls = tone ? 'text-white/70' : 'text-gray-400';
   return (
     <div className={`p-5 shadow-sm rounded-2xl ${toneCls}`}>
@@ -275,7 +275,7 @@ function Properties({ properties, owners }) {
                     <p className="text-sm text-gray-500">{p.city}{owner ? ` · ${owner.name}` : ''}</p>
                   </div>
                   <div className="text-right">
-                    <p className="text-lg font-extrabold text-rose-600">{formatMoney(est.yourCommission)}</p>
+                    <p className="text-lg font-extrabold text-teal-600">{formatMoney(est.yourCommission)}</p>
                     <p className="text-xs text-gray-400">tu comisión/mes</p>
                   </div>
                 </div>
@@ -381,11 +381,11 @@ function Reservations({ reservations, properties }) {
                     <Td>{r.checkIn || '—'}</Td>
                     <Td>{r.nights}</Td>
                     <Td>{formatMoney(gross)}</Td>
-                    <Td className="font-semibold text-rose-600">{formatMoney(commission)}</Td>
+                    <Td className="font-semibold text-teal-600">{formatMoney(commission)}</Td>
                     <Td><StatusBadge status={r.status} /></Td>
                     <Td>
                       <div className="flex gap-2">
-                        <button onClick={() => setForm(r)} className="text-gray-400 hover:text-rose-600">✏️</button>
+                        <button onClick={() => setForm(r)} className="text-gray-400 hover:text-teal-600">✏️</button>
                         <button onClick={() => confirmDelete('esta reserva') && reservations.remove(r.id)} className="text-gray-400 hover:text-red-600">🗑️</button>
                       </div>
                     </Td>
@@ -493,7 +493,7 @@ function MiniStat({ label, value }) {
 function RowActions({ onEdit, onDelete }) {
   return (
     <div className="flex gap-4 pt-4 mt-4 text-sm border-t border-gray-100">
-      <button onClick={onEdit} className="text-gray-500 hover:text-rose-600">Editar</button>
+      <button onClick={onEdit} className="text-gray-500 hover:text-teal-600">Editar</button>
       <button onClick={onDelete} className="text-gray-500 hover:text-red-600">Eliminar</button>
     </div>
   );
@@ -561,6 +561,6 @@ function confirmDelete(what) {
 }
 
 const inputCls =
-  'w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-rose-500 outline-none transition';
-const btnPrimary = 'px-4 py-2 text-sm font-semibold text-white transition rounded-lg bg-rose-600 hover:bg-rose-500';
+  'w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition';
+const btnPrimary = 'px-4 py-2 text-sm font-semibold text-white transition rounded-lg bg-teal-600 hover:bg-teal-500';
 const btnGhost = 'px-4 py-2 text-sm font-semibold text-gray-700 transition border border-gray-300 rounded-lg hover:bg-gray-50';
