@@ -131,8 +131,16 @@ export default function AirbnbLanding() {
       {/* Footer */}
       <footer className="px-6 py-10 text-sm text-center text-gray-400 border-t border-gray-100">
         <p>CoHost Pro — Sistema de co-hosting de Airbnb. Construido con Next.js.</p>
-        <p className="mt-2">
-          <Link href="/airbnb/panel" className="text-rose-600 hover:underline">Ir al panel de gestión →</Link>
+        <p className="flex flex-wrap justify-center gap-4 mt-3">
+          <Link href="/airbnb/panel" className="text-rose-600 hover:underline">Panel de gestión →</Link>
+          <a
+            href="https://claude.ai/code/artifact/ee9b1292-8fdb-41a0-a127-aa9c3e9c343b"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-rose-600 hover:underline"
+          >
+            Calculadora para compartir →
+          </a>
         </p>
       </footer>
     </main>
