@@ -1,0 +1,277 @@
+<style>
+  :root{
+    --teal:#0E9AA0; --teal-2:#1FB6BC; --teal-ink:#0B5E5B; --teal-soft:#E4F4F2;
+    --gold:#B98A32;
+    --paper:#FAFBFB; --card:#FFFFFF; --ink:#102123; --muted:#5C6B6C;
+    --line:#E5ECEB; --line-2:#EEF3F2;
+    --shadow:0 18px 40px -30px rgba(11,94,91,.55);
+    --maxw:820px;
+  }
+  @media (prefers-color-scheme:dark){
+    :root{
+      --teal:#2DD4BF; --teal-2:#22C3C9; --teal-ink:#8CEADE; --teal-soft:#0E3A37;
+      --gold:#E4BE72;
+      --paper:#0A1618; --card:#0F2123; --ink:#EAF1F0; --muted:#93A5A4;
+      --line:#20393A; --line-2:#182D2E;
+      --shadow:0 22px 48px -30px rgba(0,0,0,.8);
+    }
+  }
+  :root[data-theme="dark"]{
+    --teal:#2DD4BF; --teal-2:#22C3C9; --teal-ink:#8CEADE; --teal-soft:#0E3A37;
+    --gold:#E4BE72;
+    --paper:#0A1618; --card:#0F2123; --ink:#EAF1F0; --muted:#93A5A4;
+    --line:#20393A; --line-2:#182D2E;
+    --shadow:0 22px 48px -30px rgba(0,0,0,.8);
+  }
+  :root[data-theme="light"]{
+    --teal:#0E9AA0; --teal-2:#1FB6BC; --teal-ink:#0B5E5B; --teal-soft:#E4F4F2;
+    --gold:#B98A32;
+    --paper:#FAFBFB; --card:#FFFFFF; --ink:#102123; --muted:#5C6B6C;
+    --line:#E5ECEB; --line-2:#EEF3F2;
+    --shadow:0 18px 40px -30px rgba(11,94,91,.55);
+  }
+
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{margin:0;background:var(--paper);color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    line-height:1.6;font-size:16px}
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 22px}
+  h1,h2,h3{margin:0;text-wrap:balance;line-height:1.15}
+  p{margin:0}
+  .serif{font-family:Georgia,"Times New Roman",serif}
+  .i{font-style:italic}
+
+  header{padding:64px 0 40px;border-bottom:1px solid var(--line)}
+  .brand{display:flex;align-items:center;gap:9px;font-weight:800;letter-spacing:.2px}
+  .brand .mk{width:26px;height:26px;border-radius:7px;display:grid;place-items:center;color:#fff;font-size:13px;font-weight:800;
+    background:linear-gradient(135deg,var(--teal),var(--teal-2))}
+  .eyebrow{margin-top:26px;font-size:12.5px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--teal)}
+  h1.title{margin-top:12px;font-size:clamp(30px,6vw,46px);font-weight:800;letter-spacing:-.02em}
+  h1.title .i{color:var(--teal-ink);font-weight:600}
+  .lede{margin-top:16px;color:var(--muted);font-size:18px;max-width:62ch}
+  .lede b{color:var(--ink)}
+
+  .funnel{margin-top:30px;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+  .step{background:var(--teal-soft);color:var(--teal-ink);font-weight:700;font-size:13px;
+    padding:7px 12px;border-radius:999px;white-space:nowrap}
+  .arw{color:var(--teal);font-weight:800}
+
+  section{padding:44px 0;border-bottom:1px solid var(--line-2)}
+  .kicker{font-size:12px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--gold)}
+  h2{font-size:clamp(22px,4vw,30px);font-weight:800;letter-spacing:-.015em;margin-top:8px}
+  .sub{color:var(--muted);margin-top:8px;max-width:60ch}
+
+  .chan{margin-top:26px;display:flex;flex-direction:column;gap:14px}
+  .row{display:flex;gap:16px;align-items:flex-start;background:var(--card);border:1px solid var(--line);
+    border-radius:16px;padding:18px 18px;box-shadow:var(--shadow)}
+  .rank{flex:none;width:34px;height:34px;border-radius:10px;display:grid;place-items:center;font-weight:800;
+    background:var(--teal);color:#fff;font-size:15px}
+  .row h3{font-size:17px;font-weight:800}
+  .row h3 .w{font-weight:600;color:var(--muted);font-size:13px}
+  .row p{color:var(--muted);font-size:14.5px;margin-top:3px}
+  .row p b{color:var(--ink)}
+  .stat{margin-top:9px;display:inline-block;font-size:13px;font-weight:700;color:var(--teal-ink);
+    background:var(--teal-soft);padding:4px 10px;border-radius:8px}
+
+  ul.clean{margin:16px 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:11px}
+  ul.clean li{display:flex;gap:11px;font-size:15px}
+  ul.clean li .b{color:var(--teal);font-weight:800;flex:none}
+  ul.clean li b{color:var(--ink)}
+
+  .note{background:var(--teal-soft);color:var(--teal-ink);border-radius:12px;padding:12px 15px;font-size:13.5px;margin-top:18px}
+
+  /* cold start timeline */
+  .steps{margin-top:22px;display:flex;flex-direction:column;gap:0}
+  .st{display:flex;gap:16px;padding:16px 0;border-bottom:1px dashed var(--line)}
+  .st:last-child{border-bottom:0}
+  .st .dot{flex:none;width:30px;height:30px;border-radius:50%;display:grid;place-items:center;
+    background:var(--teal);color:#fff;font-weight:800;font-size:13px}
+  .st h3{font-size:16px;font-weight:800}
+  .st p{color:var(--muted);font-size:14px;margin-top:2px}
+
+  /* events */
+  .events{margin-top:22px;display:grid;gap:10px}
+  @media(min-width:620px){.events{grid-template-columns:1fr 1fr}}
+  .ev{display:flex;justify-content:space-between;gap:12px;background:var(--card);border:1px solid var(--line);
+    border-radius:12px;padding:12px 15px}
+  .ev b{font-weight:700}
+  .ev span{color:var(--teal-ink);font-weight:700;font-size:13px;white-space:nowrap}
+
+  /* checklist */
+  .check{margin-top:22px;display:flex;flex-direction:column;gap:10px}
+  .ck{display:flex;gap:12px;align-items:flex-start;background:var(--card);border:1px solid var(--line);
+    border-radius:12px;padding:14px 16px}
+  .ck .bx{flex:none;width:20px;height:20px;border-radius:6px;border:2px solid var(--teal);margin-top:2px;position:relative}
+  .ck .bx::after{content:"✓";position:absolute;inset:0;display:grid;place-items:center;color:var(--teal);font-size:13px;font-weight:800}
+  .ck p{font-size:14.5px}
+  .ck p b{color:var(--ink)}
+  .ck p span{color:var(--muted)}
+
+  .goal{margin-top:8px;background:linear-gradient(135deg,var(--teal),var(--teal-2));color:#fff;
+    border-radius:20px;padding:30px 26px;box-shadow:var(--shadow)}
+  .goal .kicker{color:rgba(255,255,255,.8)}
+  .goal h2{color:#fff;margin-top:6px}
+  .goal p{color:rgba(255,255,255,.92);margin-top:10px;font-size:16px;max-width:56ch}
+  .goal .big{font-family:Georgia,serif;font-style:italic;font-size:24px;margin-top:16px;display:block}
+
+  footer{padding:34px 0 60px;color:var(--muted);font-size:13px}
+  footer a{color:var(--teal-ink)}
+</style>
+
+<header>
+  <div class="wrap">
+    <div class="brand"><span class="mk">C</span> CasaHost</div>
+    <div class="eyebrow">Operación · Las propiedades de tus clientes</div>
+    <h1 class="title">Cómo llenar el <span class="serif i">calendario</span> de tus dueños</h1>
+    <p class="lede">Esto es el servicio por el que te pagan el 18%: conseguir huéspedes para la propiedad del dueño. No es suerte — <b>Airbnb es un buscador y tú le ganas el ranking</b>, y distribuyes la propiedad en todas las plataformas.</p>
+
+    <div class="funnel" aria-label="Ciclo de reservas">
+      <span class="step">Fotos que enganchan</span><span class="arw">→</span>
+      <span class="step">Reservas</span><span class="arw">→</span>
+      <span class="step">Reseñas 5★</span><span class="arw">→</span>
+      <span class="step">Subes en el ranking</span><span class="arw">→</span>
+      <span class="step">Más reservas</span>
+    </div>
+  </div>
+</header>
+
+<section>
+  <div class="wrap">
+    <div class="kicker">Lo que decide todo</div>
+    <h2>Los 5 factores que te consiguen reservas</h2>
+    <p class="sub">Ordenados por su peso real en el algoritmo de Airbnb 2026. Trabaja de arriba hacia abajo.</p>
+
+    <div class="chan">
+      <div class="row">
+        <div class="rank">1</div>
+        <div>
+          <h3>Fotos <span class="w">· el factor #1</span></h3>
+          <p>Airbnb mide cuánta gente hace clic en tu anuncio. Las <b>primeras 3 fotos</b> son todo. Fotos profesionales no son opcionales.</p>
+          <span class="stat">Cambiar la foto principal subió los clics de 2.1% → 4.8%</span>
+        </div>
+      </div>
+      <div class="row">
+        <div class="rank">2</div>
+        <div>
+          <h3>Precio competitivo</h3>
+          <p>Al algoritmo no le importa tu precio absoluto, sino <b>vs. propiedades parecidas</b>. Mantente dentro del 10–15% de tus comparables en fechas pico.</p>
+        </div>
+      </div>
+      <div class="row">
+        <div class="rank">3</div>
+        <div>
+          <h3>Reseñas <span class="w">· el de mayor peso</span></h3>
+          <p>Cantidad + calidad. 80 reseñas a 4.85★ le ganan a 30 a 5.0★. Airbnb <b>lee el contenido</b> (limpieza, comunicación, exactitud).</p>
+        </div>
+      </div>
+      <div class="row">
+        <div class="rank">4</div>
+        <div>
+          <h3>Velocidad de respuesta</h3>
+          <p>El estándar nuevo es <b>menos de 5 minutos</b>. Más de 1 hora y te bajan. Se gana con respuestas automáticas.</p>
+        </div>
+      </div>
+      <div class="row">
+        <div class="rank">5</div>
+        <div>
+          <h3>Instant Book + calendario al día</h3>
+          <p>Sin reserva instantánea arrancas en desventaja en cada búsqueda. Mantén el calendario siempre actualizado.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="kicker">Más puertas</div>
+    <h2>Distribuye en todas las plataformas</h2>
+    <p class="sub">El dueño solo llega a una plataforma. Con el channel manager (Hospitable) publicas la misma propiedad en cinco, sin riesgo de dobles reservas.</p>
+    <ul class="clean">
+      <li><span class="b">→</span><span><b>Airbnb</b> — el volumen principal.</span></li>
+      <li><span class="b">→</span><span><b>Vrbo</b> — familias y estancias más largas.</span></li>
+      <li><span class="b">→</span><span><b>Booking.com</b> — mucho viajero internacional.</span></li>
+      <li><span class="b">→</span><span><b>Google Vacation Rentals + Expedia</b> — alcance extra.</span></li>
+    </ul>
+    <div class="note">Un calendario, cinco plataformas, cero dobles reservas. Eso solo se logra con channel manager.</div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="kicker">Propiedad nueva</div>
+    <h2>El truco del “arranque en frío”</h2>
+    <p class="sub">Una propiedad nueva no tiene reseñas → nadie reserva → círculo vicioso. Así lo rompes:</p>
+    <div class="steps">
+      <div class="st"><div class="dot">1</div><div><h3>Precio bajo al inicio</h3><p>Por debajo de tus comparables, para conseguir las primeras 3–5 reservas rápido.</p></div></div>
+      <div class="st"><div class="dot">2</div><div><h3>Entrega impecable</h3><p>Limpieza perfecta + respuesta rápida → esas primeras reservas se vuelven <b>reseñas 5★</b>.</p></div></div>
+      <div class="st"><div class="dot">3</div><div><h3>El algoritmo te sube</h3><p>Con reseñas, Airbnb te muestra a más gente. La ocupación empieza a subir sola.</p></div></div>
+      <div class="st"><div class="dot">4</div><div><h3>Subes el precio</h3><p>En 4–6 semanas la propiedad “camina” sola a su tarifa real.</p></div></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="kicker">Demanda extra</div>
+    <h2>Más allá de Airbnb</h2>
+    <p class="sub">No dependas de una sola fuente. Dos que pocos aprovechan:</p>
+    <ul class="clean">
+      <li><span class="b">→</span><span><b>Rentas de mediano plazo (30+ días)</b> — enfermeras viajeras, mudanzas corporativas, vía <b>Furnished Finder</b>. Ideal donde el alquiler corto está restringido (ej. Miami Beach).</span></li>
+      <li><span class="b">→</span><span><b>Redes sociales</b> — muestra la propiedad en Instagram/TikTok para atraer reservas directas (sin comisión de plataforma).</span></li>
+    </ul>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="kicker">Sube precios aquí</div>
+    <h2>El calendario de Miami</h2>
+    <p class="sub">En estos eventos la demanda se dispara. Sube tarifas con anticipación — es donde se gana en grande.</p>
+    <div class="events">
+      <div class="ev"><b>Art Basel</b><span>Diciembre</span></div>
+      <div class="ev"><b>Ultra Music Festival</b><span>Marzo</span></div>
+      <div class="ev"><b>F1 Miami Grand Prix</b><span>Mayo</span></div>
+      <div class="ev"><b>Miami Boat Show</b><span>Febrero</span></div>
+      <div class="ev"><b>Spring Break</b><span>Marzo</span></div>
+      <div class="ev"><b>Mundial 2026 ⚽</b><span>Jun–Jul</span></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="kicker">Por cada propiedad</div>
+    <h2>Checklist para llenar un anuncio</h2>
+    <p class="sub">Lo que haces al recibir una propiedad nueva, en orden.</p>
+    <div class="check">
+      <div class="ck"><div class="bx"></div><p><b>Fotos profesionales</b> <span>— empezando por una foto principal que impacte.</span></p></div>
+      <div class="ck"><div class="bx"></div><p><b>Título y descripción optimizados</b> <span>— con palabras que la gente busca.</span></p></div>
+      <div class="ck"><div class="bx"></div><p><b>Precio de arranque competitivo</b> <span>— por debajo de comparables al inicio.</span></p></div>
+      <div class="ck"><div class="bx"></div><p><b>Activar Instant Book</b> <span>— con ID verificado como condición.</span></p></div>
+      <div class="ck"><div class="bx"></div><p><b>Mensajes automáticos</b> <span>— bienvenida, entrada y salida.</span></p></div>
+      <div class="ck"><div class="bx"></div><p><b>Publicar en Vrbo, Booking y Google</b> <span>— vía channel manager.</span></p></div>
+      <div class="ck"><div class="bx"></div><p><b>Precios dinámicos activados</b> <span>— PriceLabs / Wheelhouse.</span></p></div>
+      <div class="ck"><div class="bx"></div><p><b>Pedir reseña</b> <span>— tras cada estancia, para alimentar el ranking.</span></p></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="goal">
+      <div class="kicker">En una frase</div>
+      <h2>Fotos + precio + reseñas + respuesta + estar en todas las plataformas</h2>
+      <p>El dueño no puede hacer todo eso. Tú sí — y por eso vale tu comisión. Cada propiedad bien montada se convierte en un calendario lleno.</p>
+      <span class="big">Calendario lleno = dueño feliz = tu comisión crece.</span>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    CasaHost · Playbook para llenar el calendario · Basado en los factores de ranking de Airbnb 2026
+    (<a href="https://hello.pricelabs.co/blog/airbnb-ranking-algorithm/">PriceLabs</a>, <a href="https://strassistance.com/airbnb-seo/">STR Assistance</a>).
+  </div>
+</footer>
