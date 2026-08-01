@@ -85,6 +85,7 @@
   .control-head output {
     font-variant-numeric: tabular-nums; font-weight: 700; font-size: 17px; color: var(--rose);
   }
+  .chelp{font-size:12.5px;color:var(--ink-soft);margin:6px 0 0;line-height:1.4}
   input[type="range"] {
     -webkit-appearance: none; appearance: none; width: 100%; height: 6px;
     border-radius: 999px; background: var(--surface-2); outline: none; margin: 0;
@@ -156,7 +157,7 @@
 
 <div class="wrap">
   <div class="shell">
-    <p class="eyebrow"><span class="brand">CoHost<span>Pro</span></span> · Calculadora para propietarios</p>
+    <p class="eyebrow"><span class="brand">Casa<span>Host</span></span> · Calculadora para propietarios</p>
     <h1>¿Cuánto puede generar tu propiedad en Airbnb?</h1>
     <p class="lede">Ajusta los valores de tu propiedad y descubre tu ingreso mensual estimado si nosotros la administramos por ti. Sin ser tú quien mueve un dedo.</p>
 
@@ -179,6 +180,7 @@
             <output id="occOut">65%</output>
           </div>
           <input type="range" id="occ" min="20" max="95" step="1" value="65" aria-describedby="occOut">
+          <p class="chelp">% de noches al mes que tu propiedad está rentada (llena). 65% ≈ 20 de 30 noches. En Miami suele ir de 50% a 68%.</p>
         </div>
 
         <div class="control">
@@ -187,6 +189,7 @@
             <output id="commOut">20%</output>
           </div>
           <input type="range" id="comm" min="10" max="30" step="1" value="20" aria-describedby="commOut">
+          <p class="chelp">Lo que cobra el co-host por administrarlo todo (normalmente 15%–22%).</p>
         </div>
 
         <div class="control field">
