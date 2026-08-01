@@ -1,6 +1,6 @@
 <style>
   :root{
-    --ink:#08191A; --ink-2:#0F2426; --paper:#FFFFFF; --mist:#F6F5F7; --mist-2:#EFEDF0;
+    --ink:#08191A; --ink-2:#0F2426; --paper:#FFFFFF; --mist:#F0F7F5; --mist-2:#E3F0EC;
     --line:#E7E3E8; --muted:#6A6472; --text:#1B1B21;
     --rose:#0E9AA0; --rose-2:#22C3C9; --rose-soft:#D7F5F1; --rose-ink:#0B5E5B;
     --emer:#0F9E6E; --gold:#F59E0B; --ice:#EAF1FF;
@@ -17,7 +17,7 @@
   :root[data-theme="dark"]{ --ink:#061719; --ink-2:#0D2325; --paper:#121319; --mist:#15161D; --mist-2:#1B1D25;
     --line:#282A33; --muted:#9A93A3; --text:#ECEAF1; --rose:#2DD4BF; --rose-2:#22C3C9; --rose-soft:#0E3A37;
     --rose-ink:#7DE9DD; --emer:#34D399; --gold:#FCD34D; --ice:#1A2436; --shadow:0 26px 64px -34px rgba(0,0,0,.85); }
-  :root[data-theme="light"]{ --ink:#08191A; --paper:#FFFFFF; --mist:#F6F5F7; --mist-2:#EFEDF0; --line:#E7E3E8;
+  :root[data-theme="light"]{ --ink:#08191A; --paper:#FFFFFF; --mist:#F0F7F5; --mist-2:#E3F0EC; --line:#E7E3E8;
     --muted:#6A6472; --text:#1B1B21; --rose:#0E9AA0; --rose-soft:#D7F5F1; --rose-ink:#0B5E5B; --emer:#0F9E6E; --ice:#EAF1FF; }
 
   *{box-sizing:border-box}
@@ -198,6 +198,16 @@
   footer.ft{padding:48px 0 40px;color:var(--muted);font-size:13.5px}
   footer.ft .cols{display:flex;flex-wrap:wrap;justify-content:space-between;gap:22px;border-top:1px solid var(--line);padding-top:26px}
   .disc{font-size:12px;color:var(--muted);text-align:center;margin-top:22px;font-style:italic}
+  /* channel bars */
+  .chn{display:flex;align-items:center;gap:10px;font-size:12.5px;color:var(--text)}
+  .chn span{width:76px;flex:none;font-weight:600}
+  .chn i{height:14px;border-radius:999px;background:linear-gradient(90deg,var(--rose),var(--rose-2));display:block}
+  /* motion */
+  @keyframes floaty{0%,100%{transform:translateY(0)}50%{transform:translateY(-9px)}}
+  .mock{animation:floaty 6s ease-in-out infinite}
+  .reveal{opacity:0;transform:translateY(26px);transition:opacity .7s cubic-bezier(.2,.7,.2,1),transform .7s cubic-bezier(.2,.7,.2,1)}
+  .reveal.in{opacity:1;transform:none}
+  @media (prefers-reduced-motion:reduce){.mock{animation:none}.reveal{opacity:1!important;transform:none!important}}
   @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 
@@ -223,7 +233,7 @@
     <div>
       <span class="ey"><span style="width:7px;height:7px;border-radius:50%;background:var(--rose);display:inline-block"></span><span data-i="hero-ey">Property management de Airbnb · Miami</span></span>
       <h1 style="margin-top:14px"><span data-i="hero-h1a">Gestionamos tu Airbnb como un</span> <span class="g" data-i="hero-h1b">property manager profesional.</span></h1>
-      <p class="sub" data-i="hero-sub">Precios dinámicos, huéspedes 24/7, limpieza, reportes al dueño y cumplimiento legal en Miami-Dade y Broward. Tú cobras; nosotros operamos todo.</p>
+      <p class="sub" data-i="hero-sub">Publicamos tu propiedad en Airbnb, Vrbo, Booking, Google y redes, con fotos profesionales y precios dinámicos. Más visibilidad, más reservas, más ingresos — sin que muevas un dedo.</p>
       <div class="cta-row">
         <a href="#contacto" class="btn btn-primary" data-i="hero-c1">Solicita tu evaluación gratis</a>
         <a href="#plataforma" class="btn btn-ghost" data-i="hero-c2">Ver la plataforma</a>
@@ -257,8 +267,8 @@
   </div></div>
 
 
-  <!-- Miami skyline -->
-  <div style="background:var(--mist);border-bottom:1px solid var(--line);line-height:0;overflow:hidden"><svg viewBox="0 0 1200 130" preserveAspectRatio="none" style="width:100%;height:92px;display:block" aria-hidden="true"><defs><linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--rose)"/><stop offset="1" stop-color="var(--rose-2)"/></linearGradient></defs><g fill="url(#sky)" opacity="0.92"><rect x="0" y="75" width="66" height="55" rx="2"/><rect x="72" y="50" width="42" height="80" rx="2"/><rect x="120" y="82" width="56" height="48" rx="2"/><rect x="182" y="35" width="36" height="95" rx="2"/><rect x="224" y="64" width="50" height="66" rx="2"/><rect x="280" y="18" width="40" height="112" rx="2"/><rect x="326" y="78" width="66" height="52" rx="2"/><rect x="398" y="42" width="34" height="88" rx="2"/><rect x="438" y="60" width="54" height="70" rx="2"/><rect x="498" y="8" width="44" height="122" rx="2"/><rect x="548" y="72" width="62" height="58" rx="2"/><rect x="616" y="38" width="38" height="92" rx="2"/><rect x="660" y="80" width="68" height="50" rx="2"/><rect x="734" y="26" width="36" height="104" rx="2"/><rect x="776" y="66" width="56" height="64" rx="2"/><rect x="838" y="44" width="46" height="86" rx="2"/><rect x="890" y="76" width="66" height="54" rx="2"/><rect x="962" y="32" width="40" height="98" rx="2"/><rect x="1008" y="62" width="54" height="68" rx="2"/><rect x="1068" y="12" width="44" height="118" rx="2"/><rect x="1118" y="70" width="60" height="60" rx="2"/><rect x="1184" y="50" width="12" height="80" rx="2"/><rect x="520" y="-10" width="4" height="18"/><rect x="1090" y="-4" width="4" height="16"/></g></svg></div>
+  <!-- wave -->
+  <div style="line-height:0;background:var(--paper)"><svg viewBox="0 0 1200 90" preserveAspectRatio="none" style="width:100%;height:66px;display:block" aria-hidden="true"><path d="M0,42 C300,92 620,-8 1200,42 L1200,90 L0,90 Z" fill="var(--rose-soft)"/><path d="M0,58 C380,100 720,14 1200,56 L1200,90 L0,90 Z" fill="var(--rose)" opacity="0.9"/></svg></div>
 
   <!-- SERVICES -->
   <section id="servicios"><div class="wrap">
@@ -326,6 +336,33 @@
       <div><div class="n">$210-375</div><div class="l" data-i="st2">tarifa por noche según zona</div></div>
       <div><div class="n">86%</div><div class="l" data-i="st3">ocupación en temporada alta</div></div>
       <div><div class="n">18%</div><div class="l" data-i="st4">comisión transparente, todo incluido</div></div>
+    </div>
+  </div></section>
+
+  <!-- REACH -->
+  <section id="alcance" style="background:var(--mist)"><div class="wrap">
+    <div class="center"><span class="ey" data-i="reach-ey">Marketing y alcance</span><h2 style="margin-top:10px" data-i="reach-h">Más visibilidad = más reservas</h2><p class="lead" data-i="reach-l">La diferencia entre "estar en Airbnb" y llenar tu calendario es el marketing. Ponemos tu propiedad frente a más viajeros, en más lugares.</p></div>
+    <div class="show" style="margin-top:44px">
+      <div class="txt">
+        <h3 data-i="reach-h2">Te conseguimos más ojos y más reservas</h3>
+        <p data-i="reach-p">Un dueño solo publica en una plataforma. Nosotros distribuimos, optimizamos y promocionamos tu propiedad en todos los canales que importan.</p>
+        <ul>
+          <li>${CHK}<span data-i="reach-1">Publicación en Airbnb, Vrbo, Booking, Google y Expedia</span></li>
+          <li>${CHK}<span data-i="reach-2">Fotografía profesional y anuncio optimizado (SEO)</span></li>
+          <li>${CHK}<span data-i="reach-3">Difusión en redes: Instagram y TikTok</span></li>
+          <li>${CHK}<span data-i="reach-4">Precios dinámicos para no perder ni una noche</span></li>
+        </ul>
+      </div>
+      <div class="glass">
+        <div style="display:flex;justify-content:space-between;margin-bottom:14px;font-size:12px;color:var(--muted)"><b style="color:var(--text)" data-i="reach-c">Alcance multicanal</b><span style="color:var(--emer);font-weight:700">▲ 3.2x</span></div>
+        <div style="display:grid;gap:10px">
+          <div class="chn"><span>Airbnb</span><i style="width:94%"></i></div>
+          <div class="chn"><span>Booking</span><i style="width:72%"></i></div>
+          <div class="chn"><span>Vrbo</span><i style="width:60%"></i></div>
+          <div class="chn"><span>Google</span><i style="width:46%"></i></div>
+          <div class="chn"><span>Instagram</span><i style="width:38%"></i></div>
+        </div>
+      </div>
     </div>
   </div></section>
 
@@ -404,12 +441,12 @@
     es:{
       brand:'CasaHost',n1:'Servicios',n2:'Plataforma',n3:'Precios',n4:'Regulación',n5:'FAQ',ncta:'Evaluación gratis',
       'hero-ey':'Property management de Airbnb · Miami','hero-h1a':'Gestionamos tu Airbnb como un','hero-h1b':'property manager profesional.',
-      'hero-sub':'Precios dinámicos, huéspedes 24/7, limpieza, reportes al dueño y cumplimiento legal en Miami-Dade y Broward. Tú cobras; nosotros operamos todo.',
+      'hero-sub':'Publicamos tu propiedad en Airbnb, Vrbo, Booking, Google y redes, con fotos profesionales y precios dinámicos. Más visibilidad, más reservas, más ingresos — sin que muevas un dedo.',
       'hero-c1':'Solicita tu evaluación gratis','hero-c2':'Ver la plataforma','hero-trust':'Dueños que confían su propiedad a un equipo local y bilingüe',
       'mk-title':'Panel del dueño · Brickell 2BR','mk-live':'● En vivo','mk-k1':'Ingreso del mes','mk-k2':'Ocupación','mk-k3':'Tu comisión','mk-n':'noches','mk-n2':'noches','mk-s1':'Confirmada','mk-s2':'Check-in hoy',
       integ:'Sincronizamos y publicamos en',
       's1-ey':'Todo incluido','s1-h':'Todo lo que hace un property manager — y más','s1-l':'Operamos tu propiedad de principio a fin. Tú no mueves un dedo.',
-      's2-ey':'La plataforma','s2-h':'Tecnología de gestión, transparencia total',
+      's2-ey':'La plataforma','s2-h':'Tecnología de gestión, transparencia total','reach-ey':'Marketing y alcance','reach-h':'Más visibilidad = más reservas','reach-l':'La diferencia entre "estar en Airbnb" y llenar tu calendario es el marketing. Ponemos tu propiedad frente a más viajeros, en más lugares.','reach-h2':'Te conseguimos más ojos y más reservas','reach-p':'Un dueño solo publica en una plataforma. Nosotros distribuimos, optimizamos y promocionamos tu propiedad en todos los canales que importan.','reach-1':'Publicación en Airbnb, Vrbo, Booking, Google y Expedia','reach-2':'Fotografía profesional y anuncio optimizado (SEO)','reach-3':'Difusión en redes: Instagram y TikTok','reach-4':'Precios dinámicos para no perder ni una noche','reach-c':'Alcance multicanal',
       'p1-h':'Panel del dueño en tiempo real','p1-p':'Ve tus ingresos, ocupación, próximas reservas y tu estado de cuenta cuando quieras, desde el móvil.','p1-1':'Ingresos y comisiones al día','p1-2':'Reporte mensual descargable','p1-3':'Sin sorpresas ni cargos ocultos','p1-c':'Resumen · Octubre','p1-ka':'Bruto','p1-kb':'Neto dueño','p1-kc':'Noches',
       'p2-h':'Precios dinámicos + calendario unificado','p2-p':'Ajustamos la tarifa por temporada, eventos y demanda (Art Basel, Ultra, Mundial 2026) para maximizar cada noche.','p2-1':'Un calendario para Airbnb, Vrbo y Booking','p2-2':'Sin dobles reservas','p2-3':'Tarifas optimizadas a diario','p2-c':'Marzo · Spring Break',
       'p3-h':'Atención al huésped 24/7, bilingüe','p3-p':'Respondemos en minutos, en inglés y español. Mejores reseñas, más reservas, cero estrés para ti.','p3-1':'Check-in y check-out coordinados','p3-2':'Limpieza y mantenimiento gestionados','p3-3':'Gestión activa de reseñas','p3-m1':'Hi! Can we check in earlier?','p3-m2':'¡Claro! Dejo tu entrada lista a la 1 PM. 🔑','p3-m3':'Amazing, thank you!',
@@ -432,12 +469,12 @@
     en:{
       brand:'CasaHost',n1:'Services',n2:'Platform',n3:'Pricing',n4:'Regulations',n5:'FAQ',ncta:'Free evaluation',
       'hero-ey':'Airbnb property management · Miami','hero-h1a':'We run your Airbnb like a','hero-h1b':'professional property manager.',
-      'hero-sub':'Dynamic pricing, 24/7 guests, cleaning, owner reporting and legal compliance across Miami-Dade and Broward. You get paid; we run everything.',
+      'hero-sub':'We list your property on Airbnb, Vrbo, Booking, Google and social, with professional photos and dynamic pricing. More visibility, more bookings, more income — without you lifting a finger.',
       'hero-c1':'Request your free evaluation','hero-c2':'See the platform','hero-trust':'Owners who trust their property to a local, bilingual team',
       'mk-title':'Owner dashboard · Brickell 2BR','mk-live':'● Live','mk-k1':'Month revenue','mk-k2':'Occupancy','mk-k3':'Your fee','mk-n':'nights','mk-n2':'nights','mk-s1':'Confirmed','mk-s2':'Check-in today',
       integ:'We sync and publish on',
       's1-ey':'All included','s1-h':'Everything a property manager does — and more','s1-l':'We run your property end to end. You do nothing.',
-      's2-ey':'The platform','s2-h':'Management tech, total transparency',
+      's2-ey':'The platform','s2-h':'Management tech, total transparency','reach-ey':'Marketing & reach','reach-h':'More visibility = more bookings','reach-l':'The gap between "being on Airbnb" and filling your calendar is marketing. We put your property in front of more travelers, in more places.','reach-h2':'We get you more eyes and more bookings','reach-p':'An owner alone posts on one platform. We distribute, optimize and promote your property across every channel that matters.','reach-1':'Listed on Airbnb, Vrbo, Booking, Google and Expedia','reach-2':'Professional photography and SEO-optimized listing','reach-3':'Social promotion: Instagram and TikTok','reach-4':'Dynamic pricing so you never lose a night','reach-c':'Multi-channel reach',
       'p1-h':'Real-time owner dashboard','p1-p':'See your revenue, occupancy, upcoming bookings and statement anytime, from your phone.','p1-1':'Revenue and fees up to date','p1-2':'Downloadable monthly report','p1-3':'No surprises, no hidden fees','p1-c':'Summary · October','p1-ka':'Gross','p1-kb':'Owner net','p1-kc':'Nights',
       'p2-h':'Dynamic pricing + unified calendar','p2-p':'We adjust rates by season, events and demand (Art Basel, Ultra, World Cup 2026) to maximize every night.','p2-1':'One calendar for Airbnb, Vrbo & Booking','p2-2':'No double bookings','p2-3':'Rates optimized daily','p2-c':'March · Spring Break',
       'p3-h':'24/7 bilingual guest support','p3-p':'We reply in minutes, in English and Spanish. Better reviews, more bookings, zero stress for you.','p3-1':'Coordinated check-in and check-out','p3-2':'Cleaning and maintenance handled','p3-3':'Active review management','p3-m1':'Hi! Can we check in earlier?','p3-m2':'Of course! Your place will be ready at 1 PM. 🔑','p3-m3':'Amazing, thank you!',
@@ -494,5 +531,10 @@
   var _L=L;L=function(l){_L(l);applyForm();};
   document.addEventListener('submit',function(e){if(e.target&&e.target.id==='leadf'){e.preventDefault();try{var k=JSON.parse(localStorage.getItem('casahost_leads')||'[]');k.unshift({name:lf_name.value,contact:lf_contact.value,zone:lf_zone.value,at:new Date().toISOString()});localStorage.setItem('casahost_leads',JSON.stringify(k));}catch(_){}document.getElementById('leadf').style.display='none';document.getElementById('lf-ok').style.display='block';}});
   applyForm();
+  (function(){var sel='.card,.price,.quote,.show,.center,.glass,.cmp';
+    document.querySelectorAll(sel).forEach(function(n){n.classList.add('reveal');});
+    if('IntersectionObserver' in window){var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}});},{threshold:.12,rootMargin:'0px 0px -8% 0px'});
+      document.querySelectorAll('.reveal').forEach(function(n){io.observe(n);});}
+    else{document.querySelectorAll('.reveal').forEach(function(n){n.classList.add('in');});}})();
 
 </script>
