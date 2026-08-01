@@ -1,0 +1,25 @@
+# Kit comercial — CoHost Pro
+
+Material de negocio para arrancar tu operación de **co-hosting de Airbnb** (administrar
+propiedades de otros a cambio de una comisión, sin comprar inmuebles).
+
+Complementa el sistema web del proyecto:
+
+- **Landing** para captar dueños → `/airbnb`
+- **Panel / CRM** para gestionar el negocio → `/airbnb/panel`
+
+## Archivos
+
+| Archivo | Para qué sirve |
+|---|---|
+| `Contrato-Administracion-CoHostPro.docx` | Contrato de administración para firmar con cada dueño. Plantilla editable; revísala con un abogado antes de usarla. |
+| `Propuesta-Comercial-CoHostPro.docx` | Propuesta que envías a un dueño interesado (servicio, planes y proyección). |
+| `Pitch-Deck-CoHostPro.pptx` | Presentación de 10 diapositivas para vender el servicio o presentar el negocio a socios. |
+| `Seguimiento-Ingresos-CoHostPro.xlsx` | Hoja de cálculo con fórmulas: registra propiedades y reservas, y calcula tus comisiones automáticamente. |
+| `calculadora.html` | Calculadora interactiva para propietarios. Publicada como Artifact para compartir por link/WhatsApp. |
+
+## Notas
+
+- Los importes de las plantillas son **ejemplos ilustrativos**; ajústalos a tu mercado.
+- El Excel usa `fullCalcOnLoad`: al abrirlo en Excel o LibreOffice recalcula solo todas las fórmulas.
+- Las cifras de proyección asumen ~$80/noche y 65% de ocupación; cámbialas por las de tu ciudad.
