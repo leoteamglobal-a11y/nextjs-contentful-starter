@@ -17,6 +17,7 @@ Complementa el sistema web del proyecto:
 | `Pitch-Deck-CoHostPro.pptx` | Presentación de 10 diapositivas para vender el servicio o presentar el negocio a socios. |
 | `Seguimiento-Ingresos-CoHostPro.xlsx` | Hoja de cálculo con fórmulas: registra propiedades y reservas, y calcula tus comisiones automáticamente. |
 | `calculadora.html` | Calculadora interactiva para propietarios. Publicada como Artifact para compartir por link/WhatsApp. |
+| `estudio-mercado.html` | Estudio de mercado bilingüe (EN/ES) de Miami-Dade y Broward: demanda, zonas, competencia, regulación por ciudad, posicionamiento y proyección. Publicado como Artifact. |
 
 ## Notas
 

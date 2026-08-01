@@ -1,0 +1,471 @@
+<style>
+  :root {
+    --paper: #FCFBFA; --surface: #FFFFFF; --ink: #17171C; --ink-soft: #5A555E;
+    --line: #ECE7E8; --rose: #E11D48; --rose-soft: #FCE7EB; --rose-ink: #9F1239;
+    --teal: #0F766E; --amber: #B45309; --green: #15803D; --red: #B91C1C;
+    --chip-red: #FEE2E2; --chip-red-ink: #B91C1C;
+    --chip-amber: #FEF3C7; --chip-amber-ink: #92400E;
+    --chip-green: #DCFCE7; --chip-green-ink: #166534;
+    --track: #F1ECED; --shadow: 0 14px 34px -20px rgba(120,20,50,.28);
+    --maxw: 860px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --paper: #141216; --surface: #1C191E; --ink: #F2ECEE; --ink-soft: #ADA2A8;
+      --line: #322A2E; --rose: #FB7185; --rose-soft: #3A1E27; --rose-ink: #FDA4AF;
+      --teal: #2DD4BF; --amber: #FCD34D; --green: #4ADE80; --red: #F87171;
+      --chip-red: #3A1D1D; --chip-red-ink: #FCA5A5;
+      --chip-amber: #3A2E12; --chip-amber-ink: #FCD34D;
+      --chip-green: #14311F; --chip-green-ink: #86EFAC;
+      --track: #2A2327; --shadow: 0 14px 34px -20px rgba(0,0,0,.7);
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #141216; --surface: #1C191E; --ink: #F2ECEE; --ink-soft: #ADA2A8;
+    --line: #322A2E; --rose: #FB7185; --rose-soft: #3A1E27; --rose-ink: #FDA4AF;
+    --teal: #2DD4BF; --amber: #FCD34D; --green: #4ADE80; --red: #F87171;
+    --chip-red: #3A1D1D; --chip-red-ink: #FCA5A5; --chip-amber: #3A2E12; --chip-amber-ink: #FCD34D;
+    --chip-green: #14311F; --chip-green-ink: #86EFAC; --track: #2A2327;
+  }
+  :root[data-theme="light"] {
+    --paper: #FCFBFA; --surface: #FFFFFF; --ink: #17171C; --ink-soft: #5A555E;
+    --line: #ECE7E8; --rose: #E11D48; --rose-soft: #FCE7EB; --teal: #0F766E;
+    --amber: #B45309; --green: #15803D; --red: #B91C1C; --track: #F1ECED;
+    --chip-red: #FEE2E2; --chip-red-ink: #B91C1C; --chip-amber: #FEF3C7; --chip-amber-ink: #92400E;
+    --chip-green: #DCFCE7; --chip-green-ink: #166534;
+  }
+
+  * { box-sizing: border-box; }
+  body { margin: 0; }
+  .doc {
+    background: var(--paper); color: var(--ink);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    line-height: 1.6; padding: 0 20px 80px;
+  }
+  .shell { max-width: var(--maxw); margin: 0 auto; }
+  h1, h2, h3 { font-family: Georgia, "Times New Roman", serif; line-height: 1.15; text-wrap: balance; }
+
+  /* Language toggle */
+  .toolbar { position: sticky; top: 0; z-index: 5; background: color-mix(in srgb, var(--paper) 88%, transparent);
+    backdrop-filter: blur(8px); border-bottom: 1px solid var(--line); margin: 0 -20px 0; padding: 10px 20px; }
+  .toolbar .inner { max-width: var(--maxw); margin: 0 auto; display: flex; justify-content: space-between; align-items: center; }
+  .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--rose); font-weight: 700; }
+  .langtog { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; overflow: hidden; background: var(--surface); }
+  .langtog button { border: none; background: transparent; color: var(--ink-soft); font: inherit; font-size: 12px; font-weight: 700;
+    padding: 5px 12px; cursor: pointer; }
+  .langtog button[aria-pressed="true"] { background: var(--rose); color: #fff; }
+
+  header.hero { padding: 56px 0 32px; border-bottom: 1px solid var(--line); }
+  header.hero .eyebrow { font-size: 13px; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-soft); font-weight: 700; }
+  header.hero h1 { font-size: clamp(32px, 6vw, 52px); margin: 14px 0 12px; letter-spacing: -.01em; }
+  header.hero p { font-size: clamp(16px, 2.2vw, 19px); color: var(--ink-soft); max-width: 60ch; margin: 0; }
+  .meta { margin-top: 20px; font-size: 13px; color: var(--ink-soft); display: flex; flex-wrap: wrap; gap: 6px 18px; }
+  .meta b { color: var(--ink); font-weight: 700; }
+
+  section { padding: 40px 0; border-bottom: 1px solid var(--line); }
+  section > h2 { font-size: clamp(24px, 4vw, 34px); margin: 0 0 6px; }
+  .lead { color: var(--ink-soft); margin: 0 0 24px; max-width: 62ch; }
+  h3.sub { font-size: 14px; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-soft); margin: 28px 0 12px; }
+  p { max-width: 68ch; }
+
+  .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 14px; margin: 8px 0 4px; }
+  .tile { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 18px; }
+  .tile .n { font-family: Georgia, serif; font-size: 30px; font-weight: 700; color: var(--rose); font-variant-numeric: tabular-nums; }
+  .tile .l { font-size: 13px; color: var(--ink-soft); margin-top: 4px; }
+
+  .chart { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 22px; margin-top: 8px; }
+  .bar-row { display: grid; grid-template-columns: 150px 1fr 64px; align-items: center; gap: 12px; margin: 9px 0; font-size: 14px; }
+  .bar-row .name { color: var(--ink); font-weight: 600; }
+  .bar-track { background: var(--track); border-radius: 999px; height: 22px; overflow: hidden; }
+  .bar-fill { height: 100%; border-radius: 999px; background: var(--rose); }
+  .bar-fill.teal { background: var(--teal); }
+  .bar-fill.muted { background: var(--ink-soft); opacity: .5; }
+  .bar-val { text-align: right; font-variant-numeric: tabular-nums; font-weight: 700; color: var(--ink); }
+  .flag { font-size: 11px; color: var(--amber); font-weight: 700; }
+
+  .season { display: flex; align-items: flex-end; gap: 5px; height: 130px; margin-top: 12px; }
+  .season .col { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; gap: 4px; height: 100%; }
+  .season .col .b { width: 70%; background: var(--rose); border-radius: 4px 4px 0 0; min-height: 3px; }
+  .season .col .m { font-size: 10px; color: var(--ink-soft); }
+
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin-top: 8px; }
+  .scroll { overflow-x: auto; }
+  th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { font-size: 12px; letter-spacing: .04em; text-transform: uppercase; color: var(--ink-soft); }
+  .chip { display: inline-block; padding: 2px 9px; border-radius: 999px; font-size: 12px; font-weight: 700; white-space: nowrap; }
+  .chip.red { background: var(--chip-red); color: var(--chip-red-ink); }
+  .chip.amber { background: var(--chip-amber); color: var(--chip-amber-ink); }
+  .chip.green { background: var(--chip-green); color: var(--chip-green-ink); }
+
+  .cards { display: grid; gap: 16px; grid-template-columns: 1fr; margin-top: 8px; }
+  @media (min-width: 680px) { .cards.three { grid-template-columns: repeat(3, 1fr); } }
+  .card { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 20px; }
+  .card h4 { margin: 0 0 8px; font-size: 16px; }
+  .card.hot { border-color: var(--rose); box-shadow: var(--shadow); }
+  .card .tagline { font-size: 12px; font-weight: 700; color: var(--rose); text-transform: uppercase; letter-spacing: .04em; }
+
+  ul.clean { padding-left: 18px; margin: 8px 0; }
+  ul.clean li { margin: 6px 0; }
+
+  .callout { background: var(--rose-soft); border-radius: 16px; padding: 20px 22px; margin-top: 16px; }
+  .callout b { color: var(--rose-ink); }
+
+  .sources { font-size: 12.5px; color: var(--ink-soft); }
+  .sources li { margin: 4px 0; }
+  .disclaimer { font-size: 12.5px; color: var(--ink-soft); font-style: italic; margin-top: 20px; }
+  footer.end { padding: 30px 0 0; font-size: 13px; color: var(--ink-soft); text-align: center; }
+  [data-i18n] { }
+</style>
+
+<div class="doc">
+  <div class="toolbar">
+    <div class="inner">
+      <span class="kicker" data-i18n="kicker">Estudio de mercado</span>
+      <span class="langtog" role="group" aria-label="Language">
+        <button id="btn-es" aria-pressed="true" onclick="setLang('es')">ES</button>
+        <button id="btn-en" aria-pressed="false" onclick="setLang('en')">EN</button>
+      </span>
+    </div>
+  </div>
+
+  <div class="shell">
+    <header class="hero">
+      <div class="eyebrow" data-i18n="eyebrow">Co-hosting de Airbnb · Sur de Florida</div>
+      <h1 data-i18n="title">Mercado de alquiler a corto plazo: Miami-Dade y Broward</h1>
+      <p data-i18n="subtitle">Dónde está la oportunidad, qué cobra la competencia, qué exige la ley y cómo posicionar un servicio de co-hosting para ganar en el Sur de Florida.</p>
+      <div class="meta">
+        <span><b data-i18n="m1b">Preparado para:</b> <span data-i18n="m1v">CoHost Pro</span></span>
+        <span><b data-i18n="m2b">Cobertura:</b> <span data-i18n="m2v">Miami-Dade y Broward</span></span>
+        <span><b data-i18n="m3b">Datos:</b> <span data-i18n="m3v">2024–2026</span></span>
+      </div>
+    </header>
+
+    <!-- 1. Executive summary -->
+    <section>
+      <h2 data-i18n="s1h">Resumen ejecutivo</h2>
+      <p data-i18n="s1p1">El Sur de Florida es uno de los mercados de alquiler vacacional más fuertes de EE. UU.: casi 50 millones de visitantes al año entre ambos condados y tarifas por noche de las más altas del país. Pero la oferta crece rápido y la regulación es estricta y distinta en cada ciudad. El dinero fácil se acabó: gana quien gestiona con precios dinámicos, buenas reseñas y — sobre todo — cumplimiento legal.</p>
+      <div class="callout">
+        <p style="margin:0" data-i18n="s1call"><b>La oportunidad:</b> la competencia cobra entre 15% y 50% de comisión, muchas veces con cargos ocultos y servicio impersonal. Hay espacio claro para un operador <b>bilingüe, local, con comisión transparente (~18%) y el compliance incluido</b>.</p>
+      </div>
+    </section>
+
+    <!-- 2. Market -->
+    <section>
+      <h2 data-i18n="s2h">El mercado</h2>
+      <p class="lead" data-i18n="s2lead">Demanda récord y estable; el reto ya no es la demanda, es destacar entre más oferta.</p>
+      <div class="tiles">
+        <div class="tile"><div class="n">28.3M</div><div class="l" data-i18n="s2t1">visitantes/año · Miami-Dade</div></div>
+        <div class="tile"><div class="n">~21M</div><div class="l" data-i18n="s2t2">visitantes/año · Broward</div></div>
+        <div class="tile"><div class="n">$38–49K</div><div class="l" data-i18n="s2t3">ingreso anual medio por anuncio</div></div>
+        <div class="tile"><div class="n">+25–70%</div><div class="l" data-i18n="s2t4">crecimiento de oferta interanual</div></div>
+      </div>
+      <p style="margin-top:18px" data-i18n="s2p2">La ocupación típica va de 45% a 68% según la zona y la fuente. La tarifa media por noche (ADR) ronda $175–$300 en Miami-Dade y $212–$365 en Broward. La oferta creció con fuerza (Fort Lauderdale casi +70% interanual), así que la ocupación se defiende solo con gestión activa.</p>
+    </section>
+
+    <!-- 3. Neighborhoods -->
+    <section>
+      <h2 data-i18n="s3h">Rendimiento por zona</h2>
+      <p class="lead" data-i18n="s3lead">Tarifa media por noche (ADR) por submercado. Las marcadas requieren atención regulatoria.</p>
+      <div class="chart" id="hoodChart"></div>
+      <p style="margin-top:14px" data-i18n="s3p"><b>Lectura:</b> South Beach y Sunny Isles tienen las tarifas más altas pero las reglas más estrictas. Brickell, Downtown y Wynwood combinan buena tarifa con zonas más permisivas. En Broward, Hollywood y Fort Lauderdale lideran; Hallandale tiene tarifa alta pero baja ocupación (sobreoferta).</p>
+    </section>
+
+    <!-- 4. Seasonality -->
+    <section>
+      <h2 data-i18n="s4h">Estacionalidad</h2>
+      <p class="lead" data-i18n="s4lead">Índice de demanda relativa por mes (temporada alta dic–abr, pico en marzo).</p>
+      <div class="chart">
+        <div class="season" id="season"></div>
+      </div>
+      <p style="margin-top:14px" data-i18n="s4p">La temporada alta del invierno y los grandes eventos disparan tarifas: Art Basel (diciembre), Boat Show (febrero), Spring Break y Ultra (marzo). En 2026 se suma el <b>Mundial FIFA</b>, con Miami como sede — un impulso extra que suaviza el verano, normalmente flojo (septiembre es el mes más débil).</p>
+    </section>
+
+    <!-- 5. Competition -->
+    <section>
+      <h2 data-i18n="s5h">La competencia</h2>
+      <p class="lead" data-i18n="s5lead">Comisión típica de gestión por operador. Nuestra posición se marca en color.</p>
+      <div class="chart" id="compChart"></div>
+      <p style="margin-top:14px" data-i18n="s5p">El promedio nacional de servicio completo ronda el 25%; en Miami va de 15% a 35% y en Broward hasta 50%. Las quejas recurrentes de los dueños: cargos sorpresa, mala comunicación y marcas nacionales impersonales tras las fusiones (Vacasa→Casago). Además, Airbnb trasladó al anfitrión una comisión de ~15,5% desde finales de 2025, subiendo la presión sobre lo que cobra cada gestor.</p>
+    </section>
+
+    <!-- 6. Regulation -->
+    <section>
+      <h2 data-i18n="s6h">Regulación por ciudad</h2>
+      <p class="lead" data-i18n="s6lead">El factor que más pesa en la selección de propiedades. Nivel de exigencia y riesgo por ciudad.</p>
+      <div class="scroll">
+        <table id="regTable">
+          <thead><tr><th data-i18n="s6c1">Ciudad</th><th data-i18n="s6c2">Nivel</th><th data-i18n="s6c3">Puntos clave</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <h3 class="sub" data-i18n="s6tax">Impuestos turísticos</h3>
+      <div class="tiles">
+        <div class="tile"><div class="n">~13%</div><div class="l">Miami-Dade</div></div>
+        <div class="tile"><div class="n">~11–13%</div><div class="l">Broward</div></div>
+        <div class="tile"><div class="n">+4%</div><div class="l" data-i18n="s6tx3">Resort tax · Miami Beach</div></div>
+      </div>
+      <p style="margin-top:16px" data-i18n="s6p">Florida tiene preemción parcial: las ciudades no pueden prohibir los STR ni limitar su frecuencia en ordenanzas posteriores a 2011 (Miami Beach está exenta por ser previa). El proyecto estatal SB 280 fue vetado en 2024, así que sigue el mosaico de reglas locales — conviene vigilar la sesión legislativa de 2026.</p>
+    </section>
+
+    <!-- 7. Opportunity / positioning -->
+    <section>
+      <h2 data-i18n="s7h">Posicionamiento recomendado</h2>
+      <p class="lead" data-i18n="s7lead">Tres ángulos para entrar y ganar, combinables entre sí.</p>
+      <div class="cards three">
+        <div class="card hot">
+          <div class="tagline" data-i18n="s7a1t">Ángulo A</div>
+          <h4 data-i18n="s7a1h">Precio transparente</h4>
+          <p style="font-size:14px" data-i18n="s7a1p">Comisión única ~18% todo incluido, sin cargo de alta ni permanencia, con panel en vivo de reservas y pagos. Ataca la queja #1: la opacidad.</p>
+        </div>
+        <div class="card">
+          <div class="tagline" data-i18n="s7a2t">Ángulo B</div>
+          <h4 data-i18n="s7a2h">Bilingüe + compliance</h4>
+          <p style="font-size:14px" data-i18n="s7a2p">Atención local en inglés y español (y portugués), con licencias, Certificate of Use e impuestos incluidos. "Te mantenemos legal y sin multas" como gancho.</p>
+        </div>
+        <div class="card">
+          <div class="tagline" data-i18n="s7a3t">Ángulo C</div>
+          <h4 data-i18n="s7a3h">Boutique tecnológica</h4>
+          <p style="font-size:14px" data-i18n="s7a3p">Precios dinámicos y densidad por edificio: dominar 2–4 torres en Brickell/Downtown/Fort Lauderdale para eficiencia operativa y referidos.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 8. Financial projection -->
+    <section>
+      <h2 data-i18n="s8h">Proyección financiera</h2>
+      <p class="lead" data-i18n="s8lead">Comisión mensual estimada al escalar propiedades (base: ~$310 de comisión por propiedad/mes con tarifa e ingresos típicos de Miami).</p>
+      <div class="chart" id="projChart"></div>
+      <p style="margin-top:14px" data-i18n="s8p">El modelo es capital-ligero: el mismo esfuerzo operativo por propiedad, ingresos que se multiplican con la cartera. Con 10 propiedades bien gestionadas, la comisión mensual ronda los $3,000; con 20, supera los $6,000 — sin comprar un solo inmueble.</p>
+    </section>
+
+    <!-- 9. Recommendations -->
+    <section>
+      <h2 data-i18n="s9h">Recomendaciones (plan de acción)</h2>
+      <ul class="clean" id="recs"></ul>
+    </section>
+
+    <!-- Sources -->
+    <section>
+      <h2 data-i18n="s10h">Fuentes y notas</h2>
+      <ul class="sources clean">
+        <li>GMCVB / Greater Miami Convention &amp; Visitors Bureau; Visit Lauderdale (turismo).</li>
+        <li>AirDNA, AirROI, Airbtics, Rabbu, Chalet (métricas STR: ADR, ocupación, ingresos).</li>
+        <li>Miami-Dade County (Sec. 33-28, Certificate of Use); ciudades de Miami, Miami Beach, Doral, Sunny Isles, Fort Lauderdale, Hollywood, Hallandale, Dania Beach, Pompano (ordenanzas STR).</li>
+        <li>Florida DOR y oficinas de Tourist Development Tax de Miami-Dade y Broward (impuestos).</li>
+        <li>Awning, Evolve, Vacasa, AvantStay, FunStay, Uplisting, PriceLabs (comisiones y modelo de negocio).</li>
+      </ul>
+      <p class="disclaimer" data-i18n="disc">Las cifras de mercado provienen de proveedores que estiman con metodologías distintas; se presentan como rangos de referencia, no como valores exactos. La sección regulatoria es informativa y educativa, no asesoría legal: las reglas cambian y varían según la propiedad — verifica con cada autoridad antes de operar. Síntesis: 2026.</p>
+    </section>
+
+    <footer class="end" data-i18n="foot">CoHost Pro · Estudio de mercado de co-hosting para Miami-Dade y Broward.</footer>
+  </div>
+</div>
+
+<script>
+  // ---------- Data (language-agnostic) ----------
+  var HOODS = [
+    { name: 'South Beach', adr: 375, restricted: true },
+    { name: 'Brickell', adr: 315, restricted: false },
+    { name: 'Sunny Isles', adr: 300, restricted: true },
+    { name: 'Downtown Miami', adr: 260, restricted: false },
+    { name: 'Hallandale', adr: 251, restricted: true },
+    { name: 'Wynwood', adr: 231, restricted: false },
+    { name: 'Hollywood', adr: 214, restricted: false },
+    { name: 'Fort Lauderdale', adr: 212, restricted: false },
+    { name: 'Pompano Beach', adr: 196, restricted: false },
+    { name: 'Doral', adr: 200, restricted: true },
+  ];
+  var SEASON = [ ['Ene',72],['Feb',85],['Mar',100],['Abr',88],['May',66],['Jun',60],['Jul',63],['Ago',58],['Sep',45],['Oct',55],['Nov',68],['Dic',82] ];
+  var SEASON_EN = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  var COMP = [
+    { name: 'CoHost Pro', pct: 18, us: true },
+    { name: 'Awning', pct: 13 },
+    { name: 'Evolve', pct: 13 },
+    { name: 'FunStay', pct: 18 },
+    { name: 'iTrip', pct: 23 },
+    { name: 'AvantStay', pct: 28 },
+    { name: 'Vacasa', pct: 35 },
+  ];
+  var PROJ = [ ['1', 310],['3',930],['5',1550],['10',3100],['20',6200] ];
+  var REG = [
+    { city: 'Miami Beach', tone: 'red' },
+    { city: 'Doral', tone: 'red' },
+    { city: 'City of Miami', tone: 'amber' },
+    { city: 'Sunny Isles Beach', tone: 'amber' },
+    { city: 'Fort Lauderdale', tone: 'green' },
+    { city: 'Hollywood', tone: 'green' },
+  ];
+
+  // ---------- i18n dictionary ----------
+  var I18N = {
+    es: {
+      kicker: 'Estudio de mercado', eyebrow: 'Co-hosting de Airbnb · Sur de Florida',
+      title: 'Mercado de alquiler a corto plazo: Miami-Dade y Broward',
+      subtitle: 'Dónde está la oportunidad, qué cobra la competencia, qué exige la ley y cómo posicionar un servicio de co-hosting para ganar en el Sur de Florida.',
+      m1b: 'Preparado para:', m1v: 'CoHost Pro', m2b: 'Cobertura:', m2v: 'Miami-Dade y Broward', m3b: 'Datos:', m3v: '2024–2026',
+      s1h: 'Resumen ejecutivo',
+      s1p1: 'El Sur de Florida es uno de los mercados de alquiler vacacional más fuertes de EE. UU.: casi 50 millones de visitantes al año entre ambos condados y tarifas por noche de las más altas del país. Pero la oferta crece rápido y la regulación es estricta y distinta en cada ciudad. El dinero fácil se acabó: gana quien gestiona con precios dinámicos, buenas reseñas y — sobre todo — cumplimiento legal.',
+      s1call: '<b>La oportunidad:</b> la competencia cobra entre 15% y 50% de comisión, muchas veces con cargos ocultos y servicio impersonal. Hay espacio claro para un operador <b>bilingüe, local, con comisión transparente (~18%) y el compliance incluido</b>.',
+      s2h: 'El mercado', s2lead: 'Demanda récord y estable; el reto ya no es la demanda, es destacar entre más oferta.',
+      s2t1: 'visitantes/año · Miami-Dade', s2t2: 'visitantes/año · Broward', s2t3: 'ingreso anual medio por anuncio', s2t4: 'crecimiento de oferta interanual',
+      s2p2: 'La ocupación típica va de 45% a 68% según la zona y la fuente. La tarifa media por noche (ADR) ronda $175–$300 en Miami-Dade y $212–$365 en Broward. La oferta creció con fuerza (Fort Lauderdale casi +70% interanual), así que la ocupación se defiende solo con gestión activa.',
+      s3h: 'Rendimiento por zona', s3lead: 'Tarifa media por noche (ADR) por submercado. Las marcadas requieren atención regulatoria.',
+      s3p: '<b>Lectura:</b> South Beach y Sunny Isles tienen las tarifas más altas pero las reglas más estrictas. Brickell, Downtown y Wynwood combinan buena tarifa con zonas más permisivas. En Broward, Hollywood y Fort Lauderdale lideran; Hallandale tiene tarifa alta pero baja ocupación (sobreoferta).',
+      s4h: 'Estacionalidad', s4lead: 'Índice de demanda relativa por mes (temporada alta dic–abr, pico en marzo).',
+      s4p: 'La temporada alta del invierno y los grandes eventos disparan tarifas: Art Basel (diciembre), Boat Show (febrero), Spring Break y Ultra (marzo). En 2026 se suma el <b>Mundial FIFA</b>, con Miami como sede — un impulso extra que suaviza el verano, normalmente flojo (septiembre es el mes más débil).',
+      s5h: 'La competencia', s5lead: 'Comisión típica de gestión por operador. Nuestra posición se marca en color.',
+      s5p: 'El promedio nacional de servicio completo ronda el 25%; en Miami va de 15% a 35% y en Broward hasta 50%. Las quejas recurrentes de los dueños: cargos sorpresa, mala comunicación y marcas nacionales impersonales tras las fusiones (Vacasa→Casago). Además, Airbnb trasladó al anfitrión una comisión de ~15,5% desde finales de 2025, subiendo la presión sobre lo que cobra cada gestor.',
+      s6h: 'Regulación por ciudad', s6lead: 'El factor que más pesa en la selección de propiedades. Nivel de exigencia y riesgo por ciudad.',
+      s6c1: 'Ciudad', s6c2: 'Nivel', s6c3: 'Puntos clave', s6tax: 'Impuestos turísticos', s6tx3: 'Resort tax · Miami Beach',
+      s6p: 'Florida tiene preemción parcial: las ciudades no pueden prohibir los STR ni limitar su frecuencia en ordenanzas posteriores a 2011 (Miami Beach está exenta por ser previa). El proyecto estatal SB 280 fue vetado en 2024, así que sigue el mosaico de reglas locales — conviene vigilar la sesión legislativa de 2026.',
+      s7h: 'Posicionamiento recomendado', s7lead: 'Tres ángulos para entrar y ganar, combinables entre sí.',
+      s7a1t: 'Ángulo A', s7a1h: 'Precio transparente', s7a1p: 'Comisión única ~18% todo incluido, sin cargo de alta ni permanencia, con panel en vivo de reservas y pagos. Ataca la queja #1: la opacidad.',
+      s7a2t: 'Ángulo B', s7a2h: 'Bilingüe + compliance', s7a2p: 'Atención local en inglés y español (y portugués), con licencias, Certificate of Use e impuestos incluidos. "Te mantenemos legal y sin multas" como gancho.',
+      s7a3t: 'Ángulo C', s7a3h: 'Boutique tecnológica', s7a3p: 'Precios dinámicos y densidad por edificio: dominar 2–4 torres en Brickell/Downtown/Fort Lauderdale para eficiencia operativa y referidos.',
+      s8h: 'Proyección financiera', s8lead: 'Comisión mensual estimada al escalar propiedades (base: ~$310 de comisión por propiedad/mes con tarifa e ingresos típicos de Miami).',
+      s8p: 'El modelo es capital-ligero: el mismo esfuerzo operativo por propiedad, ingresos que se multiplican con la cartera. Con 10 propiedades bien gestionadas, la comisión mensual ronda los $3,000; con 20, supera los $6,000 — sin comprar un solo inmueble.',
+      s9h: 'Recomendaciones (plan de acción)',
+      s10h: 'Fuentes y notas',
+      disc: 'Las cifras de mercado provienen de proveedores que estiman con metodologías distintas; se presentan como rangos de referencia, no como valores exactos. La sección regulatoria es informativa y educativa, no asesoría legal: las reglas cambian y varían según la propiedad — verifica con cada autoridad antes de operar. Síntesis: 2026.',
+      foot: 'CoHost Pro · Estudio de mercado de co-hosting para Miami-Dade y Broward.',
+      restricted: 'reglas estrictas',
+      projUnit: 'propiedades',
+      recs: [
+        'Enfocar la captación en zonas permisivas y rentables: Brickell, Downtown, Wynwood (Miami-Dade); Hollywood y Fort Lauderdale (Broward).',
+        'Manejar Miami Beach, Doral y Sunny Isles solo con compliance verificado; considerar renta de mediano plazo (30+ días) donde el STR esté limitado.',
+        'Salir al mercado con comisión única ~18% todo incluido, sin cargo de alta ni permanencia.',
+        'Hacer del compliance un servicio estrella: licencias, Certificate of Use e impuestos incluidos, comunicados como "sin multas".',
+        'Ofrecer una evaluación de ingresos gratuita como principal gancho de captación (calculadora + llamada).',
+        'Priorizar densidad por edificio en 2–4 torres STR-legales para eficiencia y referidos.',
+        'Servicio genuinamente bilingüe (EN/ES, idealmente +PT) con panel de dueño en vivo.',
+      ],
+    },
+    en: {
+      kicker: 'Market study', eyebrow: 'Airbnb co-hosting · South Florida',
+      title: 'Short-term rental market: Miami-Dade & Broward',
+      subtitle: 'Where the opportunity is, what competitors charge, what the law requires, and how to position a co-hosting service to win in South Florida.',
+      m1b: 'Prepared for:', m1v: 'CoHost Pro', m2b: 'Coverage:', m2v: 'Miami-Dade & Broward', m3b: 'Data:', m3v: '2024–2026',
+      s1h: 'Executive summary',
+      s1p1: 'South Florida is one of the strongest vacation-rental markets in the U.S.: nearly 50 million visitors a year across both counties and some of the highest nightly rates in the country. But supply is growing fast and regulation is strict and different in every city. The easy money is over: the winners manage with dynamic pricing, strong reviews and — above all — legal compliance.',
+      s1call: '<b>The opportunity:</b> competitors charge 15% to 50% commission, often with hidden fees and impersonal service. There is clear room for a <b>bilingual, local operator with a transparent commission (~18%) and compliance included</b>.',
+      s2h: 'The market', s2lead: 'Record, stable demand; the challenge is no longer demand — it’s standing out amid more supply.',
+      s2t1: 'visitors/yr · Miami-Dade', s2t2: 'visitors/yr · Broward', s2t3: 'avg annual revenue per listing', s2t4: 'YoY supply growth',
+      s2p2: 'Typical occupancy runs 45% to 68% depending on area and source. Average daily rate (ADR) is roughly $175–$300 in Miami-Dade and $212–$365 in Broward. Supply grew sharply (Fort Lauderdale nearly +70% YoY), so occupancy is defended only with active management.',
+      s3h: 'Performance by area', s3lead: 'Average daily rate (ADR) by submarket. Flagged areas require regulatory attention.',
+      s3p: '<b>Reading:</b> South Beach and Sunny Isles have the highest rates but the strictest rules. Brickell, Downtown and Wynwood combine strong rates with more permissive zones. In Broward, Hollywood and Fort Lauderdale lead; Hallandale has a high rate but low occupancy (oversupply).',
+      s4h: 'Seasonality', s4lead: 'Relative monthly demand index (high season Dec–Apr, peak in March).',
+      s4p: 'Winter high season and major events spike rates: Art Basel (December), Boat Show (February), Spring Break and Ultra (March). 2026 adds the <b>FIFA World Cup</b>, with Miami as a host city — an extra boost that softens the normally slow summer (September is the weakest month).',
+      s5h: 'The competition', s5lead: 'Typical management commission by operator. Our position is highlighted.',
+      s5p: 'The national full-service average is around 25%; in Miami it runs 15% to 35% and in Broward up to 50%. Recurring owner complaints: surprise fees, poor communication and impersonal national brands after consolidation (Vacasa→Casago). Airbnb also shifted a ~15.5% fee onto hosts from late 2025, raising pressure on what each manager charges.',
+      s6h: 'Regulation by city', s6lead: 'The factor that matters most in property selection. Requirement and risk level by city.',
+      s6c1: 'City', s6c2: 'Level', s6c3: 'Key points', s6tax: 'Tourist taxes', s6tx3: 'Resort tax · Miami Beach',
+      s6p: 'Florida has partial preemption: cities cannot ban STRs or cap their frequency in ordinances passed after 2011 (Miami Beach is grandfathered). The state SB 280 bill was vetoed in 2024, so the patchwork of local rules remains — watch the 2026 legislative session.',
+      s7h: 'Recommended positioning', s7lead: 'Three angles to enter and win, combinable with each other.',
+      s7a1t: 'Angle A', s7a1h: 'Transparent pricing', s7a1p: 'A single ~18% all-inclusive commission, no setup fee, no lock-in, with a live dashboard of bookings and payouts. Attacks complaint #1: opacity.',
+      s7a2t: 'Angle B', s7a2h: 'Bilingual + compliance', s7a2p: 'Local support in English and Spanish (and Portuguese), with licenses, Certificate of Use and taxes included. "We keep you legal and fine-free" as the hook.',
+      s7a3t: 'Angle C', s7a3h: 'Tech boutique', s7a3p: 'Dynamic pricing and building density: dominate 2–4 towers in Brickell/Downtown/Fort Lauderdale for operational efficiency and referrals.',
+      s8h: 'Financial projection', s8lead: 'Estimated monthly commission as properties scale (base: ~$310 commission per property/month at typical Miami rate and income).',
+      s8p: 'The model is capital-light: the same operating effort per property, income that multiplies with the portfolio. With 10 well-managed properties, monthly commission is around $3,000; with 20, above $6,000 — without buying a single unit.',
+      s9h: 'Recommendations (action plan)',
+      s10h: 'Sources & notes',
+      disc: 'Market figures come from providers that estimate with different methodologies; they are shown as reference ranges, not exact values. The regulatory section is informational and educational, not legal advice: rules change and vary by property — verify with each authority before operating. Synthesis: 2026.',
+      foot: 'CoHost Pro · Co-hosting market study for Miami-Dade & Broward.',
+      restricted: 'strict rules',
+      projUnit: 'properties',
+      recs: [
+        'Focus acquisition on permissive, profitable areas: Brickell, Downtown, Wynwood (Miami-Dade); Hollywood and Fort Lauderdale (Broward).',
+        'Handle Miami Beach, Doral and Sunny Isles only with verified compliance; consider mid-term (30+ day) rentals where STR is restricted.',
+        'Go to market with a single ~18% all-inclusive commission, no setup fee, no lock-in.',
+        'Make compliance a headline service: licenses, Certificate of Use and taxes included, communicated as "fine-free".',
+        'Offer a free income evaluation as the main acquisition hook (calculator + call).',
+        'Prioritize building density in 2–4 STR-legal towers for efficiency and referrals.',
+        'Genuinely bilingual service (EN/ES, ideally +PT) with a live owner dashboard.',
+      ],
+    },
+  };
+
+  var REG_POINTS = {
+    es: {
+      'Miami Beach': ['Mínimo 6 meses en la mayoría de zonas', 'Corto solo en MXE/RM-2/RM-3', 'Multas históricas $20k–$100k (en disputa)'],
+      'Doral': ['Prohibido menos de 7 días', 'Máx. 3 rentas/año por propiedad', 'Certificate of Use + 6% resort tax'],
+      'City of Miami': ['DBPR + Certificate of Use + BTR', 'Prohibido en RM-1/unifamiliar/TH', 'Permitido en zonas T5/T6'],
+      'Sunny Isles Beach': ['Licencia por unidad ($100)', 'Responsable 24/7 + seguro', 'La ciudad monitorea las plataformas'],
+      'Fort Lauderdale': ['Registro $350 (incluye 2 inspecciones)', 'Renovación $160 / $80', 'Certificado tras inspección'],
+      'Hollywood': ['Licencias estatal + condado + ciudad', 'Impuesto combinado ~13%', 'Top del mercado de Broward'],
+    },
+    en: {
+      'Miami Beach': ['6-month minimum in most zones', 'Short stays only in MXE/RM-2/RM-3', 'Historic fines $20k–$100k (in litigation)'],
+      'Doral': ['Under 7 days prohibited', 'Max 3 rentals/yr per property', 'Certificate of Use + 6% resort tax'],
+      'City of Miami': ['DBPR + Certificate of Use + BTR', 'Banned in RM-1/single-family/TH', 'Allowed in T5/T6 zones'],
+      'Sunny Isles Beach': ['License per unit ($100)', '24/7 responsible party + insurance', 'City monitors the platforms'],
+      'Fort Lauderdale': ['$350 registration (incl. 2 inspections)', 'Renewal $160 / $80', 'Certificate after inspection'],
+      'Hollywood': ['State + county + city licensing', 'Combined tax ~13%', 'Top of the Broward market'],
+    },
+  };
+  var LEVEL = { es: { red: 'Muy estricto', amber: 'Con reglas', green: 'Permisivo' }, en: { red: 'Very strict', amber: 'With rules', green: 'Permissive' } };
+
+  var lang = 'es';
+
+  function money(n) { return '$' + n.toLocaleString('en-US'); }
+
+  function renderCharts() {
+    // Neighborhoods
+    var maxAdr = Math.max.apply(null, HOODS.map(function (h) { return h.adr; }));
+    document.getElementById('hoodChart').innerHTML = HOODS.map(function (h) {
+      var w = Math.round((h.adr / maxAdr) * 100);
+      var flag = h.restricted ? ' <span class="flag">⚠ ' + I18N[lang].restricted + '</span>' : '';
+      return '<div class="bar-row"><span class="name">' + h.name + flag + '</span>' +
+        '<span class="bar-track"><span class="bar-fill' + (h.restricted ? ' muted' : '') + '" style="width:' + w + '%"></span></span>' +
+        '<span class="bar-val">' + money(h.adr) + '</span></div>';
+    }).join('');
+
+    // Season
+    var months = lang === 'es' ? SEASON.map(function (s) { return s[0]; }) : SEASON_EN;
+    document.getElementById('season').innerHTML = SEASON.map(function (s, i) {
+      return '<div class="col"><div class="b" style="height:' + s[1] + '%"></div><div class="m">' + months[i] + '</div></div>';
+    }).join('');
+
+    // Competition
+    var maxPct = Math.max.apply(null, COMP.map(function (c) { return c.pct; }));
+    document.getElementById('compChart').innerHTML = COMP.map(function (c) {
+      var w = Math.round((c.pct / maxPct) * 100);
+      return '<div class="bar-row"><span class="name">' + c.name + '</span>' +
+        '<span class="bar-track"><span class="bar-fill' + (c.us ? '' : ' muted') + '" style="width:' + w + '%"></span></span>' +
+        '<span class="bar-val">' + c.pct + '%</span></div>';
+    }).join('');
+
+    // Projection
+    var maxProj = Math.max.apply(null, PROJ.map(function (p) { return p[1]; }));
+    document.getElementById('projChart').innerHTML = PROJ.map(function (p) {
+      var w = Math.round((p[1] / maxProj) * 100);
+      return '<div class="bar-row"><span class="name">' + p[0] + ' ' + I18N[lang].projUnit + '</span>' +
+        '<span class="bar-track"><span class="bar-fill teal" style="width:' + w + '%"></span></span>' +
+        '<span class="bar-val">' + money(p[1]) + '</span></div>';
+    }).join('');
+
+    // Reg table
+    var tb = document.querySelector('#regTable tbody');
+    tb.innerHTML = REG.map(function (r) {
+      var pts = REG_POINTS[lang][r.city].map(function (p) { return '<li>' + p + '</li>'; }).join('');
+      return '<tr><td><b>' + r.city + '</b></td><td><span class="chip ' + r.tone + '">' + LEVEL[lang][r.tone] + '</span></td>' +
+        '<td><ul class="clean" style="margin:0">' + pts + '</ul></td></tr>';
+    }).join('');
+
+    // Recs
+    document.getElementById('recs').innerHTML = I18N[lang].recs.map(function (r) { return '<li>' + r + '</li>'; }).join('');
+  }
+
+  function setLang(l) {
+    lang = l;
+    document.documentElement.lang = l;
+    document.getElementById('btn-es').setAttribute('aria-pressed', String(l === 'es'));
+    document.getElementById('btn-en').setAttribute('aria-pressed', String(l === 'en'));
+    document.querySelectorAll('[data-i18n]').forEach(function (el) {
+      var key = el.getAttribute('data-i18n');
+      if (I18N[l][key] !== undefined) el.innerHTML = I18N[l][key];
+    });
+    renderCharts();
+  }
+
+  setLang('es');
+</script>
