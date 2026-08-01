@@ -1,0 +1,305 @@
+<style>
+  :root{
+    --teal:#0E9AA0; --teal-2:#1FB6BC; --teal-ink:#0B5E5B; --teal-soft:#E4F4F2;
+    --gold:#B98A32;
+    --paper:#FAFBFB; --card:#FFFFFF; --ink:#102123; --muted:#5C6B6C;
+    --line:#E5ECEB; --line-2:#EEF3F2;
+    --shadow:0 18px 40px -30px rgba(11,94,91,.55);
+    --maxw:820px;
+  }
+  @media (prefers-color-scheme:dark){
+    :root{
+      --teal:#2DD4BF; --teal-2:#22C3C9; --teal-ink:#8CEADE; --teal-soft:#0E3A37;
+      --gold:#E4BE72;
+      --paper:#0A1618; --card:#0F2123; --ink:#EAF1F0; --muted:#93A5A4;
+      --line:#20393A; --line-2:#182D2E;
+      --shadow:0 22px 48px -30px rgba(0,0,0,.8);
+    }
+  }
+  :root[data-theme="dark"]{
+    --teal:#2DD4BF; --teal-2:#22C3C9; --teal-ink:#8CEADE; --teal-soft:#0E3A37;
+    --gold:#E4BE72;
+    --paper:#0A1618; --card:#0F2123; --ink:#EAF1F0; --muted:#93A5A4;
+    --line:#20393A; --line-2:#182D2E;
+    --shadow:0 22px 48px -30px rgba(0,0,0,.8);
+  }
+  :root[data-theme="light"]{
+    --teal:#0E9AA0; --teal-2:#1FB6BC; --teal-ink:#0B5E5B; --teal-soft:#E4F4F2;
+    --gold:#B98A32;
+    --paper:#FAFBFB; --card:#FFFFFF; --ink:#102123; --muted:#5C6B6C;
+    --line:#E5ECEB; --line-2:#EEF3F2;
+    --shadow:0 18px 40px -30px rgba(11,94,91,.55);
+  }
+
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{margin:0;background:var(--paper);color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    line-height:1.6;font-size:16px}
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 22px}
+  h1,h2,h3{margin:0;text-wrap:balance;line-height:1.15}
+  p{margin:0}
+  .serif{font-family:Georgia,"Times New Roman",serif}
+  .i{font-style:italic}
+
+  /* header */
+  header{padding:64px 0 40px;border-bottom:1px solid var(--line)}
+  .brand{display:flex;align-items:center;gap:9px;font-weight:800;letter-spacing:.2px}
+  .brand .mk{width:26px;height:26px;border-radius:7px;display:grid;place-items:center;color:#fff;font-size:13px;font-weight:800;
+    background:linear-gradient(135deg,var(--teal),var(--teal-2))}
+  .eyebrow{margin-top:26px;font-size:12.5px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--teal)}
+  h1.title{margin-top:12px;font-size:clamp(30px,6vw,46px);font-weight:800;letter-spacing:-.02em}
+  h1.title .i{color:var(--teal-ink);font-weight:600}
+  .lede{margin-top:16px;color:var(--muted);font-size:18px;max-width:62ch}
+
+  /* funnel */
+  .funnel{margin-top:30px;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+  .step{background:var(--teal-soft);color:var(--teal-ink);font-weight:700;font-size:13px;
+    padding:7px 12px;border-radius:999px;white-space:nowrap}
+  .arw{color:var(--teal);font-weight:800}
+
+  section{padding:44px 0;border-bottom:1px solid var(--line-2)}
+  .kicker{font-size:12px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--gold)}
+  h2{font-size:clamp(22px,4vw,30px);font-weight:800;letter-spacing:-.015em;margin-top:8px}
+  .sub{color:var(--muted);margin-top:8px;max-width:60ch}
+
+  /* channels */
+  .chan{margin-top:26px;display:flex;flex-direction:column;gap:14px}
+  .row{display:flex;gap:16px;align-items:flex-start;background:var(--card);border:1px solid var(--line);
+    border-radius:16px;padding:18px 18px;box-shadow:var(--shadow)}
+  .rank{flex:none;width:34px;height:34px;border-radius:10px;display:grid;place-items:center;font-weight:800;
+    background:var(--teal);color:#fff;font-size:15px}
+  .row.dim .rank{background:var(--muted)}
+  .row h3{font-size:17px;font-weight:800}
+  .row p{color:var(--muted);font-size:14.5px;margin-top:3px}
+  .tags{margin-top:9px;display:flex;flex-wrap:wrap;gap:6px}
+  .tag{font-size:11.5px;font-weight:700;letter-spacing:.02em;padding:3px 9px;border-radius:999px;
+    background:var(--teal-soft);color:var(--teal-ink)}
+  .tag.slow{background:transparent;border:1px solid var(--line);color:var(--muted)}
+
+  /* copy blocks */
+  .copy{margin-top:18px;background:var(--card);border:1px solid var(--line);border-left:3px solid var(--teal);
+    border-radius:0 14px 14px 0;padding:16px 18px}
+  .copy .lbl{font-size:12px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:var(--teal-ink);
+    display:flex;align-items:center;gap:8px}
+  .copy .lbl .n{background:var(--teal);color:#fff;border-radius:6px;padding:1px 7px;font-size:11px}
+  .copy .msg{margin-top:10px;font-size:15px;color:var(--ink)}
+  .copy .msg b{color:var(--teal-ink)}
+  .hint{font-size:13px;color:var(--muted);margin-top:10px}
+  .hint b{color:var(--ink)}
+
+  ul.clean{margin:16px 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:11px}
+  ul.clean li{display:flex;gap:11px;font-size:15px}
+  ul.clean li .b{color:var(--teal);font-weight:800;flex:none}
+  ul.clean li b{color:var(--ink)}
+
+  /* 30 day plan */
+  .weeks{margin-top:24px;display:grid;gap:14px}
+  @media(min-width:680px){.weeks{grid-template-columns:1fr 1fr}}
+  .week{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px;box-shadow:var(--shadow)}
+  .week .wk{font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--teal)}
+  .week h3{margin-top:4px;font-size:17px;font-weight:800}
+  .week ul{margin:12px 0 0;padding-left:0;list-style:none;display:flex;flex-direction:column;gap:8px}
+  .week li{font-size:14px;color:var(--muted);display:flex;gap:9px}
+  .week li::before{content:"→";color:var(--teal);font-weight:800}
+
+  /* goal callout */
+  .goal{margin-top:8px;background:linear-gradient(135deg,var(--teal),var(--teal-2));color:#fff;
+    border-radius:20px;padding:30px 26px;box-shadow:var(--shadow)}
+  .goal .kicker{color:rgba(255,255,255,.8)}
+  .goal h2{color:#fff;margin-top:6px}
+  .goal p{color:rgba(255,255,255,.92);margin-top:10px;font-size:16px;max-width:56ch}
+  .goal .big{font-family:Georgia,serif;font-style:italic;font-size:26px;margin-top:16px;display:block}
+
+  footer{padding:34px 0 60px;color:var(--muted);font-size:13px}
+  .note{background:var(--teal-soft);color:var(--teal-ink);border-radius:12px;padding:12px 15px;font-size:13.5px;margin-top:16px}
+</style>
+
+<header>
+  <div class="wrap">
+    <div class="brand"><span class="mk">C</span> CasaHost</div>
+    <div class="eyebrow">Marketing · Captación de dueños</div>
+    <h1 class="title">Cómo atraer <span class="serif i">arrendadores</span> a tu negocio</h1>
+    <p class="lede">Tu web y tu calculadora ya son el imán. Esto es cómo llevas dueños hasta ahí — con los canales que dan clientes rápido y los mensajes listos para copiar. Sin salir en cámara.</p>
+
+    <div class="funnel" aria-label="Embudo de captación">
+      <span class="step">Te ven</span><span class="arw">→</span>
+      <span class="step">Tu web</span><span class="arw">→</span>
+      <span class="step">Calculadora</span><span class="arw">→</span>
+      <span class="step">Dejan sus datos</span><span class="arw">→</span>
+      <span class="step">Llamada</span><span class="arw">→</span>
+      <span class="step">Cierras</span>
+    </div>
+  </div>
+</header>
+
+<section>
+  <div class="wrap">
+    <div class="kicker">Los canales</div>
+    <h2>Por dónde empezar, en orden</h2>
+    <p class="sub">No hagas todo a la vez. Ordenados por qué tan rápido y barato te traen clientes. Domina 1–2 antes de sumar más.</p>
+
+    <div class="chan">
+      <div class="row">
+        <div class="rank">1</div>
+        <div>
+          <h3>Alianzas con realtors</h3>
+          <p>Los agentes tienen clientes con propiedades vacías o recién compradas para rentar. Les ofreces comisión por cada dueño que te refieran y cierre. Un buen realtor te trae varios.</p>
+          <div class="tags"><span class="tag">Rápido</span><span class="tag">Gratis</span><span class="tag">Sin cámara</span></div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="rank">2</div>
+        <div>
+          <h3>Prospección directa</h3>
+          <p>Buscas en Airbnb propiedades de tu zona con pocas reseñas o fotos regulares → les escribes ofreciendo una evaluación gratis. 10 mensajes por semana.</p>
+          <div class="tags"><span class="tag">Rápido</span><span class="tag">Gratis</span><span class="tag">Control total</span></div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="rank">3</div>
+        <div>
+          <h3>Google — te encuentran solos</h3>
+          <p>Páginas por zona (“co-host en [barrio]”) + un perfil de Google Business con reseñas. Siembra que rinde con el tiempo y trabaja mientras duermes.</p>
+          <div class="tags"><span class="tag">Medio plazo</span><span class="tag">Gratis</span></div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="rank">4</div>
+        <div>
+          <h3>Contenido “faceless” (IG / TikTok)</h3>
+          <p>Sin tu cara: tours de propiedades, datos, errores comunes, reseñas en pantalla. Construye marca y confianza para que cuando escribas ya te conozcan.</p>
+          <div class="tags"><span class="tag">Medio plazo</span><span class="tag">Gratis</span><span class="tag">Sin cámara</span></div>
+        </div>
+      </div>
+      <div class="row dim">
+        <div class="rank">5</div>
+        <div>
+          <h3>Anuncios pagados</h3>
+          <p>Meta / Google Ads segmentando dueños en Miami. Potente, pero <b>solo cuando ya factures</b> — primero exprime todo lo gratis.</p>
+          <div class="tags"><span class="tag slow">Arranque lento</span><span class="tag slow">Cuesta $$</span><span class="tag slow">Después</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="kicker">Listo para copiar</div>
+    <h2>Pitch para realtors</h2>
+    <p class="sub">El canal #1. Envíalo por DM, WhatsApp o correo. Personaliza siempre el nombre.</p>
+
+    <div class="copy">
+      <div class="lbl"><span class="n">Mensaje</span> Primer contacto</div>
+      <p class="msg">Hola <b>[nombre]</b> 👋 Soy co-host local en Miami — administro Airbnb de principio a fin para dueños (precios, huéspedes, limpieza y permisos). Si tienes clientes con propiedades vacías o que compraron para rentar, yo se las opero y <b>tú ganas una comisión por cada referido que cierre</b>. ¿Te comparto en 2 minutos cómo funciona?</p>
+    </div>
+
+    <div class="copy">
+      <div class="lbl"><span class="n">Oferta</span> Acuerdo de referido</div>
+      <p class="msg">“Por cada dueño que me refieras y firme, te pago el <b>10% de mi comisión durante el primer año</b> de esa propiedad. Se paga cada mes, mientras yo cobre.”</p>
+      <p class="hint"><b>Criterio, no dato:</b> el 10% es un punto de partida razonable. Puedes usar un monto fijo (ej. $200 por referido cerrado) si lo prefieres más simple. Ajústalo a lo que te deje margen.</p>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="kicker">Listo para copiar</div>
+    <h2>Mensajes de prospección directa</h2>
+    <p class="sub">Para dueños con anuncios flojos. Regla: no mandes links en el primer mensaje, primero conversa.</p>
+
+    <div class="copy">
+      <div class="lbl"><span class="n">1</span> Corto y con valor</div>
+      <p class="msg">Hola <b>[nombre]</b> 👋 Vi tu propiedad en <b>[zona]</b> y tiene mucho potencial. Soy co-host local: administro Airbnbs de principio a fin y a mis dueños les subo la ocupación y las reseñas. ¿Te gustaría una <b>evaluación gratis</b> de cuánto podría generar la tuya? Sin compromiso.</p>
+    </div>
+    <div class="copy">
+      <div class="lbl"><span class="n">2</span> Enfoque en el dolor</div>
+      <p class="msg">Hola <b>[nombre]</b>, ¿administras tú mismo tu Airbnb en <b>[zona]</b>? Muchos dueños pierden reservas por precios fijos y fotos regulares. Yo me encargo de TODO por una comisión transparente (tú solo cobras). Te puedo mandar <b>gratis</b> un estimado de ingresos. ¿Te interesa?</p>
+    </div>
+    <div class="copy">
+      <div class="lbl"><span class="n">3</span> Gancho de compliance</div>
+      <p class="msg">Hola <b>[nombre]</b> 👋 Rápido: ¿tu Airbnb en <b>[ciudad]</b> ya tiene el Certificate of Use y las licencias en regla? Muchas propiedades operan sin eso y arriesgan multas. Soy co-host local, te ayudo con la parte legal Y con la gestión completa. ¿Te hago una evaluación gratis?</p>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="kicker">Sin cámara</div>
+    <h2>5 ideas de contenido faceless</h2>
+    <p class="sub">Reels y posts que atraen dueños sin que salgas tú. Voz en off, texto sobre imágenes, grabación de pantalla o b-roll de Miami.</p>
+    <ul class="clean">
+      <li><span class="b">01</span><span><b>“¿Cuánto gana un Airbnb en Brickell?”</b> — grabas la pantalla de tu calculadora mostrando el número. Curiosidad + dato.</span></li>
+      <li><span class="b">02</span><span><b>“3 errores por los que tu Airbnb está vacío.”</b> — fotos malas · precio fijo · respuestas lentas. Texto sobre b-roll.</span></li>
+      <li><span class="b">03</span><span><b>“Lo que necesitas para rentar legal en Miami Beach.”</b> — autoridad local: licencia, Certificate of Use, impuestos.</span></li>
+      <li><span class="b">04</span><span><b>Antes y después de un anuncio</b> — “de 40% a 85% de ocupación” con una gráfica simple.</span></li>
+      <li><span class="b">05</span><span><b>Reseñas en pantalla</b> — muestra los testimonios (Rosario, Yumeki, Bruno) con música. Prueba social pura.</span></li>
+    </ul>
+    <div class="note">Publica 3–4 por semana · misma intro/cierre para crear marca · en la bio: link a tu web + “Evaluación gratis”.</div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="kicker">Ejecución</div>
+    <h2>Tu plan de 30 días</h2>
+    <p class="sub">Cuatro semanas para pasar de cero a tu primer cliente. Poco cada día, constante.</p>
+    <div class="weeks">
+      <div class="week">
+        <div class="wk">Semana 1 — Base</div>
+        <h3>Prepara el terreno</h3>
+        <ul>
+          <li>Crea tu perfil de Google Business.</li>
+          <li>Haz una lista de 20 realtors de tu zona.</li>
+          <li>Haz una lista de 20 Airbnbs flojos (pocas reseñas / fotos malas).</li>
+          <li>Ten tu web y calculadora a mano para compartir.</li>
+        </ul>
+      </div>
+      <div class="week">
+        <div class="wk">Semana 2 — Contacto</div>
+        <h3>Empieza a escribir</h3>
+        <ul>
+          <li>Escribe a 10 realtors con el pitch.</li>
+          <li>Escribe a 10 dueños (5 con mensaje 1, 5 con mensaje 2).</li>
+          <li>Publica 2 posts faceless.</li>
+        </ul>
+      </div>
+      <div class="week">
+        <div class="wk">Semana 3 — Seguimiento</div>
+        <h3>Insiste con cabeza</h3>
+        <ul>
+          <li>Haz follow-up a quien no respondió (a los 3 días).</li>
+          <li>Escribe a 10 dueños más.</li>
+          <li>Publica 2 posts. Agenda tus primeras llamadas.</li>
+        </ul>
+      </div>
+      <div class="week">
+        <div class="wk">Semana 4 — Cierre</div>
+        <h3>Convierte</h3>
+        <ul>
+          <li>Haz las evaluaciones gratis agendadas.</li>
+          <li>Cierra tu primer dueño (aunque sea con 1 mes de prueba).</li>
+          <li>Pídele referidos a todo el que te atendió.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="goal">
+      <div class="kicker">La meta</div>
+      <h2>2–3 llamadas por semana</h2>
+      <p>No necesitas ser viral ni gastar en anuncios. Necesitas constancia: unos cuantos mensajes buenos cada día llevan a llamadas, y las llamadas llevan a tu primer cliente.</p>
+      <span class="big">Tu primer dueño en 30 días.</span>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    CasaHost · Playbook de captación de dueños · Regla de oro: <b>1–2 canales bien hechos &gt; 6 a medias.</b>
+  </div>
+</footer>
