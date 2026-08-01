@@ -241,9 +241,16 @@
   .cnet>span{font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:var(--rose);font-weight:700}
   .cnet #cnet{font-size:clamp(30px,5vw,42px);font-weight:800;font-variant-numeric:tabular-nums;line-height:1;margin:4px 0}
   .cnet small{color:#9fb3b2;font-size:13px}
+  .progress{position:fixed;top:0;left:0;height:3px;width:0;background:linear-gradient(90deg,var(--rose),var(--rose-2));z-index:40}
+  @keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(5px)}}
+  .scrollcue{display:inline-flex;align-items:center;gap:8px;margin-top:22px;color:#EBC77D;font-weight:700;font-size:14px;text-decoration:none;animation:bob 1.8s ease-in-out infinite}
+  .scrollcue .arw{display:grid;place-items:center;width:26px;height:26px;border-radius:50%;border:1.5px solid #EBC77D}
+  .scrollcue:hover{filter:brightness(1.12)}
+  @media (prefers-reduced-motion:reduce){.scrollcue{animation:none}}
 </style>
 
 <div class="site">
+  <div class="progress" id="progress"></div>
   <!-- NAV -->
   <nav class="bar"><div class="wrap row">
     <div class="logo"><span class="mk">C</span> <span class="wm" data-i="brand">CasaHost</span></div>
@@ -272,6 +279,7 @@
         <a href="#plataforma" class="btn btn-ghost" data-i="hero-c2">Ver la plataforma</a>
       </div>
       <div class="trust"><span class="stars">★★★★★</span> <span data-i="hero-trust">Dueños que confían su propiedad a un equipo local y bilingüe</span></div>
+      <div><a href="#calculadora" class="scrollcue"><span class="arw">↓</span> <span data-i="cue">Baja y calcula cuánto puedes ganar</span></a></div>
     </div>
 
     <!-- Dashboard mockup -->
@@ -547,7 +555,7 @@
       brand:'CasaHost',n1:'Servicios',n2:'Plataforma',n3:'Precios',n4:'Regulación',n5:'FAQ',ncta:'Evaluación gratis',
       'hero-ey':'Property management de Airbnb · Miami','hero-h1a':'Gestionamos tu Airbnb como un','hero-h1b':'property manager profesional.',
       'hero-sub':'Publicamos tu propiedad en Airbnb, Vrbo, Booking, Google y redes, con fotos profesionales y precios dinámicos. Más visibilidad, más reservas, más ingresos — sin que muevas un dedo.',
-      'hero-c1':'Solicita tu evaluación gratis','hero-c2':'Ver la plataforma','hero-trust':'Dueños que confían su propiedad a un equipo local y bilingüe',
+      'hero-c1':'Solicita tu evaluación gratis','hero-c2':'Ver la plataforma','hero-trust':'Dueños que confían su propiedad a un equipo local y bilingüe','cue':'Baja y calcula cuánto puedes ganar',
       'mk-title':'Panel del dueño · Brickell 2BR','mk-live':'● En vivo','mk-k1':'Ingreso del mes','mk-k2':'Ocupación','mk-k3':'Tu comisión','mk-n':'noches','mk-n2':'noches','mk-s1':'Confirmada','mk-s2':'Check-in hoy',
       integ:'Sincronizamos y publicamos en',
       's1-ey':'Todo incluido','s1-h':'Todo lo que hace un property manager — y más','s1-l':'Operamos tu propiedad de principio a fin. Tú no mueves un dedo.',
@@ -575,7 +583,7 @@
       brand:'CasaHost',n1:'Services',n2:'Platform',n3:'Pricing',n4:'Regulations',n5:'FAQ',ncta:'Free evaluation',
       'hero-ey':'Airbnb property management · Miami','hero-h1a':'We run your Airbnb like a','hero-h1b':'professional property manager.',
       'hero-sub':'We list your property on Airbnb, Vrbo, Booking, Google and social, with professional photos and dynamic pricing. More visibility, more bookings, more income — without you lifting a finger.',
-      'hero-c1':'Request your free evaluation','hero-c2':'See the platform','hero-trust':'Owners who trust their property to a local, bilingual team',
+      'hero-c1':'Request your free evaluation','hero-c2':'See the platform','hero-trust':'Owners who trust their property to a local, bilingual team','cue':'Scroll down and see how much you can earn',
       'mk-title':'Owner dashboard · Brickell 2BR','mk-live':'● Live','mk-k1':'Month revenue','mk-k2':'Occupancy','mk-k3':'Your fee','mk-n':'nights','mk-n2':'nights','mk-s1':'Confirmed','mk-s2':'Check-in today',
       integ:'We sync and publish on',
       's1-ey':'All included','s1-h':'Everything a property manager does — and more','s1-l':'We run your property end to end. You do nothing.',
@@ -662,4 +670,10 @@
   zo.addEventListener('change',function(e){var z=Z[e.target.value];if(z){rt.value=z[0];oc.value=z[1];u();}});
   u();
 })();
+</script>
+
+<script>
+(function(){var p=document.getElementById('progress');if(!p)return;
+function u(){var h=document.documentElement;var max=(h.scrollHeight-h.clientHeight)||1;p.style.width=(Math.min(1,(h.scrollTop||document.body.scrollTop)/max)*100*1)+'%';}
+window.addEventListener('scroll',u,{passive:true});window.addEventListener('resize',u);u();})();
 </script>
