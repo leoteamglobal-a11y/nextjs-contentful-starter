@@ -7,6 +7,7 @@ import { estimateMonthly, reservationIncome, formatMoney } from '../lib/finance.
 
 const TABS = [
   { key: 'dashboard', label: 'Dashboard', icon: '📊' },
+  { key: 'leads', label: 'Leads', icon: '🎯' },
   { key: 'propiedades', label: 'Propiedades', icon: '🏠' },
   { key: 'reservas', label: 'Reservas', icon: '📅' },
   { key: 'duenos', label: 'Dueños', icon: '👤' },
@@ -17,6 +18,7 @@ export default function PanelClient() {
   const owners = useCollection('owners');
   const properties = useCollection('properties');
   const reservations = useCollection('reservations');
+  const leads = useCollection('leads');
 
   return (
     <div className="min-h-screen text-gray-900 bg-gray-50">
@@ -44,7 +46,8 @@ export default function PanelClient() {
       </header>
 
       <main className="max-w-6xl px-6 py-8 mx-auto">
-        {tab === 'dashboard' && <Dashboard owners={owners} properties={properties} reservations={reservations} setTab={setTab} />}
+        {tab === 'dashboard' && <Dashboard owners={owners} properties={properties} reservations={reservations} leads={leads} setTab={setTab} />}
+        {tab === 'leads' && <Leads leads={leads} />}
         {tab === 'propiedades' && <Properties properties={properties} owners={owners} />}
         {tab === 'reservas' && <Reservations reservations={reservations} properties={properties} />}
         {tab === 'duenos' && <Owners owners={owners} properties={properties} />}
@@ -55,7 +58,7 @@ export default function PanelClient() {
 
 /* ----------------------------- Dashboard ----------------------------- */
 
-function Dashboard({ owners, properties, reservations, setTab }) {
+function Dashboard({ owners, properties, reservations, leads, setTab }) {
   const stats = useMemo(() => {
     const activeProps = properties.items.filter((p) => p.status !== 'inactiva');
 
@@ -95,8 +98,9 @@ function Dashboard({ owners, properties, reservations, setTab }) {
       grossReal,
       commissionReal,
       reservations: reservations.items.filter((r) => r.status !== 'cancelada').length,
+      openLeads: leads.items.filter((l) => !['cerrado', 'perdido'].includes(l.stage || 'nuevo')).length,
     };
-  }, [owners.items, properties.items, reservations.items]);
+  }, [owners.items, properties.items, reservations.items, leads.items]);
 
   const upcoming = useMemo(() => {
     const today = new Date().toISOString().slice(0, 10);
@@ -127,6 +131,14 @@ function Dashboard({ owners, properties, reservations, setTab }) {
           </div>
         </div>
       )}
+
+      <button onClick={() => setTab('leads')} className="flex items-center justify-between w-full p-5 text-left transition border border-teal-200 bg-teal-50 rounded-2xl hover:border-teal-400">
+        <div>
+          <p className="text-sm text-teal-700">Leads abiertos (dueños interesados)</p>
+          <p className="mt-1 text-2xl font-extrabold text-teal-800">{stats.openLeads}</p>
+        </div>
+        <span className="text-sm font-semibold text-teal-700">Ver embudo →</span>
+      </button>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard label="Comisión ganada (real)" value={formatMoney(stats.commissionReal)} tone="rose" hint="De reservas registradas" />
@@ -455,6 +467,114 @@ function ReservationForm({ initial, properties, onSave, onCancel }) {
           </select>
         </FormField>
       </div>
+      <FormButtons onCancel={onCancel} />
+    </form>
+  );
+}
+
+/* ----------------------------- Leads (embudo) ----------------------------- */
+
+const STAGES = [
+  { key: 'nuevo', label: 'Nuevo', cls: 'bg-blue-100 text-blue-700' },
+  { key: 'conversando', label: 'Conversando', cls: 'bg-amber-100 text-amber-700' },
+  { key: 'evaluacion', label: 'Evaluación enviada', cls: 'bg-teal-100 text-teal-700' },
+  { key: 'propuesta', label: 'Propuesta', cls: 'bg-purple-100 text-purple-700' },
+  { key: 'cerrado', label: 'Cerrado ✓', cls: 'bg-green-100 text-green-700' },
+  { key: 'perdido', label: 'Perdido', cls: 'bg-gray-100 text-gray-500' },
+];
+const stageOf = (l) => STAGES.find((s) => s.key === (l.stage || 'nuevo')) || STAGES[0];
+
+function Leads({ leads }) {
+  const [form, setForm] = useState(null);
+  const [filter, setFilter] = useState('');
+
+  function save(data) {
+    if (data.id) leads.update(data.id, data);
+    else leads.add(data);
+    setForm(null);
+  }
+
+  const counts = STAGES.map((s) => ({ ...s, n: leads.items.filter((l) => (l.stage || 'nuevo') === s.key).length }));
+  const shown = filter ? leads.items.filter((l) => (l.stage || 'nuevo') === filter) : leads.items;
+
+  return (
+    <Section
+      title="Leads"
+      subtitle="Cada dueño interesado, desde que llega hasta que cierra. Muévelo por etapas y actúa solo en el momento clave."
+      action={<button onClick={() => setForm({})} className={btnPrimary}>+ Nuevo lead</button>}
+    >
+      <div className="flex flex-wrap gap-2">
+        <button
+          onClick={() => setFilter('')}
+          className={`px-3 py-1.5 text-sm rounded-full border transition ${filter === '' ? 'border-teal-600 text-teal-600' : 'border-gray-200 text-gray-500 hover:border-gray-300'}`}
+        >
+          Todos ({leads.items.length})
+        </button>
+        {counts.map((s) => (
+          <button
+            key={s.key}
+            onClick={() => setFilter(filter === s.key ? '' : s.key)}
+            className={`px-3 py-1.5 text-sm rounded-full border transition ${filter === s.key ? 'border-teal-600 text-teal-600' : 'border-gray-200 text-gray-500 hover:border-gray-300'}`}
+          >
+            {s.label} ({s.n})
+          </button>
+        ))}
+      </div>
+
+      {leads.items.length === 0 ? (
+        <Empty text="Aún no hay leads. Agrega el primero — o anota aquí los que te lleguen por el formulario y WhatsApp." />
+      ) : (
+        <div className="grid gap-4 mt-2 sm:grid-cols-2 lg:grid-cols-3">
+          {shown.map((l) => {
+            const st = stageOf(l);
+            return (
+              <Card key={l.id}>
+                <div className="flex items-start justify-between gap-2">
+                  <div>
+                    <h3 className="font-bold">{l.name || 'Sin nombre'}</h3>
+                    <p className="text-sm text-gray-500">{l.contact}{l.zone ? ` · ${l.zone}` : ''}</p>
+                  </div>
+                  <span className={`px-2 py-0.5 text-xs rounded font-medium whitespace-nowrap ${st.cls}`}>{st.label}</span>
+                </div>
+                {l.notes && <p className="mt-3 text-sm text-gray-600">{l.notes}</p>}
+                <div className="mt-4">
+                  <label className="block mb-1 text-xs text-gray-400">Mover a etapa</label>
+                  <select value={l.stage || 'nuevo'} onChange={(e) => leads.update(l.id, { stage: e.target.value })} className={inputCls}>
+                    {STAGES.map((s) => <option key={s.key} value={s.key}>{s.label}</option>)}
+                  </select>
+                </div>
+                <RowActions onEdit={() => setForm(l)} onDelete={() => confirmDelete(`el lead ${l.name || ''}`) && leads.remove(l.id)} />
+              </Card>
+            );
+          })}
+        </div>
+      )}
+
+      {form && (
+        <Modal title={form.id ? 'Editar lead' : 'Nuevo lead'} onClose={() => setForm(null)}>
+          <LeadForm initial={form} onSave={save} onCancel={() => setForm(null)} />
+        </Modal>
+      )}
+    </Section>
+  );
+}
+
+function LeadForm({ initial, onSave, onCancel }) {
+  const [f, setF] = useState({ name: '', contact: '', zone: '', stage: 'nuevo', notes: '', ...initial });
+  const up = (k) => (e) => setF((s) => ({ ...s, [k]: e.target.value }));
+  return (
+    <form onSubmit={(e) => { e.preventDefault(); if (f.name.trim() || f.contact.trim()) onSave(f); }} className="space-y-4">
+      <FormField label="Nombre"><input value={f.name} onChange={up('name')} className={inputCls} placeholder="Nombre del dueño" /></FormField>
+      <div className="grid grid-cols-2 gap-4">
+        <FormField label="Contacto (WhatsApp / email)"><input value={f.contact} onChange={up('contact')} className={inputCls} /></FormField>
+        <FormField label="Zona"><input value={f.zone} onChange={up('zone')} className={inputCls} /></FormField>
+      </div>
+      <FormField label="Etapa">
+        <select value={f.stage} onChange={up('stage')} className={inputCls}>
+          {STAGES.map((s) => <option key={s.key} value={s.key}>{s.label}</option>)}
+        </select>
+      </FormField>
+      <FormField label="Notas"><textarea rows={3} value={f.notes} onChange={up('notes')} className={inputCls} placeholder="Ej: le mandé la evaluación, dar seguimiento el viernes" /></FormField>
       <FormButtons onCancel={onCancel} />
     </form>
   );
