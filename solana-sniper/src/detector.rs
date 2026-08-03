@@ -64,6 +64,9 @@ pub fn spawn_simulated(cfg: DetectorConfig, tx: Sender<TokenLaunch>) {
                     mint: fake_address(&mut rng),
                     symbol: fake_symbol(&mut rng),
                     pool: fake_address(&mut rng),
+                    base_vault: None,
+                    quote_vault: None,
+                    lp_mint: None,
                     liquidity_sol: rng.gen_range(0.5..40.0),
                     price_sol: rng.gen_range(0.0000001..0.00005),
                     mint_authority_renounced: rng.gen_bool(0.55),
@@ -182,21 +185,35 @@ async fn resolve_launch(rpc: &RpcClient, sig_str: &str) -> anyhow::Result<Option
                 .and_then(|&idx| keys.get(idx as usize))
                 .cloned()
         };
+        // Layout initialize2: 4=pool, 7=lp mint, 8=coin(base) mint,
+        // 9=pc(quote) mint, 10=coin vault, 11=pc vault.
         let (Some(pool), Some(coin), Some(pc)) = (account(4), account(8), account(9)) else {
             continue;
         };
-        // El token nuevo es el que no es WSOL (si ambos lo fueran, tomamos coin).
-        let mint = if coin == WSOL { pc } else { coin };
+        let lp_mint = account(7);
+        let coin_vault = account(10);
+        let pc_vault = account(11);
+
+        // El token nuevo es el que no es WSOL; el "quote" es el lado SOL.
+        let (mint, base_vault, quote_vault) = if coin == WSOL {
+            // coin = SOL (quote), pc = token nuevo (base)
+            (pc, pc_vault, coin_vault)
+        } else {
+            (coin, coin_vault, pc_vault)
+        };
 
         return Ok(Some(TokenLaunch {
             mint,
             symbol: "?".to_string(),
             pool,
-            liquidity_sol: 0.0, // TODO(paso 3): leer reservas de los vaults del pool
-            price_sol: 0.0,     // TODO(paso 3): calcular desde reservas
-            mint_authority_renounced: false, // TODO(paso 3): leer cuenta del mint (SPL Token)
-            freeze_authority_none: false,    // TODO(paso 3)
-            lp_burned: false,                // TODO(paso 3): estado de la LP
+            base_vault,
+            quote_vault,
+            lp_mint,
+            liquidity_sol: 0.0, // lo completa el paso 3 (enrich_launch)
+            price_sol: 0.0,     // idem
+            mint_authority_renounced: false, // idem
+            freeze_authority_none: false,    // idem
+            lp_burned: false,                // LP-burn no auto-verificado (ver README)
             detected_at: now_ts(),
         }));
     }

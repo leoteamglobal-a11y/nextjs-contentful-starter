@@ -20,10 +20,10 @@ max_open_positions = 3
 max_hold_secs = 90
 
 [safety]
-require_mint_authority_renounced = true
-require_freeze_authority_none = true
-require_lp_burned = true
-min_liquidity_sol = 10.0
+require_mint_authority_renounced = true   # verificado on-chain (paso 3)
+require_freeze_authority_none = true       # verificado on-chain (paso 3)
+require_lp_burned = false                  # LP-burn aun NO auto-verificado; ver README
+min_liquidity_sol = 10.0                   # verificado on-chain (paso 3)
 
 [detector]
 source = "raydium"

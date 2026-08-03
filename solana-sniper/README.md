@@ -73,9 +73,15 @@ Con `dry_run = true` no se envía nada a la cadena. El plan restante:
    > paso 3 (safety on-chain). Requiere red; usá un RPC dedicado para el WS.
    > Este parseo (layout de `initialize2`) necesita validación contra datos
    > reales de mainnet la primera vez que lo corras.
-3. **Safety on-chain** — leer mint/freeze authority de la cuenta del mint (SPL
-   Token), reservas de los vaults del pool (liquidez/precio) y el estado de la
-   LP. Completa los campos que el detector deja en cero.
+3. ~~**Safety on-chain**~~ ✅ hecho (`chain::enrich_launch`) — lee mint/freeze
+   authority de la cuenta del mint y las reservas de los vaults (liquidez/precio),
+   completando lo que el detector deja en cero. Se ejecuta automáticamente antes
+   de `safety::evaluate` cuando el detector es `raydium`.
+
+   > LP-burn: aún **no** se auto-verifica de forma fiable. En mainnet dejá
+   > `require_lp_burned = false`, o integrá un servicio de rug-check (RugCheck /
+   > Birdeye) como paso futuro. Los otros checks (mint/freeze/liquidez) sí son
+   > reales.
 4. **Executor Jupiter** — quote + swap tx firmada con el keypair, con manejo de
    slippage y prioridad de fees.
 5. **Pruebas en devnet** antes de tocar mainnet con fondos reales.

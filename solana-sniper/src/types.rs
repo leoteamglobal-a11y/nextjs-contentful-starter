@@ -11,6 +11,12 @@ pub struct TokenLaunch {
     pub mint: String,
     pub symbol: String,
     pub pool: String,
+    /// Vault del token nuevo (para leer reservas on-chain). None en simulacion.
+    pub base_vault: Option<String>,
+    /// Vault del lado SOL/quote (para liquidez y precio). None en simulacion.
+    pub quote_vault: Option<String>,
+    /// Mint de la LP (para chequear si esta quemada). None en simulacion.
+    pub lp_mint: Option<String>,
     /// Liquidez en SOL al momento de detectar.
     pub liquidity_sol: Sol,
     /// Precio inicial en SOL por token.

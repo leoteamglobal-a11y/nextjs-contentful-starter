@@ -75,6 +75,16 @@ async fn main() -> anyhow::Result<()> {
         }
     }
 
+    // Cliente RPC para enriquecer lanzamientos reales con datos on-chain (paso 3).
+    let enrich_rpc = if cfg.detector.source == "raydium" {
+        Some(solana_client::nonblocking::rpc_client::RpcClient::new_with_commitment(
+            cfg.rpc_url.clone(),
+            solana_sdk::commitment_config::CommitmentConfig::confirmed(),
+        ))
+    } else {
+        None
+    };
+
     let exec = PaperExecutor::new(market.clone(), cfg.dry_run);
     let mut positions: HashMap<String, Position> = HashMap::new();
     let mut realized_pnl: f64 = 0.0;
@@ -86,13 +96,29 @@ async fn main() -> anyhow::Result<()> {
     loop {
         tokio::select! {
             // --- Nuevo lanzamiento detectado ---
-            Some(launch) = rx.recv() => {
+            Some(mut launch) = rx.recv() => {
                 if positions.len() >= cfg.trade.max_open_positions {
                     tracing::debug!("saltando {}: max posiciones abiertas", launch.symbol);
                     continue;
                 }
                 if positions.contains_key(&launch.mint) {
                     continue;
+                }
+
+                // Paso 3: enriquecer con datos on-chain reales (solo lanzamientos reales).
+                if let Some(rpc) = &enrich_rpc {
+                    if launch.quote_vault.is_some() {
+                        if let Err(e) = solana_sniper::chain::enrich_launch(rpc, &mut launch).await {
+                            tracing::warn!("enriquecimiento fallo {}: {e}", launch.mint);
+                        } else {
+                            tracing::info!(
+                                "on-chain {} liq {:.2} SOL precio {:.10} mintAuth:{} freeze:{}",
+                                launch.mint, launch.liquidity_sol, launch.price_sol,
+                                if launch.mint_authority_renounced { "renunciada" } else { "ACTIVA" },
+                                if launch.freeze_authority_none { "no" } else { "SI" },
+                            );
+                        }
+                    }
                 }
 
                 match safety::evaluate(&cfg.safety, &launch) {
