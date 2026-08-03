@@ -82,9 +82,23 @@ Con `dry_run = true` no se envía nada a la cadena. El plan restante:
    > `require_lp_burned = false`, o integrá un servicio de rug-check (RugCheck /
    > Birdeye) como paso futuro. Los otros checks (mint/freeze/liquidez) sí son
    > reales.
-4. **Executor Jupiter** — quote + swap tx firmada con el keypair, con manejo de
-   slippage y prioridad de fees.
-5. **Pruebas en devnet** antes de tocar mainnet con fondos reales.
+4. ~~**Executor Jupiter**~~ ✅ motor de swap listo (`jupiter.rs` + binario `swap`).
+   Herramienta manual para probar un swap antes de automatizar:
+
+   ```bash
+   # solo cotización (seguro, no firma nada):
+   cargo run --bin swap -- So11111111111111111111111111111111111111112 <TOKEN> 10000000
+   # firmar y enviar de verdad:
+   cargo run --bin swap -- So11111111111111111111111111111111111111112 <TOKEN> 10000000 --live
+   ```
+
+   > ⚠️ **No probado contra la red real desde el entorno de desarrollo** (egress
+   > bloqueado). Validá SIEMPRE primero la cotización (sin `--live`), después un
+   > swap con monto chico. La clave privada nunca se loguea ni se commitea.
+   > Falta aún: cablear este executor dentro del loop automático del sniper
+   > (hoy el bot automático sigue en paper); se hará una vez validado el swap
+   > manual.
+5. **Pruebas en devnet/mainnet** con montos chicos antes de automatizar y escalar.
 
 > ⚠️ Seguridad: nunca commitear la clave privada. El `.gitignore` ya excluye
 > `id.json`, `keypair*.json`, `*.key`.

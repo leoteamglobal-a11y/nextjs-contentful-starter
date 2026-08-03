@@ -4907,9 +4907,13 @@ name = "solana-sniper"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "base64 0.22.1",
+ "bincode",
  "futures-util",
  "rand 0.8.7",
+ "reqwest",
  "serde",
+ "serde_json",
  "solana-client",
  "solana-sdk",
  "solana-transaction-status",

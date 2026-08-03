@@ -5,6 +5,7 @@ pub mod chain;
 pub mod config;
 pub mod detector;
 pub mod executor;
+pub mod jupiter;
 pub mod market;
 pub mod safety;
 pub mod types;

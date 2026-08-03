@@ -12,6 +12,10 @@ path = "src/main.rs"
 name = "devnet-check"
 path = "src/bin/devnet_check.rs"
 
+[[bin]]
+name = "swap"
+path = "src/bin/swap.rs"
+
 [dependencies]
 tokio = { version = "1", features = ["macros", "rt-multi-thread", "time", "sync"] }
 serde = { version = "1", features = ["derive"] }
@@ -26,3 +30,9 @@ solana-client = "2"
 solana-sdk = "2"
 solana-transaction-status = "2"   # parseo de transacciones (detector Raydium)
 futures-util = "0.3"              # StreamExt para el stream de logs WebSocket
+
+# Ejecucion de swaps via Jupiter (paso 4).
+reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }
+serde_json = "1"
+base64 = "0.22"
+bincode = "1"
