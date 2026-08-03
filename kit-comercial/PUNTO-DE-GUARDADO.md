@@ -73,6 +73,13 @@ Clips que faltan según el guion (`hf_20260802_*` = ya generados: interior de lu
 - Rooftop pool: "Cinematic real estate b-roll, luxury rooftop pool in Miami high-rise condo, turquoise infinity pool, city skyline view in background, bright sunny day, slow cinematic pan, no people visible, photorealistic, authentic, vertical framing"
 (modelo sugerido: `kling3_0_turbo`, 9:16, 1080p, 5s — mismo estilo que los 3 clips ya generados)
 
+## 🌐 Investigación de dominio (2026-08-03) — decisión EN PAUSA, no comprado
+Precios reales verificados en Namecheap (no estimados):
+- `casahost.org`: $8.48/año 1er año, $14.48/año renovación. Disponible.
+- `casahoststay.com`: $11.28/año 1er año ($6.79 con cupón `NEWCOM4679`), $14.98/año renovación. Disponible.
+- `casahost.com`: sigue ocupado (registrado desde 2004).
+Recomendación dada (con datos, no decidida aún por Leo): `casahoststay.com` sobre `.org` — un `.org` se lee como organización sin fines de lucro, lo cual resta confianza comercial frente a dueños/realtors; la diferencia de precio es mínima. Leo dijo "por ahora el dominio no" → queda pausado, no comprado. Retomar cuando él lo pida.
+
 ## 📦 Todo el proyecto
 Carpeta CasaHost (ZIP entregado) + repo: rama `claude/airbnb-income-system-rhi2yz`.
 Para retomar: abrir el repo en una sesión nueva de Claude Code y pegar el contenido de `PROMPT-CONTINUACION.md`.
