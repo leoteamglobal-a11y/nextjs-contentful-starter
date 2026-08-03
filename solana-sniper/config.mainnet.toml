@@ -1,0 +1,30 @@
+# Ejemplo para el detector REAL de Raydium en mainnet.
+# dry_run = true -> detecta pools reales pero NO compra (paper). Dejalo asi
+# hasta tener el paso 3 (safety on-chain) y paso 4 (swaps Jupiter).
+#
+# Correr con:  cargo run -- config.mainnet.toml
+# Requiere salida a internet (RPC/WS). Ideal usar un RPC dedicado (Helius,
+# Triton, QuickNode) — los endpoints publicos limitan mucho el WebSocket.
+network = "mainnet"
+rpc_url = "https://api.mainnet-beta.solana.com"
+# ws_url = "wss://api.mainnet-beta.solana.com"   # si falta, se deriva de rpc_url
+keypair_path = "~/.config/solana/id.json"
+dry_run = true
+
+[trade]
+buy_amount_sol = 0.05
+slippage_bps = 500
+take_profit_pct = 50.0
+stop_loss_pct = 25.0
+max_open_positions = 3
+max_hold_secs = 90
+
+[safety]
+require_mint_authority_renounced = true
+require_freeze_authority_none = true
+require_lp_burned = true
+min_liquidity_sol = 10.0
+
+[detector]
+source = "raydium"
+sim_interval_secs = 6   # ignorado cuando source = "raydium"

@@ -60,11 +60,22 @@ Si no tenés keypair, `devnet-check` genera uno y lo guarda en `keypair_path`
 Con `dry_run = true` no se envía nada a la cadena. El plan restante:
 
 1. ~~**Conexión devnet real**~~ ✅ hecho (ver arriba).
-2. **Detector Raydium** (`detector::spawn_raydium`) — suscripción WebSocket
-   `logsSubscribe` al programa de Raydium; parsear `initialize2` para sacar
-   mint, pool y liquidez.
+2. ~~**Detector Raydium**~~ ✅ hecho (`detector::run_raydium`) — suscripción
+   WebSocket `logsSubscribe` al programa AMM v4 de Raydium; detecta
+   `initialize2` y parsea la transacción para extraer pool + mint nuevo.
+
+   ```bash
+   cargo run -- config.mainnet.toml   # detecta pools reales (dry_run = true)
+   ```
+
+   > Deja `dry_run = true`: detecta pools reales pero no compra hasta tener el
+   > paso 3. Los campos de liquidez/precio/autoridades quedan en cero hasta el
+   > paso 3 (safety on-chain). Requiere red; usá un RPC dedicado para el WS.
+   > Este parseo (layout de `initialize2`) necesita validación contra datos
+   > reales de mainnet la primera vez que lo corras.
 3. **Safety on-chain** — leer mint/freeze authority de la cuenta del mint (SPL
-   Token) y el estado de la LP desde la cuenta del pool.
+   Token), reservas de los vaults del pool (liquidez/precio) y el estado de la
+   LP. Completa los campos que el detector deja en cero.
 4. **Executor Jupiter** — quote + swap tx firmada con el keypair, con manejo de
    slippage y prioridad de fees.
 5. **Pruebas en devnet** antes de tocar mainnet con fondos reales.

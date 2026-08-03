@@ -24,3 +24,5 @@ tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 # Conexion real a la cadena (usada por el binario `devnet-check` y el modo live).
 solana-client = "2"
 solana-sdk = "2"
+solana-transaction-status = "2"   # parseo de transacciones (detector Raydium)
+futures-util = "0.3"              # StreamExt para el stream de logs WebSocket

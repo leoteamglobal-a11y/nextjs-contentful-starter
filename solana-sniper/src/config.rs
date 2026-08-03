@@ -8,6 +8,9 @@ pub struct Config {
     /// "devnet" | "mainnet" (informativo mientras dry_run = true).
     pub network: String,
     pub rpc_url: String,
+    /// URL WebSocket para el detector Raydium. Si falta, se deriva de rpc_url.
+    #[serde(default)]
+    pub ws_url: Option<String>,
     /// Ruta al keypair (solo modo live).
     pub keypair_path: Option<String>,
     /// true = paper trading (no envia transacciones reales).

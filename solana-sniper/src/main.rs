@@ -56,8 +56,21 @@ async fn main() -> anyhow::Result<()> {
     let (tx, mut rx) = tokio::sync::mpsc::channel(128);
     match cfg.detector.source.as_str() {
         "simulated" => detector::spawn_simulated(cfg.detector.clone(), tx),
+        "raydium" => {
+            let ws = cfg
+                .ws_url
+                .clone()
+                .unwrap_or_else(|| detector::derive_ws_url(&cfg.rpc_url));
+            let rpc = cfg.rpc_url.clone();
+            tracing::info!("detector Raydium — ws: {ws}");
+            tokio::spawn(async move {
+                if let Err(e) = detector::run_raydium(ws, rpc, tx).await {
+                    tracing::error!("detector Raydium termino con error: {e}");
+                }
+            });
+        }
         other => {
-            tracing::warn!("detector '{other}' no implementado; usando 'simulated'");
+            tracing::warn!("detector '{other}' desconocido; usando 'simulated'");
             detector::spawn_simulated(cfg.detector.clone(), tx);
         }
     }
