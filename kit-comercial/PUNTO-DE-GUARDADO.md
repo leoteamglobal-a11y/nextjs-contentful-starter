@@ -45,5 +45,13 @@ Voz de prueba (ElevenLabs, "Marisol"): `hf_20260802_031038_2f5c4d7b-40b1-444f-b6
 7. Verificar Google Business (con dominio o teléfono).
 8. EMPEZAR A PROSPECTAR (realtors + dueños con el pack de mensajes).
 
+## 🔁 Actualización 2026-08-03 (día 2)
+- Probamos varias voces IA para el promo (Higgsfield / Seed Audio): Marisol, Elena, Isabella, Sienna. Feedback: aún no suenan lo bastante latinas/neutrales; buscamos voz femenina dulce, español latino nativo, sin acento gringo.
+- Se topó otra vez el **límite diario de Higgsfield** → seguir mañana.
+- El conector de **ElevenLabs** agregado en claude.ai NO aparece dentro de esta sesión de Code (requiere login interactivo / sesión nueva). Para usar el ElevenLabs bueno (español nativo) hay que abrir una sesión nueva con el conector activo.
+- Creado **`PROMPT-CONTINUACION.md`**: prompt para pegar en una sesión nueva y retomar todo.
+- Próximo paso #1: voz del promo con ElevenLabs nativo (femenina, dulce, latina).
+
 ## 📦 Todo el proyecto
 Carpeta CasaHost (ZIP entregado) + repo: rama `claude/airbnb-income-system-rhi2yz`.
+Para retomar: abrir el repo en una sesión nueva de Claude Code y pegar el contenido de `PROMPT-CONTINUACION.md`.
