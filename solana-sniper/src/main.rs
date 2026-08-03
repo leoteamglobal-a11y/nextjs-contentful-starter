@@ -8,21 +8,15 @@
 //! (RPC devnet + Jupiter/Raydium) esta marcada como TODO en los modulos
 //! `detector`, `executor` y `market`.
 
-mod config;
-mod detector;
-mod executor;
-mod market;
-mod safety;
-mod types;
-
 use std::collections::HashMap;
 use std::time::Duration;
 
-use config::Config;
-use executor::PaperExecutor;
-use market::PaperMarket;
-use safety::SafetyVerdict;
-use types::{now_ts, Position};
+use solana_sniper::config::Config;
+use solana_sniper::executor::PaperExecutor;
+use solana_sniper::market::PaperMarket;
+use solana_sniper::safety::{self, SafetyVerdict};
+use solana_sniper::types::{now_ts, Position};
+use solana_sniper::detector;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {

@@ -36,12 +36,30 @@ Ajustá parámetros en `config.toml` (monto, slippage, TP/SL, filtros de
 seguridad, frecuencia de lanzamientos simulados). Para más logs:
 `RUST_LOG=debug cargo run`.
 
+## Paso 1 — Conexión devnet real ✅ (implementado)
+
+Binario `devnet-check`: conecta al RPC, carga/crea el keypair, muestra versión
+del nodo, pubkey y balance, y en devnet pide airdrop si el balance está bajo.
+
+```bash
+cd solana-sniper
+cargo run --bin devnet-check          # usa config.toml (rpc_url, keypair_path)
+```
+
+> ⚠️ Requiere salida a internet hacia el RPC. En entornos con egress
+> restringido (proxy con allowlist, como Claude Code en la nube) la conexión a
+> `api.devnet.solana.com` es rechazada con 403 por política — correlo en tu
+> máquina o en un entorno con ese host permitido. El código está probado:
+> compila y ejecuta; solo lo frena la red del entorno.
+
+Si no tenés keypair, `devnet-check` genera uno y lo guarda en `keypair_path`
+(por defecto `~/.config/solana/id.json`). Guardá esa clave con cuidado.
+
 ## Pasar a live (próximos pasos)
 
-Con `dry_run = true` no se envía nada a la cadena. El plan para operar real:
+Con `dry_run = true` no se envía nada a la cadena. El plan restante:
 
-1. **Conexión devnet real** — añadir `solana-client` + `solana-sdk`, cargar el
-   keypair desde `keypair_path`, y consultar balance en devnet.
+1. ~~**Conexión devnet real**~~ ✅ hecho (ver arriba).
 2. **Detector Raydium** (`detector::spawn_raydium`) — suscripción WebSocket
    `logsSubscribe` al programa de Raydium; parsear `initialize2` para sacar
    mint, pool y liquidez.

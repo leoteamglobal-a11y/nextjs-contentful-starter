@@ -4,6 +4,14 @@ version = "0.1.0"
 edition = "2021"
 description = "Sniper de tokens nuevos en Solana — construido con modo simulacion/paper-trading primero."
 
+[[bin]]
+name = "solana-sniper"
+path = "src/main.rs"
+
+[[bin]]
+name = "devnet-check"
+path = "src/bin/devnet_check.rs"
+
 [dependencies]
 tokio = { version = "1", features = ["macros", "rt-multi-thread", "time", "sync"] }
 serde = { version = "1", features = ["derive"] }
@@ -12,3 +20,7 @@ anyhow = "1"
 rand = "0.8"
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+# Conexion real a la cadena (usada por el binario `devnet-check` y el modo live).
+solana-client = "2"
+solana-sdk = "2"
