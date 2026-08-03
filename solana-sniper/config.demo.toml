@@ -1,0 +1,24 @@
+# Config PERMISIVA solo para demostrar el ciclo compra->venta rapido.
+# NO usar para operar: desactiva los rug checks. Para real, usar config.toml.
+network = "devnet"
+rpc_url = "https://api.devnet.solana.com"
+keypair_path = "~/.config/solana/id.json"
+dry_run = true
+
+[trade]
+buy_amount_sol = 0.1
+slippage_bps = 300
+take_profit_pct = 40.0
+stop_loss_pct = 20.0
+max_open_positions = 5
+max_hold_secs = 120
+
+[safety]
+require_mint_authority_renounced = false
+require_freeze_authority_none = false
+require_lp_burned = false
+min_liquidity_sol = 0.0
+
+[detector]
+source = "simulated"
+sim_interval_secs = 3

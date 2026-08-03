@@ -34,7 +34,10 @@ async fn main() -> anyhow::Result<()> {
         .with_target(false)
         .init();
 
-    let cfg = Config::load("config.toml")?;
+    // Permite pasar la ruta del config como argumento: `cargo run -- config.demo.toml`
+    let cfg_path = std::env::args().nth(1).unwrap_or_else(|| "config.toml".to_string());
+    let cfg = Config::load(&cfg_path)?;
+    tracing::info!("config: {cfg_path}");
 
     tracing::info!("===========================================");
     tracing::info!(" Solana Sniper — modo {}", if cfg.dry_run { "PAPER (simulacion)" } else { "LIVE" });
