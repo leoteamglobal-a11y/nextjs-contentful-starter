@@ -1,0 +1,30 @@
+# Configuracion del sniper. Empezamos en modo simulacion (paper trading).
+# network: "devnet" | "mainnet"  (solo informativo mientras dry_run = true)
+network = "devnet"
+rpc_url = "https://api.devnet.solana.com"
+
+# Ruta al keypair (formato solana CLI). Solo se usa en modo live (dry_run = false).
+keypair_path = "~/.config/solana/id.json"
+
+# dry_run = true  -> NO envia transacciones reales. Simula compras/ventas (paper trading).
+# dry_run = false -> modo live (requiere integracion de cadena real, ver README).
+dry_run = true
+
+[trade]
+buy_amount_sol = 0.1        # cuanto SOL comprar por token
+slippage_bps = 300          # 3.00% de slippage maximo
+take_profit_pct = 40.0      # cerrar en +40%
+stop_loss_pct = 20.0        # cerrar en -20%
+max_open_positions = 5      # posiciones abiertas simultaneas
+max_hold_secs = 120         # salida forzada tras 2 min
+
+[safety]
+require_mint_authority_renounced = true  # el mint no debe poder acuñar mas supply
+require_freeze_authority_none = true     # no debe poder congelar tu wallet
+require_lp_burned = true                 # la liquidez (LP) debe estar quemada/bloqueada
+min_liquidity_sol = 5.0                  # liquidez minima para entrar
+
+[detector]
+# source: "simulated" (paper) | "raydium" (mainnet real, TODO)
+source = "simulated"
+sim_interval_secs = 6       # cada cuantos segundos, en promedio, aparece un token nuevo (sim)

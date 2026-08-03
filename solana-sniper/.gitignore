@@ -1,0 +1,7 @@
+/target
+**/*.rs.bk
+Cargo.lock
+# Nunca commitear claves privadas
+*.key
+id.json
+keypair*.json
