@@ -1,0 +1,29 @@
+{
+  "chain": "base",
+  "rpcUrl": "https://mainnet.base.org",
+  "pool": {
+    "id": "c07a115f-7299-4dd1-ac25-2de459010b6b",
+    "address": "0x0000000000000000000000000000000000000000",
+    "label": "USDC-VELVET CL1 0.01% (Aerodrome Slipstream)"
+  },
+  "dryRun": true,
+  "liveConfirmed": false,
+  "positionSizeUsd": 100,
+  "feed": "simulated",
+  "signals": {
+    "enterApyMin": 80,
+    "exitApyMin": 30,
+    "maxVelvetMovePct": 25,
+    "rangeWidthPct": 15,
+    "exitOnOutOfRange": true,
+    "stopLossPct": 20,
+    "takeProfitPct": 30
+  },
+  "sim": {
+    "intervalMs": 800,
+    "startPriceUsd": 0.41,
+    "startApy": 300,
+    "apyDecayPerTick": 4,
+    "priceVolPct": 6
+  }
+}

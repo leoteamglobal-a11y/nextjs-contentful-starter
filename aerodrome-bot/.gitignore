@@ -1,0 +1,7 @@
+node_modules/
+dist/
+*.log
+# Nunca commitear claves
+.env
+*.key
+keystore*.json
