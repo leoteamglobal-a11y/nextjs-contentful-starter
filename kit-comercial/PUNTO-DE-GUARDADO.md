@@ -67,11 +67,13 @@ Clips que faltan según el guion (`hf_20260802_*` = ya generados: interior de lu
 - 🌴 Doral (bloque 4: "Tú solo cobras cada mes.")
 - 🏊 Rooftop pool (bloque 6: "Pide tu evaluación gratis. CasaHost.")
 
-⛔ **Bloqueado 2026-08-03 (misma sesión):** al intentar generar los 3 clips (`kling3_0_turbo`, luego probado también `seedance_2_0_mini` para confirmar) → `403 grace_daily_limit_reached` en ambos modelos. Confirmado que es un límite **de cuenta**, no de un modelo puntual. Se resetea al día siguiente, igual que el 2 y 3 de agosto. Prompts ya redactados y listos para disparar apenas se libere el límite:
-- Coral Gables: "Cinematic real estate b-roll, Coral Gables Miami, elegant Mediterranean Revival architecture, terracotta rooftops, palm-lined street, warm golden afternoon light, slow smooth drone push-in, no people visible, photorealistic, authentic, vertical framing"
-- Doral: "Cinematic real estate b-roll, Doral Miami suburban neighborhood, modern residential homes near golf course, manicured lawns, clear blue sky, gentle drone glide forward, no people visible, photorealistic, authentic, vertical framing"
-- Rooftop pool: "Cinematic real estate b-roll, luxury rooftop pool in Miami high-rise condo, turquoise infinity pool, city skyline view in background, bright sunny day, slow cinematic pan, no people visible, photorealistic, authentic, vertical framing"
-(modelo sugerido: `kling3_0_turbo`, 9:16, 1080p, 5s — mismo estilo que los 3 clips ya generados)
+⛔→✅ **Bloqueado 2026-08-03, resuelto mismo día:** al intentar generar los 3 clips con `kling3_0_turbo` (y luego `seedance_2_0_mini` para confirmar) → `403 grace_daily_limit_reached` en ambos modelos, límite de cuenta. Leo avisó que **Seedance estaba gratis por 24h** → se reintentó con `seedance_2_0` (mode fast, 720p, sin audio) y esta vez SÍ pasó. Los 3 clips que faltaban ya están generados y descargados localmente (el bloqueo de proxy de CloudFront que tenían anotado ya NO aplica, se descargan bien con curl):
+- 🏛️ Coral Gables: `hf_20260804_025437_d421e460-98ba-4765-b1d0-1a07f6ff9725.mp4`
+- 🌴 Doral: `hf_20260804_025451_70ac13a1-66a8-4ebe-bbf0-d500b7772cff.mp4`
+- 🏊 Rooftop pool: `hf_20260804_025451_2ecf3428-5118-4fb4-ac3b-2d70c49efe78.mp4`
+(Base URL: `https://d8j0ntlcm91z4.cloudfront.net/user_3FWcagCBK1GJUdHsnYi7Zrb78NA/`)
+
+**Pendiente #2 → CERRADO.** Con esto ya están los 6 clips del guion completo (interior, Brickell, Coral Gables, Doral, South Beach, rooftop pool). Siguiente: pendiente #3, armar el video final (clips + voz Claudia + subtítulos).
 
 ## 🌐 Investigación de dominio (2026-08-03) — decisión EN PAUSA, no comprado
 Precios reales verificados en Namecheap (no estimados):
