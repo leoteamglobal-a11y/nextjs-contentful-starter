@@ -9,6 +9,8 @@ keypair_path = "~/.config/solana/id.json"
 # dry_run = true  -> NO envia transacciones reales. Simula compras/ventas (paper trading).
 # dry_run = false -> modo live (requiere integracion de cadena real, ver README).
 dry_run = true
+# Doble traba: para swaps reales se necesita dry_run=false Y live_confirmed=true.
+live_confirmed = false
 
 [trade]
 buy_amount_sol = 0.1        # cuanto SOL comprar por token

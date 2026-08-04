@@ -4,19 +4,20 @@
 //!   detector -> chequeos de seguridad -> decision de compra -> ejecucion
 //!   -> monitoreo de posiciones (take-profit / stop-loss / timeout) -> venta.
 //!
-//! Todo corre en modo `dry_run` (paper). La integracion real con la cadena
-//! (RPC devnet + Jupiter/Raydium) esta marcada como TODO en los modulos
-//! `detector`, `executor` y `market`.
+//! Ejecutor unificado (paper o live) via `TradeExecutor`. La ejecucion LIVE
+//! (swaps reales por Jupiter) tiene DOBLE TRABA: requiere dry_run = false Y
+//! live_confirmed = true en el config. Por defecto todo corre en paper.
 
 use std::collections::HashMap;
 use std::time::Duration;
 
 use solana_sniper::config::Config;
-use solana_sniper::executor::PaperExecutor;
+use solana_sniper::executor::{LiveExecutor, PaperExecutor, TradeExecutor};
 use solana_sniper::market::PaperMarket;
 use solana_sniper::safety::{self, SafetyVerdict};
 use solana_sniper::types::{now_ts, Position};
 use solana_sniper::detector;
+use solana_sdk::signature::Signer;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -41,16 +42,34 @@ async fn main() -> anyhow::Result<()> {
         cfg.trade.stop_loss_pct, cfg.trade.max_open_positions);
     tracing::info!("===========================================");
 
-    if !cfg.dry_run {
-        anyhow::bail!(
-            "modo live aun no implementado. Deja dry_run = true. \
-             Ver README para el plan de integracion con la cadena."
-        );
-    }
-
-    // Mercado simulado + motor de precios.
+    // Mercado simulado + motor de precios (usado solo en paper).
     let market = PaperMarket::new();
     market.spawn_random_walk();
+
+    // Construccion del ejecutor con DOBLE TRABA de seguridad para live.
+    let exec = if cfg.dry_run {
+        TradeExecutor::Paper(PaperExecutor::new(market.clone()))
+    } else {
+        if !cfg.live_confirmed {
+            anyhow::bail!(
+                "modo LIVE bloqueado. Para ejecutar swaps REALES con fondos hace falta \
+                 dry_run = false Y live_confirmed = true en el config. Falta live_confirmed."
+            );
+        }
+        let kp_path = solana_sniper::chain::expand_tilde(
+            cfg.keypair_path.as_deref().unwrap_or("~/.config/solana/id.json"),
+        );
+        let (keypair, _) = solana_sniper::chain::load_or_create_keypair(&kp_path)?;
+        tracing::warn!("############################################################");
+        tracing::warn!("#  MODO LIVE ACTIVO — SWAPS REALES CON FONDOS DE VERDAD     #");
+        tracing::warn!("#  wallet: {}", keypair.pubkey());
+        tracing::warn!("############################################################");
+        TradeExecutor::Live(LiveExecutor::new(
+            cfg.rpc_url.clone(),
+            keypair,
+            cfg.trade.slippage_bps,
+        ))
+    };
 
     // Detector de lanzamientos.
     let (tx, mut rx) = tokio::sync::mpsc::channel(128);
@@ -85,7 +104,6 @@ async fn main() -> anyhow::Result<()> {
         None
     };
 
-    let exec = PaperExecutor::new(market.clone(), cfg.dry_run);
     let mut positions: HashMap<String, Position> = HashMap::new();
     let mut realized_pnl: f64 = 0.0;
     let mut wins = 0u32;
@@ -134,41 +152,50 @@ async fn main() -> anyhow::Result<()> {
                             "OK  {} liq {:.1} SOL — entrando",
                             launch.symbol, launch.liquidity_sol
                         );
-                        let pos = exec.buy(&launch, cfg.trade.buy_amount_sol);
-                        positions.insert(pos.mint.clone(), pos);
+                        match exec.buy(&launch, cfg.trade.buy_amount_sol).await {
+                            Ok(pos) => { positions.insert(pos.mint.clone(), pos); }
+                            Err(e) => tracing::warn!("compra fallo {}: {e}", launch.mint),
+                        }
                     }
                 }
             }
 
             // --- Monitoreo de posiciones ---
             _ = monitor.tick() => {
-                let mut to_close: Vec<(String, f64, &'static str)> = Vec::new();
+                let mut to_close: Vec<(String, &'static str)> = Vec::new();
                 let now = now_ts();
 
                 for pos in positions.values() {
-                    let Some(price) = market.price(&pos.mint) else { continue };
-                    let pnl_pct = (price - pos.entry_price_sol) / pos.entry_price_sol * 100.0;
+                    let Some(value) = exec.position_value_sol(pos).await else { continue };
+                    let pnl_pct = (value - pos.cost_sol) / pos.cost_sol * 100.0;
                     let age = now.saturating_sub(pos.opened_at);
 
                     if pnl_pct >= cfg.trade.take_profit_pct {
-                        to_close.push((pos.mint.clone(), price, "TAKE-PROFIT"));
+                        to_close.push((pos.mint.clone(), "TAKE-PROFIT"));
                     } else if pnl_pct <= -cfg.trade.stop_loss_pct {
-                        to_close.push((pos.mint.clone(), price, "STOP-LOSS"));
+                        to_close.push((pos.mint.clone(), "STOP-LOSS"));
                     } else if age >= cfg.trade.max_hold_secs {
-                        to_close.push((pos.mint.clone(), price, "TIMEOUT"));
+                        to_close.push((pos.mint.clone(), "TIMEOUT"));
                     }
                 }
 
-                for (mint, price, reason) in to_close {
+                for (mint, reason) in to_close {
                     if let Some(pos) = positions.remove(&mint) {
-                        let proceeds = exec.sell(&pos, price, reason);
-                        let pnl = proceeds - pos.cost_sol;
-                        realized_pnl += pnl;
-                        if pnl >= 0.0 { wins += 1; } else { losses += 1; }
-                        tracing::info!(
-                            "PnL realizado acumulado: {:+.4} SOL | W:{} L:{} | abiertas: {}",
-                            realized_pnl, wins, losses, positions.len()
-                        );
+                        match exec.sell(&pos, reason).await {
+                            Ok(proceeds) => {
+                                let pnl = proceeds - pos.cost_sol;
+                                realized_pnl += pnl;
+                                if pnl >= 0.0 { wins += 1; } else { losses += 1; }
+                                tracing::info!(
+                                    "PnL realizado acumulado: {:+.4} SOL | W:{} L:{} | abiertas: {}",
+                                    realized_pnl, wins, losses, positions.len()
+                                );
+                            }
+                            Err(e) => {
+                                tracing::warn!("venta fallo {} ({reason}): {e} — reintentare", pos.mint);
+                                positions.insert(pos.mint.clone(), pos); // reintentar en el proximo tick
+                            }
+                        }
                     }
                 }
             }

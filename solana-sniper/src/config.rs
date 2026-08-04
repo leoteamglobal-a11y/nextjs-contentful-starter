@@ -15,6 +15,9 @@ pub struct Config {
     pub keypair_path: Option<String>,
     /// true = paper trading (no envia transacciones reales).
     pub dry_run: bool,
+    /// Doble traba: la ejecucion LIVE requiere dry_run=false Y live_confirmed=true.
+    #[serde(default)]
+    pub live_confirmed: bool,
     pub trade: TradeConfig,
     pub safety: SafetyConfig,
     pub detector: DetectorConfig,

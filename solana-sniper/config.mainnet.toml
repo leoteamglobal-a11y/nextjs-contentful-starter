@@ -10,6 +10,9 @@ rpc_url = "https://api.mainnet-beta.solana.com"
 # ws_url = "wss://api.mainnet-beta.solana.com"   # si falta, se deriva de rpc_url
 keypair_path = "~/.config/solana/id.json"
 dry_run = true
+# Para automatizar swaps REALES: dry_run = false Y live_confirmed = true.
+# Dejalo asi (paper) hasta validar todo con TESTING.md.
+live_confirmed = false
 
 [trade]
 buy_amount_sol = 0.05

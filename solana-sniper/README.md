@@ -95,10 +95,20 @@ Con `dry_run = true` no se envía nada a la cadena. El plan restante:
    > ⚠️ **No probado contra la red real desde el entorno de desarrollo** (egress
    > bloqueado). Validá SIEMPRE primero la cotización (sin `--live`), después un
    > swap con monto chico. La clave privada nunca se loguea ni se commitea.
-   > Falta aún: cablear este executor dentro del loop automático del sniper
-   > (hoy el bot automático sigue en paper); se hará una vez validado el swap
-   > manual.
-5. **Pruebas en devnet/mainnet** con montos chicos antes de automatizar y escalar.
+5. ~~**Cablear el swap al loop automático**~~ ✅ hecho — el sniper usa
+   `TradeExecutor` (paper o live). Para automatizar swaps reales, en el config:
+
+   ```toml
+   dry_run = false
+   live_confirmed = true   # DOBLE TRABA: hacen falta LAS DOS
+   ```
+
+   > Sin `live_confirmed = true` el bot se niega a arrancar en live (aunque
+   > `dry_run = false`). En live, TP/SL se deciden re-cotizando la posición
+   > contra SOL vía Jupiter. **Validá todo con TESTING.md y montos chicos antes
+   > de activar esto.** Este camino live no se pudo probar desde el entorno de
+   > desarrollo (egress bloqueado).
+6. **Pruebas con montos chicos** antes de escalar.
 
 > ⚠️ Seguridad: nunca commitear la clave privada. El `.gitignore` ya excluye
 > `id.json`, `keypair*.json`, `*.key`.
