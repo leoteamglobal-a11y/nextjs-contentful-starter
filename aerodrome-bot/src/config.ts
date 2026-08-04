@@ -39,8 +39,21 @@ export interface Config {
   sim: SimConfig;
   /** Config del feed on-chain (opcional). */
   onchain?: OnchainConfig;
+  /** Config de ejecución live (opcional; requerida si dryRun=false). */
+  live?: LiveConfig;
   /** Cadencia del loop en ms (default: sim.intervalMs). */
   pollIntervalMs?: number;
+}
+
+export interface LiveConfig {
+  /** NonfungiblePositionManager de Slipstream (Base). */
+  positionManager: string;
+  /** tickSpacing del pool CL (CL1 = 1). */
+  tickSpacing: number;
+  /** Slippage tolerado en bps (informativo; ver notas del executor). */
+  slippageBps: number;
+  /** Segundos hasta el deadline de cada tx. Default 600. */
+  deadlineSecs?: number;
 }
 
 export interface OnchainConfig {

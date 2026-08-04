@@ -21,6 +21,9 @@ export interface Position {
   rangeLow: number;
   rangeHigh: number;
   sizeUsd: number;
+  /** Live: id del NFT de la posición y liquidez (para cerrar). */
+  tokenId?: bigint;
+  liquidity?: bigint;
 }
 
 export const EMPTY_POSITION: Position = {

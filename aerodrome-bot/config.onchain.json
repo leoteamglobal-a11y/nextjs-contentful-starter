@@ -15,6 +15,12 @@
     "apyRefreshMs": 60000,
     "baseSymbol": "VELVET"
   },
+  "live": {
+    "positionManager": "0x827922686190790b37229fd06084350e74485b72",
+    "tickSpacing": 1,
+    "slippageBps": 100,
+    "deadlineSecs": 600
+  },
   "signals": {
     "enterApyMin": 80,
     "exitApyMin": 30,

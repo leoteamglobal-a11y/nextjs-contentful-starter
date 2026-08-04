@@ -23,7 +23,7 @@ feed (estado del pool) → signals (decidir) → executor (entrar/salir)
 |--------|-----|--------|
 | `signals.ts`  | Motor de decisión PURO (enter/exit/hold) | ✅ |
 | `feed.ts`     | Estado del pool: simulado ✅ · on-chain ✅ (validar con red) | ok |
-| `executor.ts` | Paper ✅ · Live (Aerodrome) ⏳ | parcial |
+| `executor.ts` | Paper ✅ · Live Aerodrome ✅ (validar con red) | ok |
 | `config.ts`   | Config + umbrales | ✅ |
 | `index.ts`    | Loop principal | ✅ |
 
@@ -64,14 +64,44 @@ el uuid de DefiLlama.
 > El cálculo de precio desde `sqrtPriceX96` es aproximado (usa `Number`) —
 > validalo contra un explorador la primera vez.
 
-## Pasar a real (último paso)
+## Executor live ✅ (implementado)
 
-1. ~~**Feed on-chain**~~ ✅ hecho.
-2. **Executor live** (`executor.ts` → LiveExecutor): `NonfungiblePositionManager`
-   de Slipstream — `mint`/`increaseLiquidity` al entrar, `decreaseLiquidity`+
-   `collect` al salir. Firma con clave privada.
-3. **Doble traba** ya está: live requiere `dryRun=false` **y** `liveConfirmed=true`.
-4. **Probar con montos chicos** en Base antes de escalar.
+`LiveExecutor` opera liquidez real en el **NonfungiblePositionManager de
+Slipstream** (`0x827922686190790b37229fd06084350e74485b72`):
+- **enter** → `mint(...)` (convierte el rango de precios a ticks, aprueba los
+  tokens, abre la posición NFT).
+- **exit** → `decreaseLiquidity(...)` + `collect(...)`.
+
+### Cómo activarlo (con MUCHO cuidado)
+
+```bash
+# 1. clave privada SOLO por entorno, nunca en el config:
+export PRIVATE_KEY=0x....
+
+# 2. en el config: dryRun=false y liveConfirmed=true (DOBLE traba),
+#    y completá pool.address + [live].positionManager.
+
+# 3. corré:
+npm start config.onchain.json
+```
+
+**Tres trabas de seguridad** (todas verificadas):
+1. `dryRun=false` **Y** `liveConfirmed=true` (si falta una, no arranca).
+2. `PRIVATE_KEY` debe venir del entorno (nunca del archivo).
+3. Avisos y logs de cada tx.
+
+> 🔴 **UNTESTED contra la red real** (egress bloqueado en desarrollo). Antes de
+> usar montos serios, **validá con una posición mínima** y verificá en Basescan:
+> la dirección del position manager, el `tickSpacing` del pool, la matemática de
+> ticks y las cantidades. Además, el `mint` va con `amount0Min/1Min = 0` (sin
+> protección de slippage) — sólo apto para pruebas chicas hasta calcular los
+> mins reales. El precio desde `sqrtPriceX96` es aproximado.
+
+### Falta / mejoras conocidas
+
+- Slippage real en `mint` (hoy mins en 0).
+- Modelo de amounts óptimo por rango (hoy 50/50 USD por lado).
+- `increaseLiquidity`/reposicionamiento en vez de cerrar+abrir.
 
 ## Seguridad
 

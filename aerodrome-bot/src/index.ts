@@ -31,7 +31,7 @@ async function main(): Promise<void> {
     console.warn("############################################################");
     console.warn("#  MODO LIVE ACTIVO — LIQUIDEZ REAL EN BASE                 #");
     console.warn("############################################################");
-    exec = new LiveExecutor();
+    exec = new LiveExecutor(cfg);
   }
 
   let feed: PoolFeed;
