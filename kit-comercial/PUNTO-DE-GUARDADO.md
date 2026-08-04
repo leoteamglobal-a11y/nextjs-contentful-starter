@@ -86,7 +86,17 @@ Armado con ffmpeg local (no dependía de Higgsfield): los 6 clips recortados y o
   5. South Beach (11.91–15.72s): "Dieciocho por ciento, todo incluido, sin cargos ocultos."
   6. Rooftop pool (15.72–18.44s): "Pide tu evaluación gratis… con CasaHost."
 - Archivo final: `casahost-promo-FINAL.mp4` (8.3MB) en el scratchpad de la sesión, carpeta `casahost-clips/` (no en el repo — es un entregable de video, no código).
-- Pendiente de Leo: escuchar/ver el resultado y aprobar antes de subir a IG/FB (pendiente #4).
+
+## ✅ Video promo V2 — mejor edición (2026-08-03, mismo día)
+Leo pidió una edición mejor: mostrar personas (recibiendo huéspedes + limpiando), música de fondo, y subtítulos sin caja negra/más elegantes. También pidió quitar la mención del "18%" del guion (que quede solo "todo incluido, sin cargos ocultos").
+- 2 clips nuevos con personas generados (Seedance, gratis): `guest-welcome.mp4` (host recibiendo huéspedes con calidez) y `cleaning.mp4` (limpieza profesional de la propiedad).
+- Voz de Claudia **regenerada** sin el "18%": ahora dice "...precios, huéspedes, limpieza y permisos. Tú solo cobras cada mes. Todo incluido, sin cargos ocultos. Pide tu evaluación gratis... con CasaHost." Duración nueva: 16.49s. Archivo: `casahost-voz-claudia-FINAL.mp3`.
+- Música de fondo: pista "Real Estate" de AlexGrohl (Pixabay, licencia gratuita para uso comercial, sin atribución obligatoria), mezclada debajo de la voz a volumen bajo (15%) con fade-out al final.
+- Mejoras de edición: zoom cinematográfico sutil (Ken Burns) en cada clip, corrección de color (contraste/saturación), fade in/out al inicio y final del video completo.
+- Subtítulos: sin caja negra (solo contorno fino), fuente Segoe UI, más arriba y prolijos.
+- 7 tramos ahora (se sumaron los 2 clips de personas): Interior → Brickell → Guest-welcome → Cleaning → Doral → South Beach → Rooftop pool. (Coral Gables queda como asset disponible pero no se usó en este corte.)
+- Archivo final: `casahost-promo-V2-FINAL.mp4` (16.5s) en `casahost-clips/` del scratchpad.
+- Pendiente de Leo: ver el resultado y aprobar antes de subir a IG/FB (pendiente #4).
 
 ## 🌐 Investigación de dominio (2026-08-03) — decisión EN PAUSA, no comprado
 Precios reales verificados en Namecheap (no estimados):
