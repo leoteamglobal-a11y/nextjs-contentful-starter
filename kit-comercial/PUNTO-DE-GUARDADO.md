@@ -75,6 +75,19 @@ Clips que faltan según el guion (`hf_20260802_*` = ya generados: interior de lu
 
 **Pendiente #2 → CERRADO.** Con esto ya están los 6 clips del guion completo (interior, Brickell, Coral Gables, Doral, South Beach, rooftop pool). Siguiente: pendiente #3, armar el video final (clips + voz Claudia + subtítulos).
 
+## ✅ Pendiente #3 → CERRADO: video final armado (2026-08-03)
+Armado con ffmpeg local (no dependía de Higgsfield): los 6 clips recortados y ordenados según el guion real hablado por Claudia (dividido en 6 tramos proporcional al largo de cada frase), concatenados a 720×1280/24fps, con la voz de Claudia (versión enérgica) como pista de audio y subtítulos quemados (blancos, borde negro, abajo, Arial 13/Bold).
+- Duración final: 18.4s (igual a la voz).
+- Orden y timing de los 6 tramos:
+  1. Interior (0–4.29s): "¿Tienes una propiedad en Miami… y no tienes tiempo de rentarla?"
+  2. Brickell (4.29–7.55s): "En CasaHost la administramos de principio a fin:"
+  3. Coral Gables (7.55–10.27s): "precios, huéspedes, limpieza y permisos."
+  4. Doral (10.27–11.91s): "Tú solo cobras cada mes."
+  5. South Beach (11.91–15.72s): "Dieciocho por ciento, todo incluido, sin cargos ocultos."
+  6. Rooftop pool (15.72–18.44s): "Pide tu evaluación gratis… con CasaHost."
+- Archivo final: `casahost-promo-FINAL.mp4` (8.3MB) en el scratchpad de la sesión, carpeta `casahost-clips/` (no en el repo — es un entregable de video, no código).
+- Pendiente de Leo: escuchar/ver el resultado y aprobar antes de subir a IG/FB (pendiente #4).
+
 ## 🌐 Investigación de dominio (2026-08-03) — decisión EN PAUSA, no comprado
 Precios reales verificados en Namecheap (no estimados):
 - `casahost.org`: $8.48/año 1er año, $14.48/año renovación. Disponible.
