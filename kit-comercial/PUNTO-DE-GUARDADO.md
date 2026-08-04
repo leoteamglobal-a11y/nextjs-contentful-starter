@@ -96,6 +96,22 @@ Leo pidió una edición mejor: mostrar personas (recibiendo huéspedes + limpian
 - Subtítulos: sin caja negra (solo contorno fino), fuente Segoe UI, más arriba y prolijos.
 - 7 tramos ahora (se sumaron los 2 clips de personas): Interior → Brickell → Guest-welcome → Cleaning → Doral → South Beach → Rooftop pool. (Coral Gables queda como asset disponible pero no se usó en este corte.)
 - Archivo final: `casahost-promo-V2-FINAL.mp4` (16.5s) en `casahost-clips/` del scratchpad.
+
+## ✅ Video promo V3 — guion nuevo y más largo (2026-08-03, mismo día)
+Leo pidió: música bajarle más el volumen, dicción de Claudia más "coordinada" (menos atropellada), video más largo, y un guion distinto que use los 8 clips (agregó Coral Gables, que no se había usado en V2). Iteramos la redacción con pausas/entonación correctas (comas, puntos suspensivos) y el cierre corregido a pedido de Leo (sin pausa antes de "hoy mismo", termina ahí, sin el tag "…con CasaHost" al final).
+- **Guion final aprobado (8 líneas, una por clip):**
+  1. Interior: "¿Tienes una propiedad en Miami… y sientes que no te alcanza el tiempo para rentarla bien?"
+  2. Brickell: "En CasaHost, la administramos por ti… de principio a fin."
+  3. Coral Gables: "Fijamos el precio correcto para cada zona,"
+  4. Guest-welcome: "recibimos a tus huéspedes con calidez, las veinticuatro horas."
+  5. Cleaning: "Y dejamos cada rincón impecable, después de cada estadía."
+  6. Doral: "Tú solo revisas tu cuenta… y ves cómo entra el dinero, cada mes."
+  7. South Beach: "Todo incluido, sin cargos ocultos, ni sorpresas."
+  8. Rooftop pool: "Pide tu evaluación gratis hoy mismo."
+- Voz de Claudia regenerada con settings más estables para dicción coordinada: `stability: 0.55, similarity_boost: 0.85, style: 0.35, use_speaker_boost: true` (antes era 0.3/0.7, sonaba atropellada). Archivo: `casahost-voz-claudia-V4.mp3`, duración 28.93s.
+- Música bajada de 15% a 6% de volumen (Leo la sintió muy alta).
+- El clip de interior (5.04s) se quedaba corto para su línea (necesitaba 5.66s) → se extendió con freeze-frame del último fotograma (`tpad`) en vez de recortar la línea.
+- Archivo final: **`casahost-promo-V3-FINAL.mp4`** (28.9s, 8 clips, en `casahost-clips/` del scratchpad) — es la versión vigente, reemplaza a V1 y V2.
 - Pendiente de Leo: ver el resultado y aprobar antes de subir a IG/FB (pendiente #4).
 
 ## 🌐 Investigación de dominio (2026-08-03) — decisión EN PAUSA, no comprado
