@@ -37,6 +37,17 @@ export interface Config {
   feed: "simulated" | "onchain";
   signals: SignalConfig;
   sim: SimConfig;
+  /** Config del feed on-chain (opcional). */
+  onchain?: OnchainConfig;
+  /** Cadencia del loop en ms (default: sim.intervalMs). */
+  pollIntervalMs?: number;
+}
+
+export interface OnchainConfig {
+  /** Cada cuánto refrescar APY/TVL desde DefiLlama (ms). Default 60000. */
+  apyRefreshMs?: number;
+  /** Símbolo del token volátil a seguir (para identificar cuál es en el par). */
+  baseSymbol?: string;
 }
 
 export function loadConfig(path = "config.json"): Config {

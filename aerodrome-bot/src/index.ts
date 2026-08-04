@@ -1,6 +1,6 @@
 // Loop principal del bot de señales.
 import { loadConfig } from "./config.js";
-import { SimulatedFeed } from "./feed.js";
+import { OnchainFeed, SimulatedFeed, type PoolFeed } from "./feed.js";
 import { PaperExecutor, LiveExecutor, type Executor } from "./executor.js";
 import { decide } from "./signals.js";
 import { EMPTY_POSITION, type Position } from "./types.js";
@@ -34,18 +34,31 @@ async function main(): Promise<void> {
     exec = new LiveExecutor();
   }
 
-  if (cfg.feed !== "simulated") {
-    throw new Error(`feed '${cfg.feed}' aún no implementado (falta lectura on-chain). Usá 'simulated'.`);
+  let feed: PoolFeed;
+  if (cfg.feed === "simulated") {
+    feed = new SimulatedFeed(cfg.sim);
+  } else if (cfg.feed === "onchain") {
+    feed = new OnchainFeed(cfg);
+    console.log(` on-chain: pool ${cfg.pool.address} @ ${cfg.rpcUrl}`);
+  } else {
+    throw new Error(`feed '${cfg.feed}' desconocido. Usá 'simulated' u 'onchain'.`);
   }
-  const feed = new SimulatedFeed(cfg.sim);
 
+  const intervalMs = cfg.pollIntervalMs ?? cfg.sim.intervalMs;
   let pos: Position = { ...EMPTY_POSITION };
   let realizedPnl = 0;
   let entries = 0;
   let exits = 0;
 
   for (;;) {
-    const state = await feed.next();
+    let state;
+    try {
+      state = await feed.next();
+    } catch (e) {
+      console.warn("feed error:", e instanceof Error ? e.message : e);
+      await new Promise((r) => setTimeout(r, intervalMs));
+      continue;
+    }
     const action = decide(state, pos, cfg.signals);
 
     if (action.kind === "enter") {
@@ -61,7 +74,7 @@ async function main(): Promise<void> {
       );
     }
 
-    await new Promise((r) => setTimeout(r, cfg.sim.intervalMs));
+    await new Promise((r) => setTimeout(r, intervalMs));
   }
 }
 

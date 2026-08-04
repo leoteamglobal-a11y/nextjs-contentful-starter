@@ -22,7 +22,7 @@ feed (estado del pool) → signals (decidir) → executor (entrar/salir)
 | Módulo | Rol | Estado |
 |--------|-----|--------|
 | `signals.ts`  | Motor de decisión PURO (enter/exit/hold) | ✅ |
-| `feed.ts`     | Estado del pool: simulado ✅ · on-chain ⏳ | parcial |
+| `feed.ts`     | Estado del pool: simulado ✅ · on-chain ✅ (validar con red) | ok |
 | `executor.ts` | Paper ✅ · Live (Aerodrome) ⏳ | parcial |
 | `config.ts`   | Config + umbrales | ✅ |
 | `index.ts`    | Loop principal | ✅ |
@@ -44,19 +44,34 @@ npm start          # usa config.json
 npm run typecheck
 ```
 
-## Pasar a real (próximos pasos)
+## Feed on-chain ✅ (implementado)
 
-1. **Feed on-chain** (`feed.ts` → OnchainFeed): leer precio/tick del pool
-   Slipstream vía viem + RPC de Base, y APY/TVL de DefiLlama.
+`OnchainFeed` lee el precio de VELVET desde `slot0()` del pool Slipstream (vía
+viem + RPC de Base) y el APY/TVL desde DefiLlama (cacheado).
+
+```bash
+# 1. Poné la dirección real del pool en config.onchain.json (pool.address)
+# 2. Corré:
+npm start config.onchain.json
+```
+
+**Cómo obtener `pool.address`:** entrá al pool en la app de Aerodrome o buscá el
+par USDC-VELVET (CL1) en Basescan; es la dirección del contrato del pool CL, no
+el uuid de DefiLlama.
+
+> Requiere red hacia Base y DefiLlama. No se pudo probar desde el entorno de
+> desarrollo (egress bloqueado); el código corre y el loop tolera errores de red.
+> El cálculo de precio desde `sqrtPriceX96` es aproximado (usa `Number`) —
+> validalo contra un explorador la primera vez.
+
+## Pasar a real (último paso)
+
+1. ~~**Feed on-chain**~~ ✅ hecho.
 2. **Executor live** (`executor.ts` → LiveExecutor): `NonfungiblePositionManager`
    de Slipstream — `mint`/`increaseLiquidity` al entrar, `decreaseLiquidity`+
    `collect` al salir. Firma con clave privada.
 3. **Doble traba** ya está: live requiere `dryRun=false` **y** `liveConfirmed=true`.
 4. **Probar con montos chicos** en Base antes de escalar.
-
-> No se pudo probar la parte on-chain desde el entorno de desarrollo (el RPC de
-> Base está bloqueado por egress). La lógica de señales y el loop sí están
-> probados en simulación.
 
 ## Seguridad
 
