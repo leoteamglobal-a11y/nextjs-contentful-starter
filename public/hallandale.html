@@ -1,0 +1,722 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Gestión de Airbnb en Hallandale Beach | CasaHost</title><meta name="description" content="Co-host local y bilingüe en Hallandale Beach. Administramos tu Airbnb de principio a fin — precios, huéspedes 24/7, limpieza y compliance. 18% todo incluido, sin cargos ocultos."><meta property="og:title" content="Gestión de Airbnb en Hallandale Beach | CasaHost"><meta property="og:description" content="Tu Airbnb en Hallandale Beach, gestionado por un co-host local y bilingüe."></head><body><style>
+  :root{
+    --ink:#08191A; --ink-2:#0F2426; --paper:#FFFFFF; --mist:#F0F7F5; --mist-2:#E3F0EC;
+    --line:#E7E3E8; --muted:#6A6472; --text:#1B1B21;
+    --rose:#0E9AA0; --rose-2:#22C3C9; --rose-soft:#D7F5F1; --rose-ink:#0B5E5B;
+    --emer:#0F9E6E; --gold:#F59E0B; --ice:#EAF1FF;
+    --shadow-sm:0 2px 10px -4px rgba(20,10,25,.18);
+    --shadow:0 24px 60px -32px rgba(120,20,55,.45);
+    --r:16px; --maxw:1140px;
+  }
+  @media (prefers-color-scheme:dark){
+    :root{ --ink:#061719; --ink-2:#0D2325; --paper:#121319; --mist:#15161D; --mist-2:#1B1D25;
+      --line:#282A33; --muted:#9A93A3; --text:#ECEAF1; --rose:#2DD4BF; --rose-2:#22C3C9;
+      --rose-soft:#0E3A37; --rose-ink:#7DE9DD; --emer:#34D399; --ice:#1A2436;
+      --shadow-sm:0 2px 12px -6px rgba(0,0,0,.7); --shadow:0 26px 64px -34px rgba(0,0,0,.85); }
+  }
+  :root[data-theme="dark"]{ --ink:#061719; --ink-2:#0D2325; --paper:#121319; --mist:#15161D; --mist-2:#1B1D25;
+    --line:#282A33; --muted:#9A93A3; --text:#ECEAF1; --rose:#2DD4BF; --rose-2:#22C3C9; --rose-soft:#0E3A37;
+    --rose-ink:#7DE9DD; --emer:#34D399; --gold:#FCD34D; --ice:#1A2436; --shadow:0 26px 64px -34px rgba(0,0,0,.85); }
+  :root[data-theme="light"]{ --ink:#08191A; --paper:#FFFFFF; --mist:#F0F7F5; --mist-2:#E3F0EC; --line:#E7E3E8;
+    --muted:#6A6472; --text:#1B1B21; --rose:#0E9AA0; --rose-soft:#D7F5F1; --rose-ink:#0B5E5B; --emer:#0F9E6E; --ice:#EAF1FF; }
+
+  *{box-sizing:border-box}
+  body{margin:0}
+  .site{background:var(--paper);color:var(--text);
+    font-family:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;line-height:1.55;
+    -webkit-font-smoothing:antialiased}
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 22px}
+  h1,h2,h3{letter-spacing:-.02em;line-height:1.08;margin:0}
+  h1{font-size:clamp(34px,5.4vw,60px);font-weight:800}
+  h2{font-size:clamp(26px,3.6vw,40px);font-weight:800}
+  a{color:inherit}
+  .ey{display:inline-flex;align-items:center;gap:8px;font-size:12px;font-weight:800;letter-spacing:.14em;
+    text-transform:uppercase;color:var(--rose)}
+  .btn{display:inline-flex;align-items:center;gap:8px;border:none;cursor:pointer;font:inherit;font-weight:700;
+    border-radius:12px;padding:13px 20px;text-decoration:none;transition:transform .15s,filter .15s,background .15s}
+  .btn-primary{background:var(--rose);color:#fff;box-shadow:var(--shadow)}
+  .btn-primary:hover{filter:brightness(1.07);transform:translateY(-1px)}
+  .btn-ghost{background:transparent;color:var(--text);border:1.5px solid var(--line)}
+  .btn-ghost:hover{border-color:var(--rose);color:var(--rose)}
+  .btn-white{background:#fff;color:#111}
+
+  /* NAV */
+  nav.bar{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--paper) 82%,transparent);
+    backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+  nav.bar .row{display:flex;align-items:center;justify-content:space-between;height:64px}
+  .logo{display:flex;align-items:center;gap:9px;font-weight:800;font-size:18px}
+  .logo .mk{width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,var(--rose),var(--rose-2));
+    display:grid;place-items:center;color:#fff;font-size:15px}
+  .navlinks{display:none;gap:26px;font-size:14.5px;font-weight:600;color:var(--muted)}
+  .navlinks a:hover{color:var(--text)}
+  .navright{display:flex;align-items:center;gap:10px}
+  .navright .btn{white-space:nowrap;font-size:13.5px}
+  @media(max-width:560px){.logo .wm{display:none}.navright .btn{padding:9px 13px}}
+  .lang{display:inline-flex;border:1px solid var(--line);border-radius:999px;overflow:hidden}
+  .lang button{border:none;background:transparent;color:var(--muted);font:inherit;font-size:12px;font-weight:800;padding:5px 11px;cursor:pointer}
+  .lang button[aria-pressed="true"]{background:var(--rose);color:#fff}
+  @media(min-width:900px){.navlinks{display:flex}}
+
+  /* HERO */
+  .hero{position:relative;overflow:hidden;padding:72px 0 48px;color:#F4FBFA;
+    background:
+      radial-gradient(80% 80% at 82% -12%, rgba(34,195,201,.22), transparent 55%),
+      radial-gradient(62% 70% at 4% 114%, rgba(235,199,125,.16), transparent 60%),
+      linear-gradient(158deg,#061719 0%, #0C2B2D 58%, #08211F 100%)}
+  .hero .ey{color:#EBC77D}
+  .hero .ey span:first-child{background:#EBC77D!important}
+  .hero h1{color:#F4FBFA}
+  .hero p.sub{color:#AFC5C4;max-width:36ch}
+  .hero .btn-ghost{color:#fff;border-color:rgba(255,255,255,.32)}
+  .hero .btn-ghost:hover{border-color:#EBC77D;color:#EBC77D}
+  .hero .trust{color:#93aaa9}
+  .hero h1 .g{filter:saturate(1.15) brightness(1.12)}
+  .hero-grid{display:grid;grid-template-columns:1fr;gap:46px;align-items:center}
+  @media(min-width:960px){.hero-grid{grid-template-columns:1.02fr .98fr;gap:36px}}
+  .hero p.sub{color:var(--muted);font-size:clamp(16px,1.9vw,19px);max-width:34ch;margin:18px 0 26px}
+  .hero h1 .g{background:linear-gradient(120deg,var(--rose),var(--rose-2));-webkit-background-clip:text;background-clip:text;color:transparent;font-family:Georgia,"Times New Roman",serif;font-style:italic;font-weight:600}
+  .cta-row{display:flex;flex-wrap:wrap;gap:12px}
+  .trust{display:flex;align-items:center;gap:10px;margin-top:22px;color:var(--muted);font-size:13.5px}
+  .stars{color:var(--gold);letter-spacing:2px}
+
+  /* DASHBOARD MOCKUP */
+  .mock{background:var(--ink);border-radius:20px;padding:16px;box-shadow:var(--shadow);border:1px solid rgba(255,255,255,.06)}
+  .mock .win{display:flex;gap:6px;padding:2px 4px 12px}
+  .mock .win i{width:11px;height:11px;border-radius:50%;background:#3a3d46;display:block}
+  .mock .win i:nth-child(1){background:#ff5f57}.mock .win i:nth-child(2){background:#febc2e}.mock .win i:nth-child(3){background:#28c840}
+  .panel{background:#fff;border-radius:12px;padding:16px}
+  :root[data-theme="dark"] .panel{background:#0f1016}
+  @media (prefers-color-scheme:dark){.panel{background:#0f1016}}
+  .panel .ph{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+  .panel .ph b{font-size:14px;color:var(--text)}
+  .panel .ph span{font-size:11px;color:var(--muted)}
+  .kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}
+  .kpi{background:var(--mist);border-radius:10px;padding:10px}
+  .kpi .l{font-size:10.5px;color:var(--muted)}
+  .kpi .v{font-size:19px;font-weight:800;color:var(--text);font-variant-numeric:tabular-nums}
+  .kpi .v.up{color:var(--emer)}
+  .spark{height:52px;display:flex;align-items:flex-end;gap:4px;margin-bottom:14px}
+  .spark i{flex:1;background:linear-gradient(180deg,var(--rose),var(--rose-2));border-radius:3px 3px 0 0;display:block;opacity:.9}
+  .rows .r{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-top:1px solid var(--line);font-size:12.5px}
+  .rows .r .who{display:flex;align-items:center;gap:8px}
+  .av{width:22px;height:22px;border-radius:50%;background:linear-gradient(135deg,var(--rose),var(--rose-2));color:#fff;display:grid;place-items:center;font-size:10px;font-weight:800}
+  .badge{font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:999px}
+  .badge.g{background:color-mix(in srgb,var(--emer) 18%,transparent);color:var(--emer)}
+  .badge.b{background:var(--ice);color:#2563eb}
+  :root[data-theme="dark"] .badge.b{color:#93b4ff}
+
+  /* INTEGRATIONS */
+  .integ{border-top:1px solid var(--line);border-bottom:1px solid var(--line);background:var(--mist)}
+  .integ .wrap{padding:22px 22px}
+  .integ p{margin:0 0 12px;text-align:center;color:var(--muted);font-size:12.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase}
+  .logos{display:flex;flex-wrap:wrap;justify-content:center;gap:12px 26px}
+  .logos span{font-weight:800;font-size:17px;color:var(--text);opacity:.62}
+
+  /* SECTIONS */
+  section{padding:74px 0}
+  .center{text-align:center;max-width:64ch;margin:0 auto}
+  .lead{color:var(--muted);font-size:17px;margin-top:12px}
+
+  .feat{display:grid;grid-template-columns:1fr;gap:18px;margin-top:44px}
+  @media(min-width:640px){.feat{grid-template-columns:1fr 1fr}}
+  @media(min-width:980px){.feat{grid-template-columns:repeat(3,1fr)}}
+  .card{background:var(--paper);border:1px solid var(--line);border-radius:var(--r);padding:24px;transition:transform .15s,box-shadow .15s}
+  .card:hover{transform:translateY(-3px);box-shadow:var(--shadow-sm)}
+  .ic{width:44px;height:44px;border-radius:12px;background:var(--rose-soft);color:var(--rose);display:grid;place-items:center;margin-bottom:14px}
+  .ic svg{width:22px;height:22px}
+  .card h3{font-size:18px;font-weight:750;margin-bottom:6px}
+  .card p{color:var(--muted);font-size:14.5px;margin:0}
+
+  /* SHOWCASE rows */
+  .show{display:grid;grid-template-columns:1fr;gap:34px;align-items:center;margin-top:46px}
+  @media(min-width:900px){.show{grid-template-columns:1fr 1fr;gap:54px}}
+  .show.rev .txt{order:2}
+  .show .txt h3{font-size:clamp(22px,3vw,30px);font-weight:800;margin-bottom:12px}
+  .show .txt p{color:var(--muted);font-size:16px}
+  .show ul{list-style:none;padding:0;margin:18px 0 0;display:grid;gap:10px}
+  .show ul li{display:flex;gap:10px;align-items:flex-start;font-size:15px}
+  .show ul li svg{width:20px;height:20px;color:var(--emer);flex:none;margin-top:1px}
+  .glass{background:var(--mist);border:1px solid var(--line);border-radius:18px;padding:20px;box-shadow:var(--shadow-sm)}
+
+  /* calendar mini */
+  .cal{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
+  .cal i{aspect-ratio:1;border-radius:6px;background:var(--mist-2);display:grid;place-items:center;font-size:10px;color:var(--muted)}
+  .cal i.on{background:linear-gradient(135deg,var(--rose),var(--rose-2));color:#fff;font-weight:700}
+  .cal i.mid{background:var(--rose-soft);color:var(--rose-ink)}
+
+  /* chat mock */
+  .chat{display:grid;gap:8px}
+  .bub{max-width:78%;padding:9px 12px;border-radius:12px;font-size:13px}
+  .bub.in{background:var(--mist-2);border-bottom-left-radius:3px}
+  .bub.out{background:var(--rose);color:#fff;justify-self:end;border-bottom-right-radius:3px}
+  .bub .t{display:block;font-size:9.5px;opacity:.7;margin-top:3px}
+
+  /* STATS band */
+  .band{background:var(--ink);color:#fff}
+  .band .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:26px;text-align:center}
+  @media(min-width:760px){.band .grid{grid-template-columns:repeat(4,1fr)}}
+  .band .n{font-size:clamp(30px,5vw,46px);font-weight:800;background:linear-gradient(120deg,#fff,var(--rose-2));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .band .l{color:#b9b4c2;font-size:13.5px;margin-top:4px}
+
+  /* PRICING */
+  .prices{display:grid;grid-template-columns:1fr;gap:18px;margin-top:44px}
+  @media(min-width:820px){.prices{grid-template-columns:repeat(3,1fr)}}
+  .price{background:var(--paper);border:1px solid var(--line);border-radius:18px;padding:26px}
+  .price.hi{background:var(--ink);color:#fff;border-color:transparent;box-shadow:var(--shadow);transform:translateY(-6px)}
+  .price .nm{font-weight:700;font-size:15px;opacity:.9}
+  .price .pc{font-size:44px;font-weight:800;margin:6px 0 2px}
+  .price .pc small{font-size:15px;font-weight:600;opacity:.6}
+  .price .id{font-size:13.5px;color:var(--muted);min-height:38px}
+  .price.hi .id{color:#c9c4d2}
+  .price ul{list-style:none;padding:0;margin:16px 0 22px;display:grid;gap:9px;font-size:14px}
+  .price ul li{display:flex;gap:9px}.price ul li svg{width:18px;height:18px;color:var(--rose);flex:none}
+  .price.hi ul li svg{color:var(--rose-2)}
+  .tag{position:absolute;top:14px;right:14px;background:var(--rose);color:#fff;font-size:11px;font-weight:800;padding:3px 10px;border-radius:999px}
+
+  /* COMPARISON */
+  .cmp{margin-top:40px;overflow-x:auto}
+  table.compare{width:100%;border-collapse:collapse;min-width:520px}
+  table.compare th,table.compare td{padding:14px 16px;text-align:left;border-bottom:1px solid var(--line);font-size:14.5px}
+  table.compare thead th{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+  table.compare .us{background:var(--rose-soft)}
+  table.compare td svg{width:19px;height:19px;vertical-align:-4px}
+  .yes{color:var(--emer)}.no{color:#c0392b;opacity:.6}
+  :root[data-theme="dark"] .no{color:#f87171}
+
+  /* TESTIMONIALS */
+  .tgrid{display:grid;grid-template-columns:1fr;gap:18px;margin-top:44px}
+  @media(min-width:760px){.tgrid{grid-template-columns:repeat(3,1fr)}}
+  .quote{background:var(--paper);border:1px solid var(--line);border-radius:var(--r);padding:22px}
+  .quote .stars{font-size:14px;margin-bottom:10px}
+  .quote p{font-size:15px;margin:0 0 16px}
+  .quote .by{display:flex;align-items:center;gap:10px}
+  .quote .by .av{width:34px;height:34px;font-size:12px}
+  .quote .by b{font-size:14px;display:block}.quote .by span{font-size:12px;color:var(--muted)}
+
+  /* FAQ */
+  .faq{max-width:760px;margin:40px auto 0}
+  details{border:1px solid var(--line);border-radius:12px;padding:2px 18px;margin-bottom:10px;background:var(--paper)}
+  details summary{cursor:pointer;font-weight:650;padding:15px 0;list-style:none;display:flex;justify-content:space-between;align-items:center;font-size:15.5px}
+  details summary::-webkit-details-marker{display:none}
+  details summary .pl{color:var(--rose);font-size:20px;transition:transform .2s}
+  details[open] summary .pl{transform:rotate(45deg)}
+  details p{color:var(--muted);margin:0 0 16px;font-size:14.5px}
+
+  /* CTA + FOOTER */
+  .final{background:linear-gradient(135deg,var(--rose),var(--rose-2));color:#fff;border-radius:24px;padding:52px 32px;text-align:center;margin:0 auto;max-width:var(--maxw)}
+  .final h2{color:#fff}.final p{color:#ffe4ea;max-width:52ch;margin:12px auto 24px}
+  footer.ft{padding:48px 0 40px;color:var(--muted);font-size:13.5px}
+  footer.ft .cols{display:flex;flex-wrap:wrap;justify-content:space-between;gap:22px;border-top:1px solid var(--line);padding-top:26px}
+  .disc{font-size:12px;color:var(--muted);text-align:center;margin-top:22px;font-style:italic}
+  /* channel bars */
+  .chn{display:flex;align-items:center;gap:10px;font-size:12.5px;color:var(--text)}
+  .chn span{width:76px;flex:none;font-weight:600}
+  .chn i{height:14px;border-radius:999px;background:linear-gradient(90deg,var(--rose),var(--rose-2));display:block}
+  /* motion */
+  @keyframes floaty{0%,100%{transform:translateY(0)}50%{transform:translateY(-9px)}}
+  .mock{animation:floaty 6s ease-in-out infinite}
+  .reveal{opacity:0;transform:translateY(26px);transition:opacity .7s cubic-bezier(.2,.7,.2,1),transform .7s cubic-bezier(.2,.7,.2,1)}
+  .reveal.in{opacity:1;transform:none}
+  @media (prefers-reduced-motion:reduce){.mock{animation:none}.reveal{opacity:1!important;transform:none!important}}
+  .gtag{display:inline-block;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.4);backdrop-filter:blur(6px);color:#fff;font-size:11.5px;font-weight:800;letter-spacing:.05em;padding:6px 13px;border-radius:999px;text-transform:uppercase}
+  .glogo{display:inline-flex;align-items:center;background:rgba(255,255,255,.92);color:#0b2b2a;font-weight:800;font-size:13px;padding:9px 15px;border-radius:12px;box-shadow:0 10px 26px -12px rgba(0,0,0,.5)}
+  .ask{position:fixed;right:16px;bottom:16px;z-index:40;display:inline-flex;align-items:center;gap:8px;background:var(--paper);border:1px solid var(--line);color:var(--rose);font-weight:800;font-size:14px;padding:11px 17px;border-radius:999px;box-shadow:0 16px 36px -12px rgba(0,0,0,.4);text-decoration:none;transition:transform .15s}
+  .ask:hover{transform:translateY(-1px)}
+  @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+  .calc-grid{display:grid;grid-template-columns:1fr;gap:22px;margin-top:44px}
+  @media(min-width:820px){.calc-grid{grid-template-columns:1.05fr .95fr}}
+  .cctl{margin-bottom:20px}.cctl:last-child{margin-bottom:0}
+  .clab{font-weight:600;font-size:14.5px;color:var(--text)}
+  .chead{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px}
+  .chead b{color:var(--rose);font-weight:800;font-size:16px;font-variant-numeric:tabular-nums}
+  .chelp2{font-size:12px;color:var(--muted);margin:6px 0 0;line-height:1.4}
+  .csel{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:var(--paper);color:var(--text);font:inherit;font-weight:600;margin-top:8px}
+  .cpkgs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:2px}
+  .cpkg{display:flex;flex-direction:column;align-items:center;gap:3px;padding:12px 6px;border:1.5px solid var(--line);border-radius:14px;background:var(--paper);cursor:pointer;text-align:center;transition:border-color .18s,background .18s;position:relative}
+  .cpkg:hover{border-color:var(--rose)}
+  .cpkg.on{border-color:var(--rose);background:var(--rose-soft)}
+  .cpkg-n{font-weight:700;font-size:13px;color:var(--text)}
+  .cpkg.on .cpkg-n{color:var(--rose-ink)}
+  .cpkg-p{font-weight:800;font-size:18px;color:var(--rose);font-variant-numeric:tabular-nums}
+  .cpkg-d{font-size:10.5px;color:var(--muted);line-height:1.2}
+  #calculadora input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:6px;border-radius:999px;background:var(--mist-2);outline:none;margin:0}
+  #calculadora input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:20px;height:20px;border-radius:50%;background:var(--rose);cursor:pointer;border:3px solid var(--paper);box-shadow:var(--shadow-sm)}
+  #calculadora input[type=range]::-moz-range-thumb{width:20px;height:20px;border-radius:50%;background:var(--rose);cursor:pointer;border:3px solid var(--paper)}
+  .cres{background:var(--ink);color:#fff;border-radius:18px;padding:24px;align-self:start}
+  .cres .crow{display:flex;justify-content:space-between;align-items:baseline;padding:11px 0;border-bottom:1px dashed rgba(255,255,255,.14);font-size:14px;color:#c9d6d5}
+  .cres .crow b{color:#fff;font-weight:700;font-variant-numeric:tabular-nums}
+  .cnet{margin-top:16px;background:rgba(34,195,201,.12);border-radius:14px;padding:18px}
+  .cnet>span{font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:var(--rose);font-weight:700}
+  .cnet #cnet{font-size:clamp(30px,5vw,42px);font-weight:800;font-variant-numeric:tabular-nums;line-height:1;margin:4px 0}
+  .cnet small{color:#9fb3b2;font-size:13px}
+  .progress{position:fixed;top:0;left:0;height:3px;width:0;background:linear-gradient(90deg,var(--rose),var(--rose-2));z-index:40}
+  @keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(5px)}}
+  .scrollcue{display:inline-flex;align-items:center;gap:8px;margin-top:22px;color:#EBC77D;font-weight:700;font-size:14px;text-decoration:none;animation:bob 1.8s ease-in-out infinite}
+  .scrollcue .arw{display:grid;place-items:center;width:26px;height:26px;border-radius:50%;border:1.5px solid #EBC77D}
+  .scrollcue:hover{filter:brightness(1.12)}
+  @media (prefers-reduced-motion:reduce){.scrollcue{animation:none}}
+</style>
+
+<div class="site">
+  <div class="progress" id="progress"></div>
+  <!-- NAV -->
+  <nav class="bar"><div class="wrap row">
+    <div class="logo"><span class="mk">C</span> <span class="wm" data-i="brand">CasaHost</span></div>
+    <div class="navlinks">
+      <a href="#servicios" data-i="n1">Servicios</a>
+      <a href="#plataforma" data-i="n2">Plataforma</a>
+      <a href="#calculadora" data-i="ncalc">Calculadora</a>
+      <a href="#precios" data-i="n3">Precios</a>
+      <a href="#regulacion" data-i="n4">Regulación</a>
+      <a href="#faq" data-i="n5">FAQ</a>
+    </div>
+    <div class="navright">
+      <span class="lang"><button id="b-es" aria-pressed="true" onclick="L('es')">ES</button><button id="b-en" aria-pressed="false" onclick="L('en')">EN</button></span>
+      <a href="#contacto" class="btn btn-primary" style="padding:9px 16px" data-i="ncta">Evaluación gratis</a>
+    </div>
+  </div></nav>
+
+  <!-- HERO -->
+  <header class="hero"><div class="wrap hero-grid">
+    <div>
+      <span class="ey"><span style="width:7px;height:7px;border-radius:50%;background:var(--rose);display:inline-block"></span><span data-i="hero-ey">Property management de Airbnb · Miami</span></span>
+      <h1 style="margin-top:14px"><span data-i="hero-h1a">Gestionamos tu Airbnb como un</span> <span class="g" data-i="hero-h1b">property manager profesional.</span></h1>
+      <p class="sub" data-i="hero-sub">Publicamos tu propiedad en Airbnb, Vrbo, Booking, Google y redes, con fotos profesionales y precios dinámicos. Más visibilidad, más reservas, más ingresos — sin que muevas un dedo.</p>
+      <div class="cta-row">
+        <a href="#contacto" class="btn btn-primary" data-i="hero-c1">Solicita tu evaluación gratis</a>
+        <a href="#plataforma" class="btn btn-ghost" data-i="hero-c2">Ver la plataforma</a>
+      </div>
+      <div class="trust"><span class="stars">★★★★★</span> <span data-i="hero-trust">Dueños que confían su propiedad a un equipo local y bilingüe</span></div>
+      <div><a href="#calculadora" class="scrollcue"><span class="arw">↓</span> <span data-i="cue">Baja y calcula cuánto puedes ganar</span></a></div>
+    </div>
+
+    <!-- Dashboard mockup -->
+    <div class="mock" aria-hidden="true">
+      <div class="win"><i></i><i></i><i></i></div>
+      <div class="panel">
+        <div class="ph"><b data-i="mk-title">Panel del dueño · Brickell 2BR</b><span data-i="mk-live">● En vivo</span></div>
+        <div class="kpis">
+          <div class="kpi"><div class="l" data-i="mk-k1">Ingreso del mes</div><div class="v">$4,980</div></div>
+          <div class="kpi"><div class="l" data-i="mk-k2">Ocupación</div><div class="v up">86%</div></div>
+          <div class="kpi"><div class="l" data-i="mk-k3">Tu comisión</div><div class="v">18%</div></div>
+        </div>
+        <div class="spark"><i style="height:38%"></i><i style="height:54%"></i><i style="height:47%"></i><i style="height:70%"></i><i style="height:62%"></i><i style="height:85%"></i><i style="height:78%"></i><i style="height:96%"></i></div>
+        <div class="rows">
+          <div class="r"><div class="who"><span class="av">CM</span><span>Carlos M. · 4 <span data-i="mk-n">noches</span></span></div><span class="badge g" data-i="mk-s1">Confirmada</span></div>
+          <div class="r"><div class="who"><span class="av">JL</span><span>Julia L. · 6 <span data-i="mk-n2">noches</span></span></div><span class="badge b" data-i="mk-s2">Check-in hoy</span></div>
+        </div>
+      </div>
+    </div>
+  </div></header>
+
+  <!-- INTEGRATIONS -->
+  <div class="integ"><div class="wrap">
+    <p data-i="integ">Sincronizamos y publicamos en</p>
+    <div class="logos"><span>Airbnb</span><span>Vrbo</span><span>Booking.com</span><span>Expedia</span><span>Google</span></div>
+  </div></div>
+
+
+  <!-- wave -->
+  <div style="line-height:0;background:var(--paper)"><svg viewBox="0 0 1200 90" preserveAspectRatio="none" style="width:100%;height:66px;display:block" aria-hidden="true"><path d="M0,42 C300,92 620,-8 1200,42 L1200,90 L0,90 Z" fill="var(--rose-soft)"/><path d="M0,58 C380,100 720,14 1200,56 L1200,90 L0,90 Z" fill="var(--rose)" opacity="0.9"/></svg></div>
+
+  <!-- SERVICES -->
+  <section id="servicios"><div class="wrap">
+    <div class="center"><span class="ey" data-i="s1-ey">Todo incluido</span><h2 style="margin-top:10px" data-i="s1-h">Todo lo que hace un property manager — y más</h2><p class="lead" data-i="s1-l">Operamos tu propiedad de principio a fin. Tú no mueves un dedo.</p></div>
+    <div class="feat" id="features"></div>
+  </div></section>
+
+  <!-- PLATFORM SHOWCASE -->
+  <section id="plataforma" style="background:var(--mist)"><div class="wrap">
+    <div class="center"><span class="ey" data-i="s2-ey">La plataforma</span><h2 style="margin-top:10px" data-i="s2-h">Tecnología de gestión, transparencia total</h2></div>
+
+    <div class="show">
+      <div class="txt">
+        <h3 data-i="p1-h">Panel del dueño en tiempo real</h3>
+        <p data-i="p1-p">Ve tus ingresos, ocupación, próximas reservas y tu estado de cuenta cuando quieras, desde el móvil.</p>
+        <ul>
+          <li>${CHK}<span data-i="p1-1">Ingresos y comisiones al día</span></li>
+          <li>${CHK}<span data-i="p1-2">Reporte mensual descargable</span></li>
+          <li>${CHK}<span data-i="p1-3">Sin sorpresas ni cargos ocultos</span></li>
+        </ul>
+      </div>
+      <div class="glass">
+        <div class="ph" style="display:flex;justify-content:space-between;margin-bottom:12px"><b data-i="p1-c">Resumen · Octubre</b><span style="color:var(--emer);font-weight:700;font-size:12px">▲ 12%</span></div>
+        <div class="kpis"><div class="kpi"><div class="l" data-i="p1-ka">Bruto</div><div class="v">$5,780</div></div><div class="kpi"><div class="l" data-i="p1-kb">Neto dueño</div><div class="v up">$4,590</div></div><div class="kpi"><div class="l" data-i="p1-kc">Noches</div><div class="v">26</div></div></div>
+        <div class="spark"><i style="height:40%"></i><i style="height:52%"></i><i style="height:60%"></i><i style="height:48%"></i><i style="height:72%"></i><i style="height:66%"></i><i style="height:88%"></i><i style="height:80%"></i><i style="height:94%"></i></div>
+      </div>
+    </div>
+
+    <div class="show rev" style="margin-top:56px">
+      <div class="txt">
+        <h3 data-i="p2-h">Precios dinámicos + calendario unificado</h3>
+        <p data-i="p2-p">Ajustamos la tarifa por temporada, eventos y demanda (Art Basel, Ultra, Mundial 2026) para maximizar cada noche.</p>
+        <ul><li>${CHK}<span data-i="p2-1">Un calendario para Airbnb, Vrbo y Booking</span></li><li>${CHK}<span data-i="p2-2">Sin dobles reservas</span></li><li>${CHK}<span data-i="p2-3">Tarifas optimizadas a diario</span></li></ul>
+      </div>
+      <div class="glass">
+        <div style="display:flex;justify-content:space-between;margin-bottom:12px;font-size:12px;color:var(--muted)"><b style="color:var(--text)" data-i="p2-c">Marzo · Spring Break</b><span>+58% ADR</span></div>
+        <div class="cal">
+          <i>L</i><i>M</i><i>M</i><i>J</i><i>V</i><i>S</i><i>D</i>
+          <i>1</i><i class="on">2</i><i class="mid">3</i><i class="mid">4</i><i class="on">5</i><i>6</i><i>7</i>
+          <i class="on">8</i><i class="mid">9</i><i class="mid">10</i><i class="on">11</i><i class="on">12</i><i class="mid">13</i><i>14</i>
+          <i>15</i><i class="on">16</i><i class="on">17</i><i class="mid">18</i><i>19</i><i class="on">20</i><i class="on">21</i>
+        </div>
+      </div>
+    </div>
+
+    <div class="show" style="margin-top:56px">
+      <div class="txt">
+        <h3 data-i="p3-h">Atención al huésped 24/7, bilingüe</h3>
+        <p data-i="p3-p">Respondemos en minutos, en inglés y español. Mejores reseñas, más reservas, cero estrés para ti.</p>
+        <ul><li>${CHK}<span data-i="p3-1">Check-in y check-out coordinados</span></li><li>${CHK}<span data-i="p3-2">Limpieza y mantenimiento gestionados</span></li><li>${CHK}<span data-i="p3-3">Gestión activa de reseñas</span></li></ul>
+      </div>
+      <div class="glass"><div class="chat">
+        <div class="bub in" data-i="p3-m1">Hi! Can we check in earlier?<span class="t">2:04 PM</span></div>
+        <div class="bub out" data-i="p3-m2">¡Claro! Dejo tu entrada lista a las 1 PM. 🔑<span class="t">2:05 PM</span></div>
+        <div class="bub in" data-i="p3-m3">Amazing, thank you!<span class="t">2:06 PM</span></div>
+      </div></div>
+    </div>
+  </div></section>
+
+  <!-- STATS BAND -->
+    <!-- BEACH BAND -->
+  <div style="position:relative;line-height:0;height:clamp(260px,38vw,420px);overflow:hidden;border-top:1px solid var(--line);border-bottom:1px solid var(--line)">
+    <svg viewBox="0 0 1200 420" preserveAspectRatio="xMidYMid slice" style="width:100%;height:100%;display:block" aria-hidden="true">
+  <defs>
+    <linearGradient id="bsky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FCEBD6"/><stop offset="0.55" stop-color="#D2F0EB"/><stop offset="1" stop-color="#A7E3DE"/></linearGradient>
+    <linearGradient id="bsea" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#22C3C9"/><stop offset="1" stop-color="#0E9AA0"/></linearGradient>
+  </defs>
+  <rect width="1200" height="420" fill="url(#bsky)"/>
+  <circle cx="930" cy="132" r="60" fill="#FFD79E" opacity="0.92"/>
+  <g stroke="#0B5E5B" stroke-width="2.5" fill="none" opacity="0.4" stroke-linecap="round">
+    <path d="M1000,108 q9,-9 18,0 q9,-9 18,0"/>
+    <path d="M1058,132 q7,-7 14,0 q7,-7 14,0"/>
+  </g>
+  <path d="M0,250 C320,234 880,268 1200,244 L1200,362 L0,362 Z" fill="url(#bsea)"/>
+  <path d="M0,272 C320,260 880,286 1200,262" fill="none" stroke="#FFFFFF" stroke-opacity="0.28" stroke-width="3"/>
+  <path d="M0,300 C300,292 900,312 1200,298" fill="none" stroke="#FFFFFF" stroke-opacity="0.18" stroke-width="2"/>
+  <path d="M0,342 C300,332 900,356 1200,338 L1200,420 L0,420 Z" fill="#F4E4C7"/>
+  <g stroke="#0B5E5B" stroke-width="9" fill="none" stroke-linecap="round" opacity="0.95">
+    <path d="M150,420 C160,356 150,316 172,262"/>
+  </g>
+  <g stroke="#0B5E5B" stroke-width="8" fill="none" stroke-linecap="round" opacity="0.95">
+    <path d="M172,260 C142,244 108,246 82,260"/>
+    <path d="M172,260 C152,230 130,206 110,196"/>
+    <path d="M172,260 C180,226 180,200 176,176"/>
+    <path d="M172,260 C202,232 232,228 260,238"/>
+    <path d="M172,260 C202,250 232,250 260,266"/>
+  </g>
+</svg>
+    <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(5,40,44,.46),rgba(5,40,44,.12) 50%,rgba(5,40,44,.36))"></div>
+    <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;padding:20px;line-height:1.15">
+      <div style="max-width:52ch">
+        <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-bottom:14px">
+          <span class="gtag" data-i="bt1">Multicanal</span><span class="gtag" data-i="bt2">Sin dobles reservas</span>
+        </div>
+        <h2 style="color:#fff;font-size:clamp(24px,4vw,42px);text-shadow:0 2px 24px rgba(0,0,0,.4)" data-i="beach-h">Tu propiedad, en el mejor destino de Miami</h2>
+        <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:20px">
+          <span class="glogo">Airbnb</span><span class="glogo">Booking</span><span class="glogo">Vrbo</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <section class="band"><div class="wrap">
+    <div class="center" style="margin-bottom:34px"><h2 style="color:#fff" data-i="st-h">Miami: uno de los mercados más rentables de EE. UU.</h2></div>
+    <div class="grid">
+      <div><div class="n">50M</div><div class="l" data-i="st1">visitantes/año Miami-Dade + Broward</div></div>
+      <div><div class="n">$210-375</div><div class="l" data-i="st2">tarifa por noche según zona</div></div>
+      <div><div class="n">86%</div><div class="l" data-i="st3">ocupación en temporada alta</div></div>
+      <div><div class="n">18%</div><div class="l" data-i="st4">comisión transparente, todo incluido</div></div>
+    </div>
+  </div></section>
+
+  <!-- REACH -->
+  <section id="alcance" style="background:var(--mist)"><div class="wrap">
+    <div class="center"><span class="ey" data-i="reach-ey">Marketing y alcance</span><h2 style="margin-top:10px" data-i="reach-h">Más visibilidad = más reservas</h2><p class="lead" data-i="reach-l">La diferencia entre "estar en Airbnb" y llenar tu calendario es el marketing. Ponemos tu propiedad frente a más viajeros, en más lugares.</p></div>
+    <div class="show" style="margin-top:44px">
+      <div class="txt">
+        <h3 data-i="reach-h2">Te conseguimos más ojos y más reservas</h3>
+        <p data-i="reach-p">Un dueño solo publica en una plataforma. Nosotros distribuimos, optimizamos y promocionamos tu propiedad en todos los canales que importan.</p>
+        <ul>
+          <li>${CHK}<span data-i="reach-1">Publicación en Airbnb, Vrbo, Booking, Google y Expedia</span></li>
+          <li>${CHK}<span data-i="reach-2">Fotografía profesional y anuncio optimizado (SEO)</span></li>
+          <li>${CHK}<span data-i="reach-3">Difusión en redes: Instagram y TikTok</span></li>
+          <li>${CHK}<span data-i="reach-4">Precios dinámicos para no perder ni una noche</span></li>
+        </ul>
+      </div>
+      <div class="glass">
+        <div style="display:flex;justify-content:space-between;margin-bottom:14px;font-size:12px;color:var(--muted)"><b style="color:var(--text)" data-i="reach-c">Alcance multicanal</b><span style="color:var(--emer);font-weight:700">▲ 3.2x</span></div>
+        <div style="display:grid;gap:10px">
+          <div class="chn"><span>Airbnb</span><i style="width:94%"></i></div>
+          <div class="chn"><span>Booking</span><i style="width:72%"></i></div>
+          <div class="chn"><span>Vrbo</span><i style="width:60%"></i></div>
+          <div class="chn"><span>Google</span><i style="width:46%"></i></div>
+          <div class="chn"><span>Instagram</span><i style="width:38%"></i></div>
+        </div>
+      </div>
+    </div>
+  </div></section>
+
+  <!-- CALCULATOR -->
+  <section id="calculadora" style="background:var(--mist)"><div class="wrap">
+    <div class="center"><span class="ey" data-i="caley">Calculadora</span><h2 style="margin-top:10px" data-i="calh">¿Cuánto puede generar tu propiedad?</h2><p class="lead" data-i="call">Elige tu zona en Miami y lo estimamos por ti — sin que tengas que saber tus números.</p></div>
+    <div class="calc-grid">
+      <div class="glass">
+        <div class="cctl">
+          <label class="clab" for="cz" data-i="calZ">Tu zona en Miami</label>
+          <select id="cz" class="csel">
+            <option value="" data-i="calCustom">Personalizado</option>
+            <optgroup label="Miami-Dade"><option value="brickell">Brickell</option><option value="downtown">Downtown Miami</option><option value="wynwood">Wynwood</option><option value="south-beach">South Beach</option><option value="sunny-isles">Sunny Isles Beach</option><option value="doral">Doral</option></optgroup>
+            <optgroup label="Broward"><option value="fort-lauderdale">Fort Lauderdale</option><option value="hollywood">Hollywood</option><option value="pompano">Pompano Beach</option><option value="hallandale" selected>Hallandale Beach</option></optgroup>
+          </select>
+          <p class="chelp2" data-i="calZh">¿No sabes tus números? Elige tu zona y llenamos las tarifas típicas del mercado por ti.</p>
+        </div>
+        <div class="cctl"><div class="chead"><label class="clab" data-i="calR">Tarifa por noche</label><b id="cro">$245</b></div><input id="crt" type="range" min="80" max="600" step="5" value="250" aria-label="Tarifa por noche"></div>
+        <div class="cctl"><div class="chead"><label class="clab" data-i="calO">Noches rentadas al mes</label><b id="coo">16 noches</b></div><input id="coc" type="range" min="4" max="30" step="1" value="14" aria-label="Noches rentadas al mes"><p class="chelp2" data-i="calOh">De las ~30 noches del mes, cuántas se rentan.</p></div>
+        <div class="cctl"><div class="chead"><label class="clab" data-i="calC">Nuestra comisión</label><b id="cmo">18%</b></div>
+          <div class="cpkgs" id="cpkgs">
+            <button type="button" class="cpkg" data-pct="12"><span class="cpkg-n" data-i="pkgA-n">Esencial</span><span class="cpkg-p">12%</span><span class="cpkg-d" data-i="pkgA-d">Gestión digital</span></button>
+            <button type="button" class="cpkg on" data-pct="18"><span class="cpkg-n" data-i="pkgB-n">Completo</span><span class="cpkg-p">18%</span><span class="cpkg-d" data-i="pkgB-d">Todo incluido</span></button>
+            <button type="button" class="cpkg" data-pct="24"><span class="cpkg-n" data-i="pkgC-n">Premium</span><span class="cpkg-p">24%</span><span class="cpkg-d" data-i="pkgC-d">+ Compliance</span></button>
+          </div>
+          <p class="chelp2" data-i="calCh">Elige tu plan de gestión. La comisión es fija según el paquete — sin cargos ocultos.</p>
+        </div>
+      </div>
+      <div class="cres">
+        <div class="crow"><span data-i="calNi">Noches ocupadas/mes</span><b id="cn">16</b></div>
+        <div class="crow"><span data-i="calGr">Ingreso bruto de la propiedad</span><b id="cg">$3,900</b></div>
+        <div class="crow"><span data-i="calCo">Nuestra comisión</span><b id="cc">−$700</b></div>
+        <div class="crow"><span data-i="calCs">Costos estimados</span><b id="cs">−$180</b></div>
+        <div class="cnet"><span data-i="calNet">Tu ingreso neto mensual</span><div id="cnet">$3,020</div><small id="cyr"></small></div>
+        <a href="#contacto" class="btn btn-primary" style="width:100%;justify-content:center;margin-top:4px" data-i="hero-c1">Solicita tu evaluación gratis</a>
+      </div>
+    </div>
+  </div></section>
+
+  <!-- PRICING -->
+  <section id="precios"><div class="wrap">
+    <div class="center"><span class="ey" data-i="pr-ey">Precios</span><h2 style="margin-top:10px" data-i="pr-h">Una comisión clara. Sin cuotas de alta.</h2><p class="lead" data-i="pr-l">La competencia cobra 15%–50%, muchas veces con cargos ocultos. Nosotros no.</p></div>
+    <div class="prices" id="pricing"></div>
+    <p class="disc" data-i="pr-note">Comisión solo sobre reservas reales. Sin contrato de permanencia.</p>
+  </div></section>
+
+  <!-- COMPARISON -->
+  <section style="background:var(--mist)"><div class="wrap">
+    <div class="center"><span class="ey" data-i="cmp-ey">Comparativa</span><h2 style="margin-top:10px" data-i="cmp-h">Por qué los dueños nos eligen</h2></div>
+    <div class="cmp"><table class="compare" id="compare"></table></div>
+  </div></section>
+
+  <!-- TESTIMONIALS -->
+  <section><div class="wrap">
+    <div class="center"><span class="ey" data-i="ts-ey">Testimonios</span><h2 style="margin-top:10px" data-i="ts-h">Dueños que ya duermen tranquilos</h2></div>
+    <div class="tgrid" id="testi"></div>
+  </div></section>
+
+  <!-- REGULATION teaser -->
+  <section id="regulacion" style="background:var(--mist)"><div class="wrap">
+    <div class="center"><span class="ey" data-i="rg-ey">Compliance</span><h2 style="margin-top:10px" data-i="rg-h">Legal en el Sur de Florida, sin multas</h2><p class="lead" data-i="rg-l">Miami Beach, Doral, Fort Lauderdale... cada ciudad tiene reglas distintas. Nosotros tramitamos licencias, Certificate of Use e impuestos por ti.</p></div>
+    <div class="feat" id="reg" style="margin-top:34px"></div>
+  </div></section>
+
+  <!-- FAQ -->
+  <section id="faq"><div class="wrap">
+    <div class="center"><span class="ey" data-i="fq-ey">FAQ</span><h2 style="margin-top:10px" data-i="fq-h">Preguntas frecuentes</h2></div>
+    <div class="faq" id="faqbox"></div>
+  </div></section>
+
+  <!-- FINAL CTA -->
+  <section id="contacto" style="padding-top:20px"><div class="wrap">
+    <div class="final">
+      <h2 data-i="cta-h">Pon tu propiedad a producir este mes</h2>
+      <p data-i="cta-p">Evaluación gratuita: analizamos tu zona, calculamos tus ingresos y te decimos exactamente cómo trabajaríamos juntos.</p>
+      <form id="leadf" style="max-width:540px;margin:8px auto 0;display:grid;gap:12px;text-align:left">
+        <input id="lf-name" required aria-label="Nombre completo" style="width:100%;border:none;border-radius:12px;padding:14px 16px;font:inherit;font-size:15px;background:#fff;color:#0b2b2a;outline:none">
+        <input id="lf-contact" required aria-label="Teléfono o email" style="width:100%;border:none;border-radius:12px;padding:14px 16px;font:inherit;font-size:15px;background:#fff;color:#0b2b2a;outline:none">
+        <input id="lf-zone" aria-label="Ciudad o zona" style="width:100%;border:none;border-radius:12px;padding:14px 16px;font:inherit;font-size:15px;background:#fff;color:#0b2b2a;outline:none">
+        <button type="submit" class="btn btn-white" style="width:100%;justify-content:center;font-size:16px;padding:15px">Solicita tu evaluación gratis</button>
+      </form>
+      <div id="lf-ok" style="display:none;max-width:540px;margin:10px auto 0;background:rgba(255,255,255,.18);border-radius:14px;padding:20px;font-weight:600">✅ ¡Solicitud recibida! Te contactaremos pronto.</div>
+    </div>
+  </div></section>
+
+  <footer class="ft"><div class="wrap">
+    <div class="cols">
+      <div class="logo"><span class="mk">C</span> CasaHost</div>
+      <span data-i="ft1">Property management de Airbnb · Miami-Dade & Broward</span>
+      <span data-i="ft2">Servicio bilingüe (EN/ES) · Sin costo inicial</span>
+    </div>
+    <div style="margin-top:20px;padding-top:18px;border-top:1px solid var(--line)">
+      <div style="font-size:11.5px;font-weight:700;letter-spacing:.13em;text-transform:uppercase;color:var(--muted);margin-bottom:10px" data-i="ftz">Zonas que cubrimos</div>
+      <div style="display:flex;flex-wrap:wrap;gap:9px 16px;font-size:13.5px">
+        <a href="/brickell.html" style="color:var(--text);opacity:.8;text-decoration:none">Brickell</a>
+        <a href="/downtown.html" style="color:var(--text);opacity:.8;text-decoration:none">Downtown Miami</a>
+        <a href="/wynwood.html" style="color:var(--text);opacity:.8;text-decoration:none">Wynwood</a>
+        <a href="/south-beach.html" style="color:var(--text);opacity:.8;text-decoration:none">South Beach</a>
+        <a href="/sunny-isles.html" style="color:var(--text);opacity:.8;text-decoration:none">Sunny Isles</a>
+        <a href="/doral.html" style="color:var(--text);opacity:.8;text-decoration:none">Doral</a>
+        <a href="/fort-lauderdale.html" style="color:var(--text);opacity:.8;text-decoration:none">Fort Lauderdale</a>
+        <a href="/hollywood.html" style="color:var(--text);opacity:.8;text-decoration:none">Hollywood</a>
+        <a href="/pompano.html" style="color:var(--text);opacity:.8;text-decoration:none">Pompano Beach</a>
+        <a href="/hallandale.html" style="color:var(--text);opacity:.8;text-decoration:none">Hallandale Beach</a>
+      </div>
+    </div>
+    <p class="disc" data-i="ft-disc">CasaHost es un servicio de gestión independiente, no afiliado a Airbnb, Inc. La sección de regulación es informativa, no asesoría legal.</p>
+  </div></footer>
+</div>
+
+<a href="https://wa.me/12396870181?text=Hola%20CasaHost%20%F0%9F%91%8B%20Tengo%20una%20propiedad%20y%20quiero%20saber%20m%C3%A1s%20sobre%20su%20gesti%C3%B3n." target="_blank" rel="noopener" class="ask"><span>💬</span> <span data-i="ask">Pregúntanos</span></a>
+<script>
+  var ICON = {
+    list:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 9h10M7 13h6"/></svg>',
+    price:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>',
+    chat:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>',
+    broom:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 5l-8 8M3 21s2-6 6-6l4 4c0 4-6 6-6 6zM15 9l4-4"/></svg>',
+    shield:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l8 4v6c0 5-3.5 8-8 10-4.5-2-8-5-8-10V6z"/><path d="M9 12l2 2 4-4"/></svg>',
+    chart:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 15l4-5 3 3 5-7"/></svg>',
+    key:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="15" r="4"/><path d="M10.8 12.2L21 2m-4 2l2 2m-5 1l2 2"/></svg>',
+    globe:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2c3 3 3 17 0 20M12 2c-3 3-3 17 0 20"/></svg>'
+  };
+  var CHK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>';
+  var X = '<svg class="no" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>';
+  var Y = '<svg class="yes" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>';
+
+  var T = {
+    es:{
+      brand:'CasaHost',n1:'Servicios',n2:'Plataforma',n3:'Precios',n4:'Regulación',n5:'FAQ',ncta:'Evaluación gratis',
+      'hero-ey':'Property management de Airbnb · Hallandale Beach','hero-h1a':'Gestionamos tu Airbnb en','hero-h1b':'Hallandale Beach.',
+      'hero-sub':'Tu propiedad en Hallandale Beach puede llenarse todo el año. La publicamos en Airbnb, Vrbo, Booking, Google y redes, con fotos profesionales y precios dinámicos — sin que muevas un dedo.',
+      'hero-c1':'Solicita tu evaluación gratis','hero-c2':'Ver la plataforma','hero-trust':'Dueños que confían su propiedad a un equipo local y bilingüe','cue':'Baja y calcula cuánto puedes ganar',
+      'mk-title':'Panel del dueño · Brickell 2BR','mk-live':'● En vivo','mk-k1':'Ingreso del mes','mk-k2':'Ocupación','mk-k3':'Tu comisión','mk-n':'noches','mk-n2':'noches','mk-s1':'Confirmada','mk-s2':'Check-in hoy',
+      integ:'Sincronizamos y publicamos en',
+      's1-ey':'Todo incluido','s1-h':'Todo lo que hace un property manager — y más','s1-l':'Operamos tu propiedad de principio a fin. Tú no mueves un dedo.',
+      's2-ey':'La plataforma','s2-h':'Tecnología de gestión, transparencia total','reach-ey':'Marketing y alcance','reach-h':'Más visibilidad = más reservas','reach-l':'La diferencia entre "estar en Airbnb" y llenar tu calendario es el marketing. Ponemos tu propiedad frente a más viajeros, en más lugares.','reach-h2':'Te conseguimos más ojos y más reservas','reach-p':'Un dueño solo publica en una plataforma. Nosotros distribuimos, optimizamos y promocionamos tu propiedad en todos los canales que importan.','reach-1':'Publicación en Airbnb, Vrbo, Booking, Google y Expedia','reach-2':'Fotografía profesional y anuncio optimizado (SEO)','reach-3':'Difusión en redes: Instagram y TikTok','reach-4':'Precios dinámicos para no perder ni una noche','reach-c':'Alcance multicanal','ncalc':'Calculadora','caley':'Calculadora','calh':'¿Cuánto puede generar tu propiedad?','call':'Elige tu zona en Miami y lo estimamos por ti — sin que tengas que saber tus números.','calCustom':'Personalizado','calZ':'Tu zona en Miami','calZh':'¿No sabes tus números? Elige tu zona y llenamos las tarifas típicas del mercado por ti.','calR':'Tarifa por noche','calO':'Noches rentadas al mes','calOh':'De las ~30 noches del mes, cuántas se rentan.','calC':'Nuestra comisión','calCh':'Elige tu plan de gestión. La comisión es fija según el paquete — sin cargos ocultos.','pkgA-n':'Esencial','pkgA-d':'Gestión digital','pkgB-n':'Completo','pkgB-d':'Todo incluido','pkgC-n':'Premium','pkgC-d':'+ Compliance','calNi':'Noches ocupadas/mes','calGr':'Ingreso bruto de la propiedad','calCo':'Nuestra comisión','calCs':'Costos estimados','calNet':'Tu ingreso neto mensual','bt1':'Multicanal','bt2':'Sin dobles reservas','ask':'Pregúntanos','beach-h':'Tu propiedad, en el mejor destino de Miami',
+      'p1-h':'Panel del dueño en tiempo real','p1-p':'Ve tus ingresos, ocupación, próximas reservas y tu estado de cuenta cuando quieras, desde el móvil.','p1-1':'Ingresos y comisiones al día','p1-2':'Reporte mensual descargable','p1-3':'Sin sorpresas ni cargos ocultos','p1-c':'Resumen · Octubre','p1-ka':'Bruto','p1-kb':'Neto dueño','p1-kc':'Noches',
+      'p2-h':'Precios dinámicos + calendario unificado','p2-p':'Ajustamos la tarifa por temporada, eventos y demanda (Art Basel, Ultra, Mundial 2026) para maximizar cada noche.','p2-1':'Un calendario para Airbnb, Vrbo y Booking','p2-2':'Sin dobles reservas','p2-3':'Tarifas optimizadas a diario','p2-c':'Marzo · Spring Break',
+      'p3-h':'Atención al huésped 24/7, bilingüe','p3-p':'Respondemos en minutos, en inglés y español. Mejores reseñas, más reservas, cero estrés para ti.','p3-1':'Check-in y check-out coordinados','p3-2':'Limpieza y mantenimiento gestionados','p3-3':'Gestión activa de reseñas','p3-m1':'Hi! Can we check in earlier?','p3-m2':'¡Claro! Dejo tu entrada lista a la 1 PM. 🔑','p3-m3':'Amazing, thank you!',
+      'st-h':'Miami: uno de los mercados más rentables de EE. UU.','st1':'visitantes/año Miami-Dade + Broward','st2':'tarifa por noche según zona','st3':'ocupación en temporada alta','st4':'comisión transparente, todo incluido',
+      'pr-ey':'Precios','pr-h':'Una comisión clara. Sin cuotas de alta.','pr-l':'La competencia cobra 15%–50%, muchas veces con cargos ocultos. Nosotros no.','pr-note':'Comisión solo sobre reservas reales. Sin contrato de permanencia.',
+      'cmp-ey':'Comparativa','cmp-h':'Por qué los dueños nos eligen',
+      'ts-ey':'Testimonios','ts-h':'Dueños que ya duermen tranquilos',
+      'rg-ey':'Compliance','rg-h':'Legal en el Sur de Florida, sin multas','rg-l':'Miami Beach, Doral, Fort Lauderdale... cada ciudad tiene reglas distintas. Nosotros tramitamos licencias, Certificate of Use e impuestos por ti.',
+      'fq-ey':'FAQ','fq-h':'Preguntas frecuentes',
+      'cta-h':'Pon tu propiedad a producir este mes','cta-p':'Evaluación gratuita: analizamos tu zona, calculamos tus ingresos y te decimos exactamente cómo trabajaríamos juntos.','cta-b':'Solicita tu evaluación gratis',
+      ft1:'Property management de Airbnb · Miami-Dade & Broward',ft2:'Servicio bilingüe (EN/ES) · Sin costo inicial',ftz:'Zonas que cubrimos','ft-disc':'CasaHost es un servicio de gestión independiente, no afiliado a Airbnb, Inc. La sección de regulación es informativa, no asesoría legal.',
+      features:[['list','Anuncios optimizados','Fotos, copy que vende y publicación en Airbnb, Vrbo y Booking.'],['price','Precios dinámicos','Ajuste diario por temporada, eventos y demanda para ganar más.'],['chat','Huéspedes 24/7','Atención bilingüe en minutos, check-in y check-out coordinados.'],['broom','Limpieza y mantenimiento','Coordinamos al equipo para dejar todo impecable entre estancias.'],['shield','Compliance legal','Licencias, Certificate of Use e impuestos por ciudad, gestionados.'],['chart','Reportes al dueño','Panel en vivo y reporte mensual claro, sin cargos ocultos.']],
+      pricing:[['Esencial','12%','Para dueños que ya operan y quieren apoyo.',['Anuncio y precios dinámicos','Distribución multi-plataforma','Reporte mensual'],false],['Full Management','18%','Hacemos absolutamente todo, compliance incluido.',['Todo lo de Esencial','Huéspedes 24/7 bilingüe','Limpieza y check-in','Licencias e impuestos'],true],['Premium','24%','Propiedades de lujo con atención dedicada.',['Todo lo de Full','Fotografía profesional','Staging y amenities','Gerente dedicado'],false]],
+      compareHead:['','Tú solo','CasaHost','Grandes marcas'],
+      compareRows:[['Comisión','—','18% todo incluido','25%–50%'],['Atención local bilingüe',1,1,0],['Siempre la misma persona (no un call center)',0,1,0],['Equipo de confianza, no apps de "gig"',0,1,0],['Compliance gestionado',0,1,0],['Panel del dueño en vivo',0,1,1],['Sin cargos ocultos',1,1,0],['Sin contrato de permanencia',1,1,0]],
+      testi:[['R','Rosario','Dueña · Brickell','Pasé de estresarme cada fin de semana a recibir mi depósito sin hacer nada. Las reseñas subieron muchísimo.'],['Y','Yumeki','Owner · Sunny Isles','They handle everything in English and Spanish, and my calendar stays full all year. Best decision for my condo.'],['B','Bruno','Dueño · Hollywood','Me ayudaron con las licencias y los impuestos que ni sabía que necesitaba. Cero multas y todo transparente.']],
+      reg:[['shield','Miami Beach','Reglas muy estrictas y multas altas. Te ubicamos solo en zonas permitidas.'],['key','Doral / Sunny Isles','Límites de frecuencia y licencias por unidad. Lo tramitamos por ti.'],['globe','Fort Lauderdale / Hollywood','Registro e inspecciones. Certificado de cumplimiento gestionado.']],
+      faq:[['¿Necesito ceder el control de mi propiedad?','No. Tú sigues siendo el dueño y mantienes el control total. Firmamos un acuerdo simple de administración y tú puedes terminarlo cuando quieras.'],['¿Cuánto cuesta empezar?','Nada. Sin cuota de alta. Solo cobramos una comisión sobre las reservas reales que generamos.'],['¿Y si mi ciudad tiene reglas estrictas?','Analizamos tu zona antes de empezar y tramitamos las licencias necesarias. Donde el alquiler corto está limitado, te proponemos renta de mediano plazo.'],['¿Trabajan en inglés y español?','Sí. Todo el servicio y la atención al huésped es bilingüe (y podemos portugués).']],
+    },
+    en:{
+      brand:'CasaHost',n1:'Services',n2:'Platform',n3:'Pricing',n4:'Regulations',n5:'FAQ',ncta:'Free evaluation',
+      'hero-ey':'Airbnb property management · Hallandale Beach','hero-h1a':'We run your Airbnb in','hero-h1b':'Hallandale Beach.',
+      'hero-sub':'Your property in Hallandale Beach can stay booked year-round. We list it on Airbnb, Vrbo, Booking, Google and social, with professional photos and dynamic pricing — without you lifting a finger.',
+      'hero-c1':'Request your free evaluation','hero-c2':'See the platform','hero-trust':'Owners who trust their property to a local, bilingual team','cue':'Scroll down and see how much you can earn',
+      'mk-title':'Owner dashboard · Brickell 2BR','mk-live':'● Live','mk-k1':'Month revenue','mk-k2':'Occupancy','mk-k3':'Your fee','mk-n':'nights','mk-n2':'nights','mk-s1':'Confirmed','mk-s2':'Check-in today',
+      integ:'We sync and publish on',
+      's1-ey':'All included','s1-h':'Everything a property manager does — and more','s1-l':'We run your property end to end. You do nothing.',
+      's2-ey':'The platform','s2-h':'Management tech, total transparency','reach-ey':'Marketing & reach','reach-h':'More visibility = more bookings','reach-l':'The gap between "being on Airbnb" and filling your calendar is marketing. We put your property in front of more travelers, in more places.','reach-h2':'We get you more eyes and more bookings','reach-p':'An owner alone posts on one platform. We distribute, optimize and promote your property across every channel that matters.','reach-1':'Listed on Airbnb, Vrbo, Booking, Google and Expedia','reach-2':'Professional photography and SEO-optimized listing','reach-3':'Social promotion: Instagram and TikTok','reach-4':'Dynamic pricing so you never lose a night','reach-c':'Multi-channel reach','ncalc':'Calculator','caley':'Calculator','calh':'How much could your property earn?','call':'Pick your area in Miami and we estimate it for you — no need to know your numbers.','calCustom':'Custom','calZ':'Your area in Miami','calZh':'Do not know your numbers? Pick your area and we fill in typical market rates for you.','calR':'Nightly rate','calO':'Nights booked per month','calOh':'Of the ~30 nights in a month, how many get booked.','calC':'Our commission','calCh':'Pick your management plan. The commission is fixed per package — no hidden fees.','pkgA-n':'Essential','pkgA-d':'Digital management','pkgB-n':'Complete','pkgB-d':'All-inclusive','pkgC-n':'Premium','pkgC-d':'+ Compliance','calNi':'Booked nights/mo','calGr':'Property gross income','calCo':'Our commission','calCs':'Estimated costs','calNet':'Your monthly net income','bt1':'Multi-channel','bt2':'No double bookings','ask':'Ask us','beach-h':'Your property, in Miami\u2019s top destination',
+      'p1-h':'Real-time owner dashboard','p1-p':'See your revenue, occupancy, upcoming bookings and statement anytime, from your phone.','p1-1':'Revenue and fees up to date','p1-2':'Downloadable monthly report','p1-3':'No surprises, no hidden fees','p1-c':'Summary · October','p1-ka':'Gross','p1-kb':'Owner net','p1-kc':'Nights',
+      'p2-h':'Dynamic pricing + unified calendar','p2-p':'We adjust rates by season, events and demand (Art Basel, Ultra, World Cup 2026) to maximize every night.','p2-1':'One calendar for Airbnb, Vrbo & Booking','p2-2':'No double bookings','p2-3':'Rates optimized daily','p2-c':'March · Spring Break',
+      'p3-h':'24/7 bilingual guest support','p3-p':'We reply in minutes, in English and Spanish. Better reviews, more bookings, zero stress for you.','p3-1':'Coordinated check-in and check-out','p3-2':'Cleaning and maintenance handled','p3-3':'Active review management','p3-m1':'Hi! Can we check in earlier?','p3-m2':'Of course! Your place will be ready at 1 PM. 🔑','p3-m3':'Amazing, thank you!',
+      'st-h':'Miami: one of the most profitable markets in the U.S.','st1':'visitors/yr Miami-Dade + Broward','st2':'nightly rate by area','st3':'occupancy in high season','st4':'transparent all-in commission',
+      'pr-ey':'Pricing','pr-h':'One clear commission. No setup fees.','pr-l':'Competitors charge 15%–50%, often with hidden fees. We do not.','pr-note':'Commission only on real bookings. No lock-in contract.',
+      'cmp-ey':'Comparison','cmp-h':'Why owners choose us',
+      'ts-ey':'Testimonials','ts-h':'Owners who finally sleep well',
+      'rg-ey':'Compliance','rg-h':'Legal in South Florida, fine-free','rg-l':'Miami Beach, Doral, Fort Lauderdale... every city has different rules. We handle licenses, Certificate of Use and taxes for you.',
+      'fq-ey':'FAQ','fq-h':'Frequently asked questions',
+      'cta-h':'Put your property to work this month','cta-p':'Free evaluation: we analyze your area, estimate your income and tell you exactly how we would work together.','cta-b':'Request your free evaluation',
+      ft1:'Airbnb property management · Miami-Dade & Broward',ft2:'Bilingual service (EN/ES) · No upfront cost',ftz:'Areas we cover','ft-disc':'CasaHost is an independent management service, not affiliated with Airbnb, Inc. The regulations section is informational, not legal advice.',
+      features:[['list','Optimized listings','Photos, copy that sells and publishing on Airbnb, Vrbo and Booking.'],['price','Dynamic pricing','Daily rate adjustments by season, events and demand to earn more.'],['chat','24/7 guests','Bilingual support in minutes, coordinated check-in and check-out.'],['broom','Cleaning & upkeep','We coordinate the team to leave everything spotless between stays.'],['shield','Legal compliance','Licenses, Certificate of Use and taxes by city, all handled.'],['chart','Owner reporting','Live dashboard and a clear monthly report, no hidden fees.']],
+      pricing:[['Essential','12%','For owners already operating who want support.',['Listing & dynamic pricing','Multi-platform distribution','Monthly report'],false],['Full Management','18%','We do absolutely everything, compliance included.',['Everything in Essential','24/7 bilingual guests','Cleaning & check-in','Licensing & taxes'],true],['Premium','24%','Luxury properties with dedicated attention.',['Everything in Full','Professional photography','Staging & amenities','Dedicated manager'],false]],
+      compareHead:['','On your own','CasaHost','Big brands'],
+      compareRows:[['Commission','—','18% all-in','25%–50%'],['Local bilingual support',1,1,0],['Always the same person (not a call center)',0,1,0],['A trusted team, not gig-app workers',0,1,0],['Compliance handled',0,1,0],['Live owner dashboard',0,1,1],['No hidden fees',1,1,0],['No lock-in contract',1,1,0]],
+      testi:[['R','Rosario','Owner · Brickell','I went from stressing every weekend to getting my payout without doing a thing. My reviews shot up.'],['Y','Yumeki','Owner · Sunny Isles','They handle everything in English and Spanish, and my calendar stays full all year. Best decision for my condo.'],['B','Bruno','Owner · Hollywood','They handled licenses and taxes I did not even know I needed. Zero fines and full transparency.']],
+      reg:[['shield','Miami Beach','Very strict rules and high fines. We place you only in allowed zones.'],['key','Doral / Sunny Isles','Frequency limits and per-unit licenses. We handle it for you.'],['globe','Fort Lauderdale / Hollywood','Registration and inspections. Certificate of compliance handled.']],
+      faq:[['Do I have to give up control of my property?','No. You remain the owner with full control. We sign a simple management agreement and you can end it whenever you want.'],['How much does it cost to start?','Nothing. No setup fee. We only charge a commission on the real bookings we generate.'],['What if my city has strict rules?','We analyze your area first and handle the required licenses. Where short-term is limited, we propose mid-term rental.'],['Do you work in English and Spanish?','Yes. The whole service and guest support is bilingual (and we can do Portuguese).']],
+    }
+  };
+
+  var lang='es';
+  function el(h){var d=document.createElement('div');d.innerHTML=h;return d.firstElementChild;}
+
+  function render(){
+    var d=T[lang];
+    // simple text nodes
+    document.querySelectorAll('[data-i]').forEach(function(n){var k=n.getAttribute('data-i');if(d[k]!==undefined)n.innerHTML=d[k];});
+    // inject CHK placeholders in showcase lists
+    document.querySelectorAll('.show ul li').forEach(function(li){if(li.innerHTML.indexOf('${CHK}')>-1)li.innerHTML=li.innerHTML.replace('${CHK}',CHK);});
+    // features
+    document.getElementById('features').innerHTML=d.features.map(function(f){return '<div class="card"><div class="ic">'+ICON[f[0]]+'</div><h3>'+f[1]+'</h3><p>'+f[2]+'</p></div>';}).join('');
+    // regulation cards
+    document.getElementById('reg').innerHTML=d.reg.map(function(f){return '<div class="card"><div class="ic">'+ICON[f[0]]+'</div><h3>'+f[1]+'</h3><p>'+f[2]+'</p></div>';}).join('');
+    // pricing
+    document.getElementById('pricing').innerHTML=d.pricing.map(function(p){var feats=p[3].map(function(x){return '<li>'+CHK+'<span>'+x+'</span></li>';}).join('');return '<div class="price'+(p[4]?' hi':'')+'" style="position:relative">'+(p[4]?'<span class="tag">★ '+(lang==='es'?'Popular':'Popular')+'</span>':'')+'<div class="nm">'+p[0]+'</div><div class="pc">'+p[1]+'</div><div class="id">'+p[2]+'</div><ul>'+feats+'</ul><a href="#contacto" class="btn '+(p[4]?'btn-white':'btn-ghost')+'" style="width:100%;justify-content:center">'+d.ncta+'</a></div>';}).join('');
+    // compare
+    var ch='<thead><tr>'+d.compareHead.map(function(h,i){return '<th'+(i===2?' class="us"':'')+'>'+h+'</th>';}).join('')+'</tr></thead><tbody>'+
+      d.compareRows.map(function(r){return '<tr>'+r.map(function(c,i){var v=(c===1?Y:c===0?X:'<b>'+c+'</b>');return '<td'+(i===2?' class="us"':'')+'>'+(i===0?'<b>'+c+'</b>':v)+'</td>';}).join('')+'</tr>';}).join('')+'</tbody>';
+    document.getElementById('compare').innerHTML=ch;
+    // testimonials
+    document.getElementById('testi').innerHTML=d.testi.map(function(t){return '<div class="quote"><div class="stars">★★★★★</div><p>“'+t[3]+'”</p><div class="by"><span class="av">'+t[0]+'</span><div><b>'+t[1]+'</b><span>'+t[2]+'</span></div></div></div>';}).join('');
+    // faq
+    document.getElementById('faqbox').innerHTML=d.faq.map(function(q){return '<details><summary>'+q[0]+'<span class="pl">+</span></summary><p>'+q[1]+'</p></details>';}).join('');
+    document.getElementById('b-es').setAttribute('aria-pressed',String(lang==='es'));
+    document.getElementById('b-en').setAttribute('aria-pressed',String(lang==='en'));
+    document.documentElement.lang=lang;
+  }
+  function L(l){lang=l;render();}
+  render();
+
+  var FORM_T={es:{name:'Nombre completo',contact:'Teléfono o email',zone:'Ciudad / zona de tu propiedad',btn:'Solicita tu evaluación gratis',ok:'✅ ¡Se abrió WhatsApp con tu solicitud! Solo dale enviar y te contactamos en menos de 24 h.'},en:{name:'Full name',contact:'Phone or email',zone:'City / area of your property',btn:'Request your free evaluation',ok:'✅ WhatsApp opened with your request! Just hit send and we’ll reply within 24 h.'}};
+  function applyForm(){var d=FORM_T[lang];var n=document.getElementById('lf-name');if(!n)return;n.placeholder=d.name;document.getElementById('lf-contact').placeholder=d.contact;document.getElementById('lf-zone').placeholder=d.zone;var b=document.querySelector('#leadf button');if(b)b.textContent=d.btn;document.getElementById('lf-ok').textContent=d.ok;}
+  var _L=L;L=function(l){_L(l);applyForm();};
+  document.addEventListener('submit',function(e){if(e.target&&e.target.id==='leadf'){e.preventDefault();
+    var nm=document.getElementById('lf-name').value,ct=document.getElementById('lf-contact').value,zn=document.getElementById('lf-zone').value;
+    try{var k=JSON.parse(localStorage.getItem('casahost_leads')||'[]');k.unshift({name:nm,contact:ct,zone:zn,at:new Date().toISOString()});localStorage.setItem('casahost_leads',JSON.stringify(k));}catch(_){}
+    var txt=(document.documentElement.lang==='en'
+      ?'Hi CasaHost 👋 I’m '+nm+'. My contact: '+ct+'. Area: '+(zn||'—')+'. I’d like a free evaluation of my property.'
+      :'Hola CasaHost 👋 Soy '+nm+'. Mi contacto: '+ct+'. Zona: '+(zn||'—')+'. Quiero una evaluación gratis de mi propiedad.');
+    window.open('https://wa.me/12396870181?text='+encodeURIComponent(txt),'_blank');
+    document.getElementById('leadf').style.display='none';document.getElementById('lf-ok').style.display='block';}});
+  applyForm();
+  (function(){var sel='.card,.price,.quote,.show,.center,.glass,.cmp';
+    document.querySelectorAll(sel).forEach(function(n){n.classList.add('reveal');});
+    if('IntersectionObserver' in window){var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}});},{threshold:.12,rootMargin:'0px 0px -8% 0px'});
+      document.querySelectorAll('.reveal').forEach(function(n){io.observe(n);});}
+    else{document.querySelectorAll('.reveal').forEach(function(n){n.classList.add('in');});}})();
+
+</script>
+
+<script>
+(function(){
+  var Z={brickell:[315,60],downtown:[260,55],wynwood:[231,58],'south-beach':[375,50],'sunny-isles':[300,50],doral:[200,50],'fort-lauderdale':[212,65],hollywood:[214,68],pompano:[196,62],hallandale:[251,45]};
+  var COSTS=180, g=function(i){return document.getElementById(i);};
+  var rt=g('crt'),oc=g('coc'),zo=g('cz'),pk=g('cpkgs'); if(!rt) return;
+  var comm=18;
+  function m(n){return '$'+Math.round(n).toLocaleString('en-US');}
+  function u(){
+    var r=+rt.value,nights=+oc.value,c=comm,gross=r*nights,ours=gross*(c/100),net=gross-ours-COSTS;
+    g('cro').textContent=m(r); g('coo').textContent=nights+(nights===1?(document.documentElement.lang==='en'?' night':' noche'):(document.documentElement.lang==='en'?' nights':' noches')); g('cmo').textContent=c+'%';
+    g('cn').textContent=nights;
+    g('cg').textContent=m(gross); g('cc').textContent='−'+m(ours); g('cs').textContent='−'+m(COSTS);
+    g('cnet').textContent=m(net);
+    g('cyr').textContent=(document.documentElement.lang==='en'?'≈ '+m(net*12)+' / year':'≈ '+m(net*12)+' al año');
+  }
+  [rt,oc].forEach(function(e){e.addEventListener('input',u);});
+  if(pk){pk.addEventListener('click',function(e){var b=e.target.closest('.cpkg');if(!b)return;
+    [].forEach.call(pk.querySelectorAll('.cpkg'),function(x){x.classList.remove('on');});
+    b.classList.add('on'); comm=+b.getAttribute('data-pct'); u();});}
+  zo.addEventListener('change',function(e){var z=Z[e.target.value];if(z){rt.value=z[0];oc.value=Math.round(30*z[1]/100);u();}});
+  u();
+})();
+</script>
+
+<script>
+(function(){var p=document.getElementById('progress');if(!p)return;
+function u(){var h=document.documentElement;var max=(h.scrollHeight-h.clientHeight)||1;p.style.width=(Math.min(1,(h.scrollTop||document.body.scrollTop)/max)*100*1)+'%';}
+window.addEventListener('scroll',u,{passive:true});window.addEventListener('resize',u);u();})();
+</script>
+
+</body></html>

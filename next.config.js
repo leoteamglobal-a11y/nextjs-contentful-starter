@@ -12,7 +12,7 @@ const nextConfig = {
     return [
       {
         source: '/',
-        destination: '/terminal',
+        destination: '/casahost.html',
         permanent: false,
       },
     ];

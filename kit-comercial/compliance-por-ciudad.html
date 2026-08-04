@@ -1,0 +1,190 @@
+<style>
+  :root{
+    --teal:#0E9AA0; --teal-2:#1FB6BC; --teal-ink:#0B5E5B; --teal-soft:#E4F4F2;
+    --gold:#B98A32;
+    --green:#0F9E6E; --green-soft:#E2F5EC;
+    --amber:#B7791F; --amber-soft:#FBF0DA;
+    --red:#C0392B; --red-soft:#FBE6E3;
+    --gray:#6A7574; --gray-soft:#EEF1F1;
+    --paper:#FAFBFB; --card:#FFFFFF; --ink:#102123; --muted:#5C6B6C;
+    --line:#E5ECEB; --line-2:#EEF3F2;
+    --shadow:0 18px 40px -30px rgba(11,94,91,.55);
+    --maxw:820px;
+  }
+  @media (prefers-color-scheme:dark){
+    :root{
+      --teal:#2DD4BF; --teal-2:#22C3C9; --teal-ink:#8CEADE; --teal-soft:#0E3A37; --gold:#E4BE72;
+      --green:#34D399; --green-soft:#0E3227; --amber:#E7B24D; --amber-soft:#332614;
+      --red:#F0876F; --red-soft:#3A1E1A; --gray:#9AA6A5; --gray-soft:#1B2A2B;
+      --paper:#0A1618; --card:#0F2123; --ink:#EAF1F0; --muted:#93A5A4; --line:#20393A; --line-2:#182D2E;
+      --shadow:0 22px 48px -30px rgba(0,0,0,.8);
+    }
+  }
+  :root[data-theme="dark"]{
+    --teal:#2DD4BF; --teal-2:#22C3C9; --teal-ink:#8CEADE; --teal-soft:#0E3A37; --gold:#E4BE72;
+    --green:#34D399; --green-soft:#0E3227; --amber:#E7B24D; --amber-soft:#332614;
+    --red:#F0876F; --red-soft:#3A1E1A; --gray:#9AA6A5; --gray-soft:#1B2A2B;
+    --paper:#0A1618; --card:#0F2123; --ink:#EAF1F0; --muted:#93A5A4; --line:#20393A; --line-2:#182D2E;
+    --shadow:0 22px 48px -30px rgba(0,0,0,.8);
+  }
+  :root[data-theme="light"]{
+    --teal:#0E9AA0; --teal-2:#1FB6BC; --teal-ink:#0B5E5B; --teal-soft:#E4F4F2; --gold:#B98A32;
+    --green:#0F9E6E; --green-soft:#E2F5EC; --amber:#B7791F; --amber-soft:#FBF0DA;
+    --red:#C0392B; --red-soft:#FBE6E3; --gray:#6A7574; --gray-soft:#EEF1F1;
+    --paper:#FAFBFB; --card:#FFFFFF; --ink:#102123; --muted:#5C6B6C; --line:#E5ECEB; --line-2:#EEF3F2;
+    --shadow:0 18px 40px -30px rgba(11,94,91,.55);
+  }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{margin:0;background:var(--paper);color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;line-height:1.6}
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 22px}
+  h1,h2,h3{margin:0;text-wrap:balance;line-height:1.15}
+  p{margin:0}
+  .serif{font-family:Georgia,"Times New Roman",serif}
+
+  header{padding:60px 0 32px;border-bottom:1px solid var(--line)}
+  .brand{display:flex;align-items:center;gap:9px;font-weight:800}
+  .brand .mk{width:26px;height:26px;border-radius:7px;display:grid;place-items:center;color:#fff;font-size:13px;font-weight:800;background:linear-gradient(135deg,var(--teal),var(--teal-2))}
+  .eyebrow{margin-top:24px;font-size:12.5px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--teal)}
+  h1.title{margin-top:12px;font-size:clamp(28px,5.5vw,42px);font-weight:800;letter-spacing:-.02em}
+  h1.title .i{color:var(--teal-ink);font-style:italic;font-weight:600}
+  .lede{margin-top:14px;color:var(--muted);font-size:17px;max-width:62ch}
+
+  .legend{margin-top:20px;display:flex;flex-wrap:wrap;gap:8px}
+  .lg{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:700;padding:5px 11px;border-radius:999px}
+  .lg.g{background:var(--green-soft);color:var(--green)}
+  .lg.a{background:var(--amber-soft);color:var(--amber)}
+  .lg.r{background:var(--red-soft);color:var(--red)}
+  .lg.x{background:var(--gray-soft);color:var(--gray)}
+
+  section{padding:34px 0}
+  .kicker{font-size:12px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--gold)}
+  h2{font-size:clamp(20px,4vw,26px);font-weight:800;margin-top:6px}
+
+  .base{margin-top:18px;background:var(--teal-soft);border-radius:16px;padding:20px}
+  .base h3{font-size:16px;font-weight:800;color:var(--teal-ink)}
+  ul.clean{margin:12px 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:9px}
+  ul.clean li{display:flex;gap:10px;font-size:14.5px}
+  ul.clean li .b{color:var(--teal);font-weight:800;flex:none}
+  ul.clean li b{color:var(--ink)}
+
+  .cards{margin-top:16px;display:grid;gap:14px}
+  .city{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:0 18px 18px;box-shadow:var(--shadow);overflow:hidden}
+  .city .top{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:16px 18px;margin:0 -18px 4px;border-bottom:1px solid var(--line-2)}
+  .city .top.g{background:var(--green-soft)} .city .top.a{background:var(--amber-soft)}
+  .city .top.r{background:var(--red-soft)} .city .top.x{background:var(--gray-soft)}
+  .city h3{font-size:17px;font-weight:800}
+  .badge{font-size:11.5px;font-weight:800;padding:4px 10px;border-radius:999px;white-space:nowrap}
+  .badge.g{background:var(--green);color:#fff} .badge.a{background:var(--amber);color:#fff}
+  .badge.r{background:var(--red);color:#fff} .badge.x{background:var(--gray);color:#fff}
+  .city p.req{margin-top:10px;font-size:14px;color:var(--muted)}
+  .city p.req b{color:var(--ink)}
+  .city .warn{margin-top:10px;font-size:13px;color:var(--red);font-weight:600}
+
+  .note{margin-top:24px;background:var(--gold);color:#fff;border-radius:16px;padding:18px 20px;font-size:14px}
+  .note b{color:#fff}
+  footer{padding:26px 0 60px;color:var(--muted);font-size:12.5px}
+  footer a{color:var(--teal-ink)}
+  @media print{.city,.base,.note{box-shadow:none} .city{break-inside:avoid}}
+</style>
+
+<header>
+  <div class="wrap">
+    <div class="brand"><span class="mk">C</span> CasaHost</div>
+    <div class="eyebrow">Compliance · Referencia rápida</div>
+    <h1 class="title">Licencias e impuestos <span class="serif i">por ciudad</span></h1>
+    <p class="lede">Qué exige cada zona antes de poner una propiedad a rentar. Úsalo como referencia cuando entre una propiedad nueva — pero confirma siempre con la ciudad, porque las reglas cambian.</p>
+    <div class="legend">
+      <span class="lg g">🟢 Amigable</span>
+      <span class="lg a">🟡 Moderado — se puede con permisos</span>
+      <span class="lg r">🔴 Estricto / muy restringido</span>
+      <span class="lg x">⚪ Verificar con la ciudad</span>
+    </div>
+  </div>
+</header>
+
+<section>
+  <div class="wrap">
+    <div class="kicker">Aplica en TODAS las ciudades</div>
+    <h2>La base común</h2>
+    <div class="base">
+      <h3>Esto va siempre, sin importar la zona:</h3>
+      <ul class="clean">
+        <li><span class="b">1</span><span><b>Licencia de Vacation Rental del estado (DBPR)</b> — ~$170–$230/año. El número debe salir en el anuncio de Airbnb.</span></li>
+        <li><span class="b">2</span><span><b>Registro con el Florida Department of Revenue</b> para cobrar y remitir impuestos.</span></li>
+        <li><span class="b">3</span><span><b>Impuestos ~10%–13%</b> (sales tax estatal 6% + surtax + tourist/resort tax del condado). Airbnb cobra algunos automáticamente; otros los remites tú.</span></li>
+        <li><span class="b">4</span><span><b>Certificate of Use + Business Tax Receipt</b> a nivel ciudad/condado (Miami-Dade lo exige).</span></li>
+        <li><span class="b">5</span><span><b>Revisar el reglamento del condominio</b> — muchos edificios prohíben rentas cortas aunque la ciudad las permita.</span></li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="kicker">Miami-Dade</div>
+    <h2>Ciudad por ciudad</h2>
+    <div class="cards">
+      <div class="city">
+        <div class="top a"><h3>Brickell · Downtown · Wynwood (Ciudad de Miami)</h3><span class="badge a">Moderado</span></div>
+        <p class="req">Permitido <b>solo en zonas que lo autorizan</b> (zonificación T5/T6). Necesitas: <b>Certificate of Use & Occupancy</b>, <b>Business Tax Receipt</b>, licencia DBPR y un <b>Operational Management Plan</b> ante la ciudad.</p>
+      </div>
+      <div class="city">
+        <div class="top r"><h3>Miami Beach</h3><span class="badge r">Estricto 🔴</span></div>
+        <p class="req">El más duro. <b>Prohibido en casas unifamiliares y en muchas zonas multifamiliares</b> (mapas SF, SD-B, RM-1). Requiere <b>Resort Tax Certificate</b>.</p>
+        <p class="warn">⚠️ Multas desde $20,000 la primera vez. Solo opera donde la zona lo permita explícitamente — si no, evítala o propón renta de mediano plazo (30+ días).</p>
+      </div>
+      <div class="city">
+        <div class="top a"><h3>Sunny Isles Beach</h3><span class="badge a">Moderado</span></div>
+        <p class="req">Requiere <b>Short-Term Vacation Rental License</b> (una por unidad) del depto. de Planning & Zoning. Costos: <b>$100 Local Business Tax Receipt + $300 licencia</b> + resort tax.</p>
+      </div>
+      <div class="city">
+        <div class="top x"><h3>Doral</h3><span class="badge x">Verificar ⚪</span></div>
+        <p class="req">Confirma directo con la ciudad de Doral el registro y zonificación vigentes antes de arrancar (además de la base común: DBPR + CU + BTR + impuestos).</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="kicker">Broward</div>
+    <h2>Ciudad por ciudad</h2>
+    <div class="cards">
+      <div class="city">
+        <div class="top r"><h3>Fort Lauderdale</h3><span class="badge r">Estricto 🔴</span></div>
+        <p class="req">Programa muy detallado para propiedades de 1–4 unidades: <b>registro</b>, <b>tope de ocupación</b>, estándares de parqueo, avisos dentro de la unidad, y desde 2023 un <b>detector de nivel de ruido</b> obligatorio con guardado de datos.</p>
+      </div>
+      <div class="city">
+        <div class="top a"><h3>Hollywood</h3><span class="badge a">Moderado</span></div>
+        <p class="req">Requiere <b>licencia de Vacation Rental (DBPR)</b> y mostrar el <b>número de licencia en cada anuncio</b>. La ciudad exige instalar un <b>detector de ruido</b>.</p>
+      </div>
+      <div class="city">
+        <div class="top a"><h3>Hallandale Beach</h3><span class="badge a">Moderado</span></div>
+        <p class="req">Bajo la Ordenanza 2023-003: <b>licencia de operación anual</b> + <b>Certificate of Use</b> (renovación cada año). Aplica a cualquier renta menor de 30 días.</p>
+      </div>
+      <div class="city">
+        <div class="top x"><h3>Pompano Beach</h3><span class="badge x">Verificar ⚪</span></div>
+        <p class="req">Confirma con la ciudad de Pompano Beach el registro y las reglas vigentes antes de onboarding (más la base común).</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="note">
+      <b>Cómo usar esto:</b> cuando entre una propiedad nueva, mira su ciudad aquí para saber qué esperar. Luego <b>confirma los requisitos y costos exactos directo con la oficina de esa ciudad</b> (cambian seguido). Para casos complejos, apóyate en un abogado o servicio de licencias. Tú no tienes que ser experto legal — solo conocer el proceso y acompañar al dueño.
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    CasaHost · Compliance por ciudad · Informativo, no asesoría legal. Confirma con cada ciudad. Fuentes:
+    <a href="https://www.minut.com/blog/florida-short-term-rental-laws">Minut</a>,
+    <a href="https://www.guestable.com/blog/short-term-rentals-miami-beach/">Guestable</a>,
+    <a href="https://hallandalebeachfl.gov/1134/Vacation-Rentals">Hallandale Beach (oficial)</a>.
+  </div>
+</footer>
