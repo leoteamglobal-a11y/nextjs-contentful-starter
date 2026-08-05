@@ -171,22 +171,42 @@ async fn resolve_launch(rpc: &RpcClient, sig_str: &str) -> anyhow::Result<Option
     let UiMessage::Raw(raw) = ui_tx.message else {
         return Ok(None);
     };
-    let keys = &raw.account_keys;
 
-    for ins in &raw.instructions {
-        let program = keys.get(ins.program_id_index as usize).map(String::as_str);
+    // Pasar a la logica pura: (program_id_index, accounts) por instruccion.
+    let instructions: Vec<(u8, Vec<u8>)> = raw
+        .instructions
+        .iter()
+        .map(|ins| (ins.program_id_index, ins.accounts.clone()))
+        .collect();
+
+    Ok(parse_raydium_launch(&raw.account_keys, &instructions, now_ts()))
+}
+
+/// Logica PURA del parseo de `initialize2`: dado el `account_keys` y las
+/// instrucciones ya decodificadas, extrae el `TokenLaunch`. Testeable sin red.
+///
+/// Layout initialize2: 4 = pool, 7 = lp mint, 8 = coin(base) mint,
+/// 9 = pc(quote) mint, 10 = coin vault, 11 = pc vault. El token "nuevo" es el
+/// que no es WSOL; el "quote" es el lado SOL.
+fn parse_raydium_launch(
+    account_keys: &[String],
+    instructions: &[(u8, Vec<u8>)],
+    detected_at: u64,
+) -> Option<TokenLaunch> {
+    for (program_id_index, accounts) in instructions {
+        let program = account_keys
+            .get(*program_id_index as usize)
+            .map(String::as_str);
         if program != Some(RAYDIUM_AMM_V4) {
             continue;
         }
         // Resuelve el i-esimo account del instruction a su pubkey.
         let account = |i: usize| -> Option<String> {
-            ins.accounts
+            accounts
                 .get(i)
-                .and_then(|&idx| keys.get(idx as usize))
+                .and_then(|&idx| account_keys.get(idx as usize))
                 .cloned()
         };
-        // Layout initialize2: 4=pool, 7=lp mint, 8=coin(base) mint,
-        // 9=pc(quote) mint, 10=coin vault, 11=pc vault.
         let (Some(pool), Some(coin), Some(pc)) = (account(4), account(8), account(9)) else {
             continue;
         };
@@ -194,15 +214,13 @@ async fn resolve_launch(rpc: &RpcClient, sig_str: &str) -> anyhow::Result<Option
         let coin_vault = account(10);
         let pc_vault = account(11);
 
-        // El token nuevo es el que no es WSOL; el "quote" es el lado SOL.
         let (mint, base_vault, quote_vault) = if coin == WSOL {
-            // coin = SOL (quote), pc = token nuevo (base)
             (pc, pc_vault, coin_vault)
         } else {
             (coin, coin_vault, pc_vault)
         };
 
-        return Ok(Some(TokenLaunch {
+        return Some(TokenLaunch {
             mint,
             symbol: "?".to_string(),
             pool,
@@ -214,9 +232,84 @@ async fn resolve_launch(rpc: &RpcClient, sig_str: &str) -> anyhow::Result<Option
             mint_authority_renounced: false, // idem
             freeze_authority_none: false,    // idem
             lp_burned: false,                // LP-burn no auto-verificado (ver README)
-            detected_at: now_ts(),
-        }));
+            detected_at,
+        });
+    }
+    None
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    const NEW_MINT: &str = "NEWm1nt1111111111111111111111111111111111111";
+
+    /// Construye account_keys + una instruccion de Raydium con el layout de
+    /// initialize2. `coin`/`pc` son los mints en las posiciones 8/9.
+    fn build_init2(coin: &str, pc: &str) -> (Vec<String>, Vec<(u8, Vec<u8>)>) {
+        // account_keys por indice:
+        // 0=RAYDIUM, 1=filler, 2=pool, 3=lp, 4=coin_mint, 5=pc_mint,
+        // 6=coin_vault, 7=pc_vault
+        let keys = vec![
+            RAYDIUM_AMM_V4.to_string(), // 0
+            "filler".to_string(),       // 1
+            "POOLxxxx".to_string(),     // 2
+            "LPxxxx".to_string(),       // 3
+            coin.to_string(),           // 4
+            pc.to_string(),             // 5
+            "COINVAULT".to_string(),    // 6
+            "PCVAULT".to_string(),      // 7
+        ];
+        // accounts del instruction, posiciones 0..11 -> indices en keys.
+        // pos 4=pool(2), 7=lp(3), 8=coin(4), 9=pc(5), 10=coinvault(6), 11=pcvault(7)
+        let accounts = vec![1u8, 1, 1, 1, 2, 1, 1, 3, 4, 5, 6, 7];
+        (keys, vec![(0u8, accounts)])
     }
 
-    Ok(None)
+    #[test]
+    fn coin_es_wsol_toma_pc_como_mint() {
+        let (keys, ins) = build_init2(WSOL, NEW_MINT);
+        let l = parse_raydium_launch(&keys, &ins, 42).expect("deberia parsear");
+        assert_eq!(l.mint, NEW_MINT);
+        assert_eq!(l.pool, "POOLxxxx");
+        assert_eq!(l.lp_mint.as_deref(), Some("LPxxxx"));
+        // base_vault = vault del token nuevo (pc_vault), quote_vault = coin_vault (SOL)
+        assert_eq!(l.base_vault.as_deref(), Some("PCVAULT"));
+        assert_eq!(l.quote_vault.as_deref(), Some("COINVAULT"));
+        assert_eq!(l.detected_at, 42);
+    }
+
+    #[test]
+    fn pc_es_wsol_toma_coin_como_mint() {
+        let (keys, ins) = build_init2(NEW_MINT, WSOL);
+        let l = parse_raydium_launch(&keys, &ins, 0).expect("deberia parsear");
+        assert_eq!(l.mint, NEW_MINT);
+        assert_eq!(l.base_vault.as_deref(), Some("COINVAULT"));
+        assert_eq!(l.quote_vault.as_deref(), Some("PCVAULT"));
+    }
+
+    #[test]
+    fn instruccion_no_raydium_devuelve_none() {
+        let (mut keys, ins) = build_init2(WSOL, NEW_MINT);
+        keys[0] = "OtroProgramaXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX".to_string();
+        assert!(parse_raydium_launch(&keys, &ins, 0).is_none());
+    }
+
+    #[test]
+    fn instruccion_con_pocas_cuentas_se_saltea() {
+        let keys = vec![RAYDIUM_AMM_V4.to_string(), "a".to_string(), "b".to_string()];
+        let ins = vec![(0u8, vec![1u8, 2])]; // solo 2 cuentas, no llega al indice 8/9
+        assert!(parse_raydium_launch(&keys, &ins, 0).is_none());
+    }
+
+    #[test]
+    fn campos_de_enriquecimiento_arrancan_vacios() {
+        let (keys, ins) = build_init2(WSOL, NEW_MINT);
+        let l = parse_raydium_launch(&keys, &ins, 0).unwrap();
+        assert_eq!(l.liquidity_sol, 0.0);
+        assert!(!l.mint_authority_renounced);
+        assert!(!l.freeze_authority_none);
+        assert!(!l.lp_burned);
+        assert_eq!(l.symbol, "?");
+    }
 }
