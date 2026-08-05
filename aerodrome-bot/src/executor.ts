@@ -1,16 +1,9 @@
 // Ejecución: paper (simulada) vs live (Aerodrome Slipstream real).
-import {
-  createPublicClient,
-  createWalletClient,
-  formatUnits,
-  http,
-  maxUint128,
-  parseUnits,
-} from "viem";
+import { createPublicClient, createWalletClient, formatUnits, http, maxUint128 } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { base } from "viem/chains";
 import type { Config } from "./config.js";
-import { priceToTick, snapTick } from "./math.js";
+import { amountsForLiquidity, applySlippageDown, computeCLAmounts, priceToTick, snapTick } from "./math.js";
 import type { Action, PoolState, Position } from "./types.js";
 
 export interface Executor {
@@ -68,6 +61,20 @@ export class PaperExecutor implements Executor {
 const POOL_READ_ABI = [
   { type: "function", name: "token0", stateMutability: "view", inputs: [], outputs: [{ type: "address" }] },
   { type: "function", name: "token1", stateMutability: "view", inputs: [], outputs: [{ type: "address" }] },
+  {
+    type: "function",
+    name: "slot0",
+    stateMutability: "view",
+    inputs: [],
+    outputs: [
+      { name: "sqrtPriceX96", type: "uint160" },
+      { name: "tick", type: "int24" },
+      { name: "observationIndex", type: "uint16" },
+      { name: "observationCardinality", type: "uint16" },
+      { name: "observationCardinalityNext", type: "uint16" },
+      { name: "unlocked", type: "bool" },
+    ],
+  },
 ] as const;
 
 const ERC20_ABI = [
@@ -259,11 +266,24 @@ export class LiveExecutor implements Executor {
     const tickLower = Math.min(tA, tB);
     const tickUpper = Math.max(tA, tB);
 
-    // Cantidades: mitad USD por lado (el manager toma la proporción del rango).
-    const half = sizeUsd / 2;
-    const usdcBase = parseUnits(half.toFixed(decU), decU);
-    const velvetBase = parseUnits((half / state.velvetUsd).toFixed(decV), decV);
-    const [amount0Desired, amount1Desired] = velvetIsToken0 ? [velvetBase, usdcBase] : [usdcBase, velvetBase];
+    // Cantidades ÓPTIMAS según la posición del precio actual en el rango.
+    const slot0 = (await this.pub.readContract({
+      address: this.pool,
+      abi: POOL_READ_ABI,
+      functionName: "slot0",
+    })) as readonly [bigint, number, number, number, number, boolean];
+    const sqrtPriceCurrentX96 = slot0[0];
+
+    const { amount0Desired, amount1Desired } = computeCLAmounts({
+      sqrtPriceCurrentX96,
+      tickLower,
+      tickUpper,
+      sizeUsd,
+      dec0,
+      dec1,
+      velvetIsToken0,
+      velvetUsd: state.velvetUsd,
+    });
 
     await this.ensureAllowance(token0, amount0Desired);
     await this.ensureAllowance(token1, amount1Desired);
@@ -277,10 +297,9 @@ export class LiveExecutor implements Executor {
       tickUpper,
       amount0Desired,
       amount1Desired,
-      // NOTA: mins en 0 => sin protección de slippage en el mint. Aceptable solo
-      // para pruebas con montos mínimos. TODO: calcular mins reales del rango.
-      amount0Min: 0n,
-      amount1Min: 0n,
+      // Protección de slippage real: mins = desired * (1 - slippage).
+      amount0Min: applySlippageDown(amount0Desired, this.slippageBps),
+      amount1Min: applySlippageDown(amount1Desired, this.slippageBps),
       recipient: this.account.address,
       deadline,
       sqrtPriceX96: 0n,
@@ -321,12 +340,37 @@ export class LiveExecutor implements Executor {
     }
     const deadline = BigInt(Math.floor(Date.now() / 1000) + this.deadlineSecs);
 
+    // Estimar cantidades de salida para poner mins con slippage real.
+    const decV = meta.velvetIsToken0 ? meta.dec0 : meta.dec1;
+    const decU = meta.velvetIsToken0 ? meta.dec1 : meta.dec0;
+    const tA = snapTick(priceToTick(pos.rangeLow, meta.velvetIsToken0, decV, decU), this.tickSpacing);
+    const tB = snapTick(priceToTick(pos.rangeHigh, meta.velvetIsToken0, decV, decU), this.tickSpacing);
+    const slot0 = (await this.pub.readContract({
+      address: this.pool,
+      abi: POOL_READ_ABI,
+      functionName: "slot0",
+    })) as readonly [bigint, number, number, number, number, boolean];
+    const expected = amountsForLiquidity({
+      sqrtPriceCurrentX96: slot0[0],
+      tickLower: Math.min(tA, tB),
+      tickUpper: Math.max(tA, tB),
+      liquidity: pos.liquidity,
+    });
+
     // 1) Retirar toda la liquidez.
     const dec = await this.pub.simulateContract({
       address: this.pm,
       abi: PM_ABI,
       functionName: "decreaseLiquidity",
-      args: [{ tokenId: pos.tokenId, liquidity: pos.liquidity, amount0Min: 0n, amount1Min: 0n, deadline }],
+      args: [
+        {
+          tokenId: pos.tokenId,
+          liquidity: pos.liquidity,
+          amount0Min: applySlippageDown(expected.amount0, this.slippageBps),
+          amount1Min: applySlippageDown(expected.amount1, this.slippageBps),
+          deadline,
+        },
+      ],
       account: this.account,
     });
     const decHash = await this.wallet.writeContract(dec.request);

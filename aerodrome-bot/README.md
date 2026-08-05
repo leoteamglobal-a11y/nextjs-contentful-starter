@@ -90,18 +90,21 @@ npm start config.onchain.json
 2. `PRIVATE_KEY` debe venir del entorno (nunca del archivo).
 3. Avisos y logs de cada tx.
 
+**Cantidades y slippage (corregido):** las cantidades se calculan con la
+matemática de liquidez concentrada (`computeCLAmounts`) según dónde cae el precio
+en el rango, y los `amountMin` se ponen con slippage real (`applySlippageDown`),
+tanto al entrar como al salir. Verificado con tests (`npm test`).
+
 > 🔴 **UNTESTED contra la red real** (egress bloqueado en desarrollo). Antes de
 > usar montos serios, **validá con una posición mínima** y verificá en Basescan:
 > la dirección del position manager, el `tickSpacing` del pool, la matemática de
-> ticks y las cantidades. Además, el `mint` va con `amount0Min/1Min = 0` (sin
-> protección de slippage) — sólo apto para pruebas chicas hasta calcular los
-> mins reales. El precio desde `sqrtPriceX96` es aproximado.
+> ticks y las cantidades. El precio/cantidades desde `sqrt` usan `Number`
+> (aproximado); el contrato recalcula la liquidez exacta.
 
-### Falta / mejoras conocidas
+### Mejoras futuras
 
-- Slippage real en `mint` (hoy mins en 0).
-- Modelo de amounts óptimo por rango (hoy 50/50 USD por lado).
-- `increaseLiquidity`/reposicionamiento en vez de cerrar+abrir.
+- `increaseLiquidity`/reposicionamiento del rango en vez de cerrar+abrir.
+- TickMath exacto (enteros) en vez de la aproximación con `Number`.
 
 ## Seguridad
 

@@ -137,12 +137,12 @@ deberías ver la posición NFT.
 
 ## ⚠️ Limitaciones conocidas (leer antes de live)
 
-- **Sin protección de slippage en el `mint`** (`amount0Min/1Min = 0`). Solo apto
-  para montos mínimos hasta implementar mins reales.
-- **Ratio de amounts 50/50 USD** por lado (no óptimo para el rango; puede quedar
-  token sin usar).
-- **Precio desde `sqrtPriceX96` aproximado** (usa `Number`).
+- **Precio y cantidades desde `sqrt` usan `Number`** (aproximado); el contrato
+  recalcula la liquidez exacta. Verificá la primera operación en Basescan.
 - **No probado contra la red** desde el desarrollo — vos sos el primer test real.
+
+> Ya corregido (con tests): cantidades óptimas por rango (`computeCLAmounts`) y
+> `amountMin` con slippage real al entrar y salir.
 - Recordá: este pool es **de altísimo riesgo** (par estable+volátil, IL alto, APY
   espejismo). Nada de esto es asesoramiento financiero.
 
