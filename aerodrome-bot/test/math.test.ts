@@ -6,6 +6,7 @@ import {
   computeCLAmounts,
   getSqrtRatioAtTick,
   MAX_TICK,
+  paperLpResult,
   priceToTick,
   snapTick,
   tickToVelvetUsd,
@@ -101,6 +102,37 @@ test("getSqrtRatioAtTick: monótona creciente", () => {
   assert.ok(getSqrtRatioAtTick(-100) < getSqrtRatioAtTick(0));
   assert.ok(getSqrtRatioAtTick(0) < getSqrtRatioAtTick(100));
   assert.ok(getSqrtRatioAtTick(100) < getSqrtRatioAtTick(200));
+});
+
+test("paperLpResult: IL cero y valor = capital si el precio no cambia", () => {
+  const r = paperLpResult({
+    entryPrice: 0.41, exitPrice: 0.41, rangeLow: 0.35, rangeHigh: 0.47, sizeUsd: 100, feesUsd: 0,
+  });
+  assert.ok(Math.abs(r.ilUsd) < 1e-6, `IL ${r.ilUsd}`);
+  assert.ok(Math.abs(r.valueUsd - 100) < 0.01, `valor ${r.valueUsd}`);
+  assert.ok(Math.abs(r.pnl) < 0.01, `pnl ${r.pnl}`);
+});
+
+test("paperLpResult: IL positivo y valor < hodl si el precio se mueve", () => {
+  const r = paperLpResult({
+    entryPrice: 0.41, exitPrice: 0.45, rangeLow: 0.35, rangeHigh: 0.47, sizeUsd: 100, feesUsd: 0,
+  });
+  assert.ok(r.ilUsd > 0, `IL ${r.ilUsd}`);
+  assert.ok(r.valueUsd < r.hodlUsd, `${r.valueUsd} < ${r.hodlUsd}`);
+});
+
+test("paperLpResult: el valor de entrada ≈ sizeUsd", () => {
+  const r = paperLpResult({
+    entryPrice: 0.41, exitPrice: 0.41, rangeLow: 0.30, rangeHigh: 0.55, sizeUsd: 250, feesUsd: 0,
+  });
+  assert.ok(Math.abs(r.valueUsd - 250) < 0.5, `valor ${r.valueUsd}`);
+});
+
+test("paperLpResult: los fees suman al PnL", () => {
+  const base = { entryPrice: 0.41, exitPrice: 0.43, rangeLow: 0.35, rangeHigh: 0.47, sizeUsd: 100 };
+  const noFee = paperLpResult({ ...base, feesUsd: 0 });
+  const withFee = paperLpResult({ ...base, feesUsd: 5 });
+  assert.ok(Math.abs(withFee.pnl - noFee.pnl - 5) < 1e-6);
 });
 
 test("amountsForLiquidity devuelve no-negativos", () => {

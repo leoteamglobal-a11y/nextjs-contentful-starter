@@ -113,10 +113,15 @@ incluidas las constantes canónicas `MIN/MAX_SQRT_RATIO` de Uniswap (`npm test`)
 > precio y `Number` para escalar) — no crítico: los mins protegen y el contrato
 > recalcula la liquidez exacta.
 
+El PnL del paper usa un **modelo real de impermanent loss** para liquidez
+concentrada (`paperLpResult`): compara el valor de la posición al precio de
+salida contra mantener los tokens (HODL). La salida muestra `valor / hodl / IL /
+fees / PnL`. (Los fees siguen siendo una estimación por APY × tiempo.)
+
 ### Mejoras futuras
 
-- Modelo de impermanent loss real en el PnL estimado del paper.
 - Cobro de fees sin cerrar (`collect` periódico) para posiciones de largo plazo.
+- Estimación de fees por volumen real en vez de APY × tiempo.
 
 ## Seguridad
 

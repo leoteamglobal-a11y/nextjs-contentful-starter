@@ -3,7 +3,14 @@ import { createPublicClient, createWalletClient, formatUnits, http, maxUint128 }
 import { privateKeyToAccount } from "viem/accounts";
 import { base } from "viem/chains";
 import type { Config } from "./config.js";
-import { amountsForLiquidity, applySlippageDown, computeCLAmounts, priceToTick, snapTick } from "./math.js";
+import {
+  amountsForLiquidity,
+  applySlippageDown,
+  computeCLAmounts,
+  paperLpResult,
+  priceToTick,
+  snapTick,
+} from "./math.js";
 import type { Action, PoolState, Position } from "./types.js";
 
 export interface Executor {
@@ -70,16 +77,21 @@ export class PaperExecutor implements Executor {
     const holdSecs = Math.max(1, (state.ts - pos.entryTs) / 1000);
     // Fees estimados: APY de entrada prorrateado por el tiempo en posición.
     const feesUsd = pos.sizeUsd * (pos.entryApy / 100) * (holdSecs / YEAR_SECS);
-    // IL aproximado (grosero): crece con el cuadrado del movimiento de precio.
-    // TODO: modelo real de impermanent loss para liquidez concentrada.
-    const move = Math.abs(state.velvetUsd - pos.entryVelvetUsd) / pos.entryVelvetUsd;
-    const ilUsd = pos.sizeUsd * move * move * 0.5;
-    const pnl = feesUsd - ilUsd;
+    // IL real con el modelo de liquidez concentrada (valor posición vs HODL).
+    const r = paperLpResult({
+      entryPrice: pos.entryVelvetUsd,
+      exitPrice: state.velvetUsd,
+      rangeLow: pos.rangeLow,
+      rangeHigh: pos.rangeHigh,
+      sizeUsd: pos.sizeUsd,
+      feesUsd,
+    });
     console.log(
       `[PAPER] EXIT (${reason}) hold ${holdSecs.toFixed(0)}s | ` +
-        `fees ~$${feesUsd.toFixed(2)}  IL ~$${ilUsd.toFixed(2)}  =>  PnL ~$${pnl.toFixed(2)}`,
+        `valor $${r.valueUsd.toFixed(2)} vs hodl $${r.hodlUsd.toFixed(2)} | ` +
+        `IL ~$${r.ilUsd.toFixed(2)}  fees ~$${feesUsd.toFixed(2)}  =>  PnL ~$${r.pnl.toFixed(2)}`,
     );
-    return pnl;
+    return r.pnl;
   }
 }
 

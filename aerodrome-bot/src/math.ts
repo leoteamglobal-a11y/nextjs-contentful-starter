@@ -81,6 +81,56 @@ export function applySlippageDown(amount: bigint, slippageBps: number): bigint {
   return (amount * BigInt(10_000 - slippageBps)) / 10_000n;
 }
 
+// ---------------------------------------------------------------------------
+// Modelo de impermanent loss para liquidez concentrada (paper).
+// Trabaja en precio USD directo (x = token volátil, y = USDC ≈ $1). Sin
+// decimales: el IL depende solo del precio relativo y los límites del rango.
+// ---------------------------------------------------------------------------
+
+/** Cantidades (x volátil, y USDC) de una posición de liquidez L a precio `p`. */
+function clAmountsAtPrice(p: number, pa: number, pb: number, L: number): { x: number; y: number } {
+  const sp = Math.sqrt(p);
+  const spa = Math.sqrt(pa);
+  const spb = Math.sqrt(pb);
+  if (p <= pa) return { x: L * (1 / spa - 1 / spb), y: 0 }; // todo en volátil
+  if (p >= pb) return { x: 0, y: L * (spb - spa) }; // todo en USDC
+  return { x: L * (1 / sp - 1 / spb), y: L * (sp - spa) };
+}
+
+/** Valor USD de una posición de liquidez L a precio `p`. */
+function clValueUsd(p: number, pa: number, pb: number, L: number): number {
+  const { x, y } = clAmountsAtPrice(p, pa, pb, L);
+  return x * p + y;
+}
+
+/**
+ * PnL real de una posición LP concentrada (paper), con IL vs HODL.
+ * - valueUsd: valor de la posición al precio de salida.
+ * - hodlUsd: valor si hubieras mantenido los tokens de entrada.
+ * - ilUsd: impermanent loss (hodl - posición, ≥ 0).
+ * - pnl: valueUsd + fees - capital inicial.
+ */
+export function paperLpResult(p: {
+  entryPrice: number;
+  exitPrice: number;
+  rangeLow: number;
+  rangeHigh: number;
+  sizeUsd: number;
+  feesUsd: number;
+}): { valueUsd: number; hodlUsd: number; ilUsd: number; pnl: number } {
+  const vPerL = clValueUsd(p.entryPrice, p.rangeLow, p.rangeHigh, 1);
+  if (!(vPerL > 0)) {
+    return { valueUsd: p.sizeUsd, hodlUsd: p.sizeUsd, ilUsd: 0, pnl: p.feesUsd };
+  }
+  const L = p.sizeUsd / vPerL; // dimensionar para que el valor de entrada = sizeUsd
+  const entry = clAmountsAtPrice(p.entryPrice, p.rangeLow, p.rangeHigh, L);
+  const valueUsd = clValueUsd(p.exitPrice, p.rangeLow, p.rangeHigh, L);
+  const hodlUsd = entry.x * p.exitPrice + entry.y;
+  const ilUsd = hodlUsd - valueUsd;
+  const pnl = valueUsd + p.feesUsd - p.sizeUsd;
+  return { valueUsd, hodlUsd, ilUsd, pnl };
+}
+
 /** Cantidades esperadas (base) al retirar `liquidity` al precio actual (exacto). */
 export function amountsForLiquidity(p: {
   sqrtPriceCurrentX96: bigint;
