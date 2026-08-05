@@ -8,6 +8,8 @@ import type { Action, PoolState, Position } from "./types.js";
 
 export interface Executor {
   enter(state: PoolState, action: Extract<Action, { kind: "enter" }>, sizeUsd: number): Promise<Position>;
+  /** Agrega `addUsd` de liquidez a la posición existente (mismo NFT). */
+  increase(pos: Position, state: PoolState, addUsd: number): Promise<Position>;
   /** Cierra la posición. Devuelve el PnL estimado en USD. */
   exit(pos: Position, state: PoolState, reason: string): Promise<number>;
 }
@@ -30,6 +32,12 @@ export class PaperExecutor implements Executor {
       rangeHigh: action.rangeHigh,
       sizeUsd,
     };
+  }
+
+  async increase(pos: Position, state: PoolState, addUsd: number): Promise<Position> {
+    const sizeUsd = pos.sizeUsd + addUsd;
+    console.log(`[PAPER] INCREASE +$${addUsd} (total $${sizeUsd}) @ APY ${state.apy.toFixed(0)}%`);
+    return { ...pos, sizeUsd };
   }
 
   async exit(pos: Position, state: PoolState, reason: string): Promise<number> {
@@ -123,6 +131,30 @@ const PM_ABI = [
     ],
     outputs: [
       { name: "tokenId", type: "uint256" },
+      { name: "liquidity", type: "uint128" },
+      { name: "amount0", type: "uint256" },
+      { name: "amount1", type: "uint256" },
+    ],
+  },
+  {
+    type: "function",
+    name: "increaseLiquidity",
+    stateMutability: "payable",
+    inputs: [
+      {
+        name: "params",
+        type: "tuple",
+        components: [
+          { name: "tokenId", type: "uint256" },
+          { name: "amount0Desired", type: "uint256" },
+          { name: "amount1Desired", type: "uint256" },
+          { name: "amount0Min", type: "uint256" },
+          { name: "amount1Min", type: "uint256" },
+          { name: "deadline", type: "uint256" },
+        ],
+      },
+    ],
+    outputs: [
       { name: "liquidity", type: "uint128" },
       { name: "amount0", type: "uint256" },
       { name: "amount1", type: "uint256" },
@@ -331,6 +363,61 @@ export class LiveExecutor implements Executor {
       tokenId,
       liquidity,
     };
+  }
+
+  async increase(pos: Position, state: PoolState, addUsd: number): Promise<Position> {
+    const meta = this.meta ?? (await this.initMeta());
+    if (pos.tokenId === undefined || pos.liquidity === undefined) {
+      throw new Error("posición live sin tokenId/liquidity");
+    }
+    const decV = meta.velvetIsToken0 ? meta.dec0 : meta.dec1;
+    const decU = meta.velvetIsToken0 ? meta.dec1 : meta.dec0;
+    const tA = snapTick(priceToTick(pos.rangeLow, meta.velvetIsToken0, decV, decU), this.tickSpacing);
+    const tB = snapTick(priceToTick(pos.rangeHigh, meta.velvetIsToken0, decV, decU), this.tickSpacing);
+    const tickLower = Math.min(tA, tB);
+    const tickUpper = Math.max(tA, tB);
+
+    const slot0 = (await this.pub.readContract({
+      address: this.pool,
+      abi: POOL_READ_ABI,
+      functionName: "slot0",
+    })) as readonly [bigint, number, number, number, number, boolean];
+    const { amount0Desired, amount1Desired } = computeCLAmounts({
+      sqrtPriceCurrentX96: slot0[0],
+      tickLower,
+      tickUpper,
+      sizeUsd: addUsd,
+      dec0: meta.dec0,
+      dec1: meta.dec1,
+      velvetIsToken0: meta.velvetIsToken0,
+      velvetUsd: state.velvetUsd,
+    });
+
+    await this.ensureAllowance(meta.token0, amount0Desired);
+    await this.ensureAllowance(meta.token1, amount1Desired);
+
+    const deadline = BigInt(Math.floor(Date.now() / 1000) + this.deadlineSecs);
+    const { request, result } = await this.pub.simulateContract({
+      address: this.pm,
+      abi: PM_ABI,
+      functionName: "increaseLiquidity",
+      args: [
+        {
+          tokenId: pos.tokenId,
+          amount0Desired,
+          amount1Desired,
+          amount0Min: applySlippageDown(amount0Desired, this.slippageBps),
+          amount1Min: applySlippageDown(amount1Desired, this.slippageBps),
+          deadline,
+        },
+      ],
+      account: this.account,
+    });
+    const [addedLiquidity] = result as readonly [bigint, bigint, bigint];
+    const hash = await this.wallet.writeContract(request);
+    await this.pub.waitForTransactionReceipt({ hash });
+    console.log(`[LIVE] INCREASE +$${addUsd} tokenId ${pos.tokenId} +liq ${addedLiquidity} | tx ${hash}`);
+    return { ...pos, sizeUsd: pos.sizeUsd + addUsd, liquidity: pos.liquidity + addedLiquidity };
   }
 
   async exit(pos: Position, state: PoolState, reason: string): Promise<number> {

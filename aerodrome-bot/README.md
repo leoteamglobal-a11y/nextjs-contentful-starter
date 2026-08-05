@@ -70,7 +70,12 @@ el uuid de DefiLlama.
 Slipstream** (`0x827922686190790b37229fd06084350e74485b72`):
 - **enter** → `mint(...)` (convierte el rango de precios a ticks, aprueba los
   tokens, abre la posición NFT).
+- **increase** → `increaseLiquidity(...)` sobre el MISMO NFT: agrega exposición
+  sin cerrar/abrir, hasta `maxPositionUsd`, cuando el APY sigue alto y en rango.
 - **exit** → `decreaseLiquidity(...)` + `collect(...)`.
+
+Señales de aporte (config `signals`): `increaseApyMin`, `increaseStepUsd`,
+`maxPositionUsd`. Si faltan (o son 0), el bot nunca agrega.
 
 ### Cómo activarlo (con MUCHO cuidado)
 
@@ -105,7 +110,8 @@ incluidas las constantes canónicas `MIN/MAX_SQRT_RATIO` de Uniswap (`npm test`)
 
 ### Mejoras futuras
 
-- `increaseLiquidity`/reposicionamiento del rango en vez de cerrar+abrir.
+- Reposicionamiento del rango en un paso (decrease+collect+mint) cuando el
+  precio se sale, en vez de esperar a re-entrar.
 
 ## Seguridad
 

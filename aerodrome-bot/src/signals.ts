@@ -36,5 +36,16 @@ export function decide(state: PoolState, pos: Position, cfg: SignalConfig): Acti
   if (pnlPct >= cfg.takeProfitPct) {
     return { kind: "exit", reason: `take-profit +${pnlPct.toFixed(1)}%` };
   }
+
+  // En rango y sin gatillos de salida: si el APY sigue atractivo y hay margen,
+  // AGREGAR liquidez al mismo NFT (increaseLiquidity) en vez de no hacer nada.
+  if (cfg.maxPositionUsd && cfg.increaseStepUsd && pos.sizeUsd < cfg.maxPositionUsd) {
+    const minApy = cfg.increaseApyMin ?? cfg.enterApyMin;
+    if (state.apy >= minApy) {
+      const addUsd = Math.min(cfg.increaseStepUsd, cfg.maxPositionUsd - pos.sizeUsd);
+      if (addUsd > 0) return { kind: "increase", addUsd };
+    }
+  }
+
   return { kind: "hold" };
 }

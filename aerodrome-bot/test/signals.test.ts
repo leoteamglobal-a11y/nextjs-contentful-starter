@@ -49,3 +49,32 @@ test("sale por stop-loss (rango amplio)", () => {
 test("mantiene dentro de rango y sin gatillos", () => {
   assert.equal(decide(st(1.02, 100), pos({ rangeLow: 0.5, rangeHigh: 2 }), cfg).kind, "hold");
 });
+
+const cfgInc: SignalConfig = { ...cfg, increaseApyMin: 90, increaseStepUsd: 50, maxPositionUsd: 200 };
+
+test("agrega liquidez si APY alto, en rango y con margen", () => {
+  const a = decide(st(1.02, 120), pos({ rangeLow: 0.5, rangeHigh: 2, sizeUsd: 100 }), cfgInc);
+  assert.equal(a.kind, "increase");
+  if (a.kind === "increase") assert.equal(a.addUsd, 50);
+});
+
+test("no agrega si ya está en el tope de tamaño", () => {
+  const a = decide(st(1.02, 120), pos({ rangeLow: 0.5, rangeHigh: 2, sizeUsd: 200 }), cfgInc);
+  assert.equal(a.kind, "hold");
+});
+
+test("no agrega si el APY no alcanza el umbral de aporte", () => {
+  const a = decide(st(1.02, 85), pos({ rangeLow: 0.5, rangeHigh: 2, sizeUsd: 100 }), cfgInc);
+  assert.equal(a.kind, "hold");
+});
+
+test("el aporte no supera el tope (se recorta)", () => {
+  const a = decide(st(1.02, 120), pos({ rangeLow: 0.5, rangeHigh: 2, sizeUsd: 180 }), cfgInc);
+  assert.equal(a.kind, "increase");
+  if (a.kind === "increase") assert.equal(a.addUsd, 20); // 200 - 180
+});
+
+test("sin config de increase, se mantiene", () => {
+  const a = decide(st(1.02, 120), pos({ rangeLow: 0.5, rangeHigh: 2, sizeUsd: 100 }), cfg);
+  assert.equal(a.kind, "hold");
+});

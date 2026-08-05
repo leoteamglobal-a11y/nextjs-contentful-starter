@@ -39,5 +39,6 @@ export const EMPTY_POSITION: Position = {
 /** Decisión del motor de señales. */
 export type Action =
   | { kind: "enter"; rangeLow: number; rangeHigh: number }
+  | { kind: "increase"; addUsd: number }
   | { kind: "exit"; reason: string }
   | { kind: "hold" };

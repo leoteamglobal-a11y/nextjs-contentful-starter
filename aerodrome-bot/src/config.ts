@@ -16,6 +16,13 @@ export interface SignalConfig {
   stopLossPct: number;
   /** Take-profit sobre el movimiento de precio (%). */
   takeProfitPct: number;
+  // --- increaseLiquidity (opcional): agregar al MISMO NFT en vez de re-mintear ---
+  /** APY mínimo para agregar liquidez a la posición abierta (default: enterApyMin). */
+  increaseApyMin?: number;
+  /** Cuánto USD agregar por vez. Si falta o es 0, nunca agrega. */
+  increaseStepUsd?: number;
+  /** Tamaño máximo de la posición en USD (tope para los aportes). */
+  maxPositionUsd?: number;
 }
 
 export interface SimConfig {

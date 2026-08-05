@@ -64,6 +64,12 @@ async function main(): Promise<void> {
     if (action.kind === "enter") {
       pos = await exec.enter(state, action, cfg.positionSizeUsd);
       entries++;
+    } else if (action.kind === "increase") {
+      try {
+        pos = await exec.increase(pos, state, action.addUsd);
+      } catch (e) {
+        console.warn("increase falló:", e instanceof Error ? e.message : e);
+      }
     } else if (action.kind === "exit") {
       const pnl = await exec.exit(pos, state, action.reason);
       realizedPnl += pnl;

@@ -28,7 +28,10 @@
     "rangeWidthPct": 15,
     "exitOnOutOfRange": true,
     "stopLossPct": 20,
-    "takeProfitPct": 30
+    "takeProfitPct": 30,
+    "increaseApyMin": 100,
+    "increaseStepUsd": 50,
+    "maxPositionUsd": 200
   },
   "sim": {
     "intervalMs": 5000,

@@ -13,17 +13,20 @@
   "signals": {
     "enterApyMin": 80,
     "exitApyMin": 30,
-    "maxVelvetMovePct": 20,
-    "rangeWidthPct": 12,
+    "maxVelvetMovePct": 50,
+    "rangeWidthPct": 40,
     "exitOnOutOfRange": true,
-    "stopLossPct": 15,
-    "takeProfitPct": 25
+    "stopLossPct": 30,
+    "takeProfitPct": 60,
+    "increaseApyMin": 80,
+    "increaseStepUsd": 100,
+    "maxPositionUsd": 300
   },
   "sim": {
     "intervalMs": 300,
     "startPriceUsd": 0.41,
     "startApy": 300,
     "apyDecayPerTick": 6,
-    "priceVolPct": 7
+    "priceVolPct": 2
   }
 }
