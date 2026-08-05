@@ -1,0 +1,51 @@
+{
+  "chain": "base",
+  "rpcUrl": "https://mainnet.base.org",
+  "pool": {
+    "id": "c07a115f-7299-4dd1-ac25-2de459010b6b",
+    "address": "0xPONER_LA_DIRECCION_DEL_POOL_SLIPSTREAM_AQUI",
+    "label": "USDC-VELVET CL1 (Aerodrome Slipstream) [CONSERVADOR]"
+  },
+
+  "dryRun": true,
+  "liveConfirmed": false,
+
+  "positionSizeUsd": 20,
+
+  "feed": "onchain",
+  "pollIntervalMs": 15000,
+
+  "onchain": {
+    "apyRefreshMs": 120000,
+    "baseSymbol": "VELVET"
+  },
+
+  "live": {
+    "positionManager": "0x827922686190790b37229fd06084350e74485b72",
+    "tickSpacing": 1,
+    "slippageBps": 150,
+    "deadlineSecs": 600
+  },
+
+  "signals": {
+    "enterApyMin": 120,
+    "exitApyMin": 60,
+    "rangeWidthPct": 30,
+    "exitOnOutOfRange": true,
+    "maxVelvetMovePct": 18,
+    "stopLossPct": 12,
+    "takeProfitPct": 25,
+
+    "reposition": false,
+
+    "collectFeesEverySecs": 86400
+  },
+
+  "sim": {
+    "intervalMs": 15000,
+    "startPriceUsd": 0.41,
+    "startApy": 200,
+    "apyDecayPerTick": 2,
+    "priceVolPct": 4
+  }
+}
