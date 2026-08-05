@@ -5,6 +5,7 @@
 import { createPublicClient, http } from "viem";
 import { base } from "viem/chains";
 import type { Config, SimConfig } from "./config.js";
+import { velvetUsdFromSqrt } from "./math.js";
 import type { PoolState } from "./types.js";
 
 export interface PoolFeed {
@@ -72,12 +73,6 @@ function makeBaseClient(rpcUrl: string) {
   return createPublicClient({ chain: base, transport: http(rpcUrl) });
 }
 type BaseClient = ReturnType<typeof makeBaseClient>;
-
-/** price token1/token0 (humano) a partir de sqrtPriceX96. Aproximado (usa Number). */
-function token1PerToken0(sqrtPriceX96: bigint, dec0: number, dec1: number): number {
-  const ratio = (Number(sqrtPriceX96) / 2 ** 96) ** 2; // token1/token0 en unidades base
-  return ratio * 10 ** (dec0 - dec1);
-}
 
 interface TokenMeta {
   velvetIsToken0: boolean;
@@ -149,10 +144,7 @@ export class OnchainFeed implements PoolFeed {
       functionName: "slot0",
     })) as readonly [bigint, number, number, number, number, boolean];
     const sqrtPriceX96 = slot0[0];
-
-    const p1p0 = token1PerToken0(sqrtPriceX96, meta.dec0, meta.dec1);
-    // Queremos precio de VELVET en el quote (≈USD, asumiendo USDC).
-    const velvetUsd = meta.velvetIsToken0 ? p1p0 : 1 / p1p0;
+    const velvetUsd = velvetUsdFromSqrt(sqrtPriceX96, meta.velvetIsToken0, meta.dec0, meta.dec1);
 
     await this.refreshApy();
 

@@ -10,6 +10,7 @@ import {
 import { privateKeyToAccount } from "viem/accounts";
 import { base } from "viem/chains";
 import type { Config } from "./config.js";
+import { priceToTick, snapTick } from "./math.js";
 import type { Action, PoolState, Position } from "./types.js";
 
 export interface Executor {
@@ -173,16 +174,6 @@ function makeWallet(rpcUrl: string, account: ReturnType<typeof privateKeyToAccou
 }
 type Pub = ReturnType<typeof makePublic>;
 type Wal = ReturnType<typeof makeWallet>;
-
-/** Convierte un precio de VELVET (USD) al tick correspondiente. */
-function priceToTick(velvetUsd: number, velvetIsToken0: boolean, decV: number, decU: number): number {
-  // raw = precio token1/token0 en unidades base = 1.0001^tick
-  const raw = velvetIsToken0 ? velvetUsd * 10 ** (decU - decV) : 10 ** (decV - decU) / velvetUsd;
-  return Math.round(Math.log(raw) / Math.log(1.0001));
-}
-function snapTick(tick: number, spacing: number): number {
-  return Math.floor(tick / spacing) * spacing;
-}
 
 interface LiveMeta {
   token0: `0x${string}`;
