@@ -4,6 +4,8 @@ import {
   amountsForLiquidity,
   applySlippageDown,
   computeCLAmounts,
+  getSqrtRatioAtTick,
+  MAX_TICK,
   priceToTick,
   snapTick,
   tickToVelvetUsd,
@@ -75,16 +77,30 @@ test("computeCLAmounts: el valor USD reconstruido ≈ sizeUsd", () => {
   assert.ok(Math.abs(total - sizeUsd) / sizeUsd < 0.02, `total ${total} vs ${sizeUsd}`);
 });
 
-test("computeCLAmounts: precio en el borde inferior => casi todo token0", () => {
+test("computeCLAmounts: rango por encima del precio => solo token0", () => {
   const dec0 = 18, dec1 = 6, velvetUsd = 0.41;
   const priceTick = priceToTick(velvetUsd, true, dec0, dec1);
-  // rango arranca en el precio actual => spCur == spLower => amount1 ~ 0
-  const { amount1Desired } = computeCLAmounts({
+  // rango completamente por encima del precio actual => amount1 == 0
+  const { amount0Desired, amount1Desired } = computeCLAmounts({
     sqrtPriceCurrentX96: sqrtX96(velvetUsd, dec0, dec1),
-    tickLower: priceTick, tickUpper: priceTick + 1000, sizeUsd: 100,
+    tickLower: priceTick + 10, tickUpper: priceTick + 1000, sizeUsd: 100,
     dec0, dec1, velvetIsToken0: true, velvetUsd,
   });
   assert.equal(amount1Desired, 0n);
+  assert.ok(amount0Desired > 0n);
+});
+
+test("getSqrtRatioAtTick: valores canónicos de Uniswap", () => {
+  assert.equal(getSqrtRatioAtTick(0), 2n ** 96n); // precio 1
+  // MIN/MAX_SQRT_RATIO exactos (constantes de UniswapV3)
+  assert.equal(getSqrtRatioAtTick(-MAX_TICK), 4295128739n);
+  assert.equal(getSqrtRatioAtTick(MAX_TICK), 1461446703485210103287273052203988822378723970342n);
+});
+
+test("getSqrtRatioAtTick: monótona creciente", () => {
+  assert.ok(getSqrtRatioAtTick(-100) < getSqrtRatioAtTick(0));
+  assert.ok(getSqrtRatioAtTick(0) < getSqrtRatioAtTick(100));
+  assert.ok(getSqrtRatioAtTick(100) < getSqrtRatioAtTick(200));
 });
 
 test("amountsForLiquidity devuelve no-negativos", () => {

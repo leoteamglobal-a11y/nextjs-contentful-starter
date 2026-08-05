@@ -90,21 +90,22 @@ npm start config.onchain.json
 2. `PRIVATE_KEY` debe venir del entorno (nunca del archivo).
 3. Avisos y logs de cada tx.
 
-**Cantidades y slippage (corregido):** las cantidades se calculan con la
-matemática de liquidez concentrada (`computeCLAmounts`) según dónde cae el precio
-en el rango, y los `amountMin` se ponen con slippage real (`applySlippageDown`),
-tanto al entrar como al salir. Verificado con tests (`npm test`).
+**Cantidades y slippage:** las cantidades se calculan con **TickMath exacto**
+(`getSqrtRatioAtTick`, enteros, idéntico al on-chain) y las fórmulas enteras de
+`LiquidityAmounts` según dónde cae el precio en el rango. Los `amountMin` van con
+slippage real (`applySlippageDown`), al entrar y al salir. Verificado con tests,
+incluidas las constantes canónicas `MIN/MAX_SQRT_RATIO` de Uniswap (`npm test`).
 
 > 🔴 **UNTESTED contra la red real** (egress bloqueado en desarrollo). Antes de
 > usar montos serios, **validá con una posición mínima** y verificá en Basescan:
-> la dirección del position manager, el `tickSpacing` del pool, la matemática de
-> ticks y las cantidades. El precio/cantidades desde `sqrt` usan `Number`
-> (aproximado); el contrato recalcula la liquidez exacta.
+> dirección del position manager, `tickSpacing` del pool y las cantidades. La
+> única parte aproximada que queda es el **dimensionado de L por USD** (usa el
+> precio y `Number` para escalar) — no crítico: los mins protegen y el contrato
+> recalcula la liquidez exacta.
 
 ### Mejoras futuras
 
 - `increaseLiquidity`/reposicionamiento del rango en vez de cerrar+abrir.
-- TickMath exacto (enteros) en vez de la aproximación con `Number`.
 
 ## Seguridad
 
