@@ -105,3 +105,23 @@ test("fuera de rango con reposition off => sale", () => {
   const a = decide(st(1.2, 100), pos({ rangeLow: 0.85, rangeHigh: 1.15 }), cfg);
   assert.equal(a.kind, "exit");
 });
+
+const cfgCollect: SignalConfig = { ...cfg, collectFeesEverySecs: 3600 };
+
+test("cobra fees si pasó el intervalo", () => {
+  const p = pos({ rangeLow: 0.5, rangeHigh: 2, entryTs: 0, lastFeeCollectTs: 0 });
+  const a = decide({ ts: 4000 * 1000, velvetUsd: 1.0, apy: 100, tvlUsd: 0 }, p, cfgCollect);
+  assert.equal(a.kind, "collect");
+});
+
+test("no cobra antes del intervalo", () => {
+  const p = pos({ rangeLow: 0.5, rangeHigh: 2, entryTs: 0, lastFeeCollectTs: 0 });
+  const a = decide({ ts: 1000 * 1000, velvetUsd: 1.0, apy: 100, tvlUsd: 0 }, p, cfgCollect);
+  assert.equal(a.kind, "hold");
+});
+
+test("sin config de collect, no cobra", () => {
+  const p = pos({ rangeLow: 0.5, rangeHigh: 2, entryTs: 0, lastFeeCollectTs: 0 });
+  const a = decide({ ts: 999999 * 1000, velvetUsd: 1.0, apy: 100, tvlUsd: 0 }, p, cfg);
+  assert.equal(a.kind, "hold");
+});

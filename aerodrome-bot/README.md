@@ -75,6 +75,8 @@ Slipstream** (`0x827922686190790b37229fd06084350e74485b72`):
 - **reposition** → cuando el precio se sale del rango pero el pool sigue
   atractivo: `decreaseLiquidity`+`collect`+`mint` en un rango nuevo centrado en
   el precio actual, en un paso (el capital no queda parado).
+- **collect** → cobra los fees acumulados cada `collectFeesEverySecs` **sin
+  cerrar** (liquidez intacta), para posiciones de largo plazo.
 - **exit** → `decreaseLiquidity(...)` + `collect(...)`.
 
 Config `signals`:
@@ -120,8 +122,7 @@ fees / PnL`. (Los fees siguen siendo una estimación por APY × tiempo.)
 
 ### Mejoras futuras
 
-- Cobro de fees sin cerrar (`collect` periódico) para posiciones de largo plazo.
-- Estimación de fees por volumen real en vez de APY × tiempo.
+- Estimación de fees por volumen real (feeGrowthInside) en vez de APY × tiempo.
 
 ## Seguridad
 

@@ -28,6 +28,8 @@ export interface SignalConfig {
   reposition?: boolean;
   /** APY mínimo para reposicionar (default: enterApyMin). */
   repositionApyMin?: number;
+  /** Cobrar fees acumulados cada N segundos sin cerrar (si falta o 0, no cobra). */
+  collectFeesEverySecs?: number;
 }
 
 export interface SimConfig {

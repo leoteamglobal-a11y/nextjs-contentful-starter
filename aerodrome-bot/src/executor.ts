@@ -23,6 +23,8 @@ export interface Executor {
     state: PoolState,
     action: Extract<Action, { kind: "reposition" }>,
   ): Promise<{ position: Position; closedPnl: number }>;
+  /** Cobra fees acumulados SIN cerrar. Devuelve la posición y el USD cobrado. */
+  collectFees(pos: Position, state: PoolState): Promise<{ position: Position; collectedUsd: number }>;
   /** Cierra la posición. Devuelve el PnL estimado en USD. */
   exit(pos: Position, state: PoolState, reason: string): Promise<number>;
 }
@@ -60,6 +62,8 @@ export class PaperExecutor implements Executor {
       rangeLow: action.rangeLow,
       rangeHigh: action.rangeHigh,
       sizeUsd,
+      lastFeeCollectTs: state.ts,
+      collectedFeesUsd: 0,
     };
   }
 
@@ -69,14 +73,26 @@ export class PaperExecutor implements Executor {
     return { ...pos, sizeUsd };
   }
 
+  async collectFees(pos: Position, state: PoolState): Promise<{ position: Position; collectedUsd: number }> {
+    const since = Math.max(0, (state.ts - (pos.lastFeeCollectTs ?? pos.entryTs)) / 1000);
+    const collectedUsd = pos.sizeUsd * (pos.entryApy / 100) * (since / YEAR_SECS);
+    console.log(`[PAPER] COLLECT fees ~$${collectedUsd.toFixed(4)} (${since.toFixed(0)}s sin cerrar)`);
+    return {
+      position: { ...pos, lastFeeCollectTs: state.ts, collectedFeesUsd: (pos.collectedFeesUsd ?? 0) + collectedUsd },
+      collectedUsd,
+    };
+  }
+
   async reposition(pos: Position, state: PoolState, action: Extract<Action, { kind: "reposition" }>) {
     return repositionVia(this, pos, state, action);
   }
 
   async exit(pos: Position, state: PoolState, reason: string): Promise<number> {
     const holdSecs = Math.max(1, (state.ts - pos.entryTs) / 1000);
-    // Fees estimados: APY de entrada prorrateado por el tiempo en posición.
-    const feesUsd = pos.sizeUsd * (pos.entryApy / 100) * (holdSecs / YEAR_SECS);
+    // Fees estimados SOLO desde el último cobro (los ya cobrados están realizados).
+    const feeFrom = pos.lastFeeCollectTs ?? pos.entryTs;
+    const feeSecs = Math.max(0, (state.ts - feeFrom) / 1000);
+    const feesUsd = pos.sizeUsd * (pos.entryApy / 100) * (feeSecs / YEAR_SECS);
     // IL real con el modelo de liquidez concentrada (valor posición vs HODL).
     const r = paperLpResult({
       entryPrice: pos.entryVelvetUsd,
@@ -400,7 +416,34 @@ export class LiveExecutor implements Executor {
       sizeUsd,
       tokenId,
       liquidity,
+      lastFeeCollectTs: state.ts,
+      collectedFeesUsd: 0,
     };
+  }
+
+  async collectFees(pos: Position, state: PoolState): Promise<{ position: Position; collectedUsd: number }> {
+    const meta = this.meta ?? (await this.initMeta());
+    if (pos.tokenId === undefined) throw new Error("posición live sin tokenId");
+    // collect() con la liquidez intacta cobra SOLO los fees acumulados.
+    const col = await this.pub.simulateContract({
+      address: this.pm,
+      abi: PM_ABI,
+      functionName: "collect",
+      args: [
+        { tokenId: pos.tokenId, recipient: this.account.address, amount0Max: maxUint128, amount1Max: maxUint128 },
+      ],
+      account: this.account,
+    });
+    const [amount0, amount1] = col.result as readonly [bigint, bigint];
+    const hash = await this.wallet.writeContract(col.request);
+    await this.pub.waitForTransactionReceipt({ hash });
+    const amt0 = Number(formatUnits(amount0, meta.dec0));
+    const amt1 = Number(formatUnits(amount1, meta.dec1));
+    const usdcOut = meta.velvetIsToken0 ? amt1 : amt0;
+    const velvetOut = meta.velvetIsToken0 ? amt0 : amt1;
+    const collectedUsd = usdcOut + velvetOut * state.velvetUsd;
+    console.log(`[LIVE] COLLECT fees tokenId ${pos.tokenId} -> ~$${collectedUsd.toFixed(4)} | tx ${hash}`);
+    return { position: { ...pos, lastFeeCollectTs: state.ts }, collectedUsd };
   }
 
   async increase(pos: Position, state: PoolState, addUsd: number): Promise<Position> {

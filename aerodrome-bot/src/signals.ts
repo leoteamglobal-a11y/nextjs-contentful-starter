@@ -55,6 +55,14 @@ export function decide(state: PoolState, pos: Position, cfg: SignalConfig): Acti
     return { kind: "exit", reason: `take-profit +${pnlPct.toFixed(1)}%` };
   }
 
+  // Cobrar fees acumulados cada N segundos, sin cerrar la posición.
+  if (cfg.collectFeesEverySecs && cfg.collectFeesEverySecs > 0) {
+    const sinceSecs = (state.ts - (pos.lastFeeCollectTs ?? pos.entryTs)) / 1000;
+    if (sinceSecs >= cfg.collectFeesEverySecs) {
+      return { kind: "collect" };
+    }
+  }
+
   // En rango y sin gatillos de salida: si el APY sigue atractivo y hay margen,
   // AGREGAR liquidez al mismo NFT (increaseLiquidity) en vez de no hacer nada.
   if (cfg.maxPositionUsd && cfg.increaseStepUsd && pos.sizeUsd < cfg.maxPositionUsd) {

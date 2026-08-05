@@ -33,7 +33,8 @@
     "increaseStepUsd": 50,
     "maxPositionUsd": 200,
     "reposition": true,
-    "repositionApyMin": 80
+    "repositionApyMin": 80,
+    "collectFeesEverySecs": 3600
   },
   "sim": {
     "intervalMs": 5000,

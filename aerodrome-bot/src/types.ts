@@ -24,6 +24,10 @@ export interface Position {
   /** Live: id del NFT de la posición y liquidez (para cerrar). */
   tokenId?: bigint;
   liquidity?: bigint;
+  /** Timestamp del último cobro de fees (para no duplicar en el paper). */
+  lastFeeCollectTs?: number;
+  /** Fees ya cobrados en esta posición (paper, USD). */
+  collectedFeesUsd?: number;
 }
 
 export const EMPTY_POSITION: Position = {
@@ -41,5 +45,6 @@ export type Action =
   | { kind: "enter"; rangeLow: number; rangeHigh: number }
   | { kind: "increase"; addUsd: number }
   | { kind: "reposition"; rangeLow: number; rangeHigh: number }
+  | { kind: "collect" }
   | { kind: "exit"; reason: string }
   | { kind: "hold" };

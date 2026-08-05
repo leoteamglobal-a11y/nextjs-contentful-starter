@@ -50,6 +50,8 @@ async function main(): Promise<void> {
   let entries = 0;
   let exits = 0;
   let repositions = 0;
+  let collects = 0;
+  let collectedFeesUsd = 0;
   let wins = 0;
   let losses = 0;
 
@@ -87,6 +89,16 @@ async function main(): Promise<void> {
       } catch (e) {
         console.warn("reposición falló:", e instanceof Error ? e.message : e);
       }
+    } else if (action.kind === "collect") {
+      try {
+        const c = await exec.collectFees(pos, state);
+        realizedPnl += c.collectedUsd;
+        collectedFeesUsd += c.collectedUsd;
+        pos = c.position;
+        collects++;
+      } catch (e) {
+        console.warn("collect falló:", e instanceof Error ? e.message : e);
+      }
     } else if (action.kind === "exit") {
       const pnl = await exec.exit(pos, state, action.reason);
       realizedPnl += pnl;
@@ -95,8 +107,9 @@ async function main(): Promise<void> {
       else losses++;
       pos = { ...EMPTY_POSITION };
       console.log(
-        `   PnL acum ~$${realizedPnl.toFixed(2)} | entradas ${entries} salidas ${exits} ` +
-          `reposiciones ${repositions} | W:${wins} L:${losses}`,
+        `   PnL acum ~$${realizedPnl.toFixed(2)} (fees cobrados ~$${collectedFeesUsd.toFixed(2)}) | ` +
+          `entradas ${entries} salidas ${exits} reposiciones ${repositions} cobros ${collects} | ` +
+          `W:${wins} L:${losses}`,
       );
     }
 
