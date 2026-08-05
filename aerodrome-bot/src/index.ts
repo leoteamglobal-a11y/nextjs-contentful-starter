@@ -49,6 +49,9 @@ async function main(): Promise<void> {
   let realizedPnl = 0;
   let entries = 0;
   let exits = 0;
+  let repositions = 0;
+  let wins = 0;
+  let losses = 0;
 
   for (;;) {
     let state;
@@ -70,13 +73,30 @@ async function main(): Promise<void> {
       } catch (e) {
         console.warn("increase falló:", e instanceof Error ? e.message : e);
       }
+    } else if (action.kind === "reposition") {
+      try {
+        const r = await exec.reposition(pos, state, action);
+        realizedPnl += r.closedPnl;
+        if (r.closedPnl >= 0) wins++;
+        else losses++;
+        pos = r.position;
+        repositions++;
+        console.log(
+          `   REPOSICIÓN #${repositions} | PnL acum ~$${realizedPnl.toFixed(2)} | W:${wins} L:${losses}`,
+        );
+      } catch (e) {
+        console.warn("reposición falló:", e instanceof Error ? e.message : e);
+      }
     } else if (action.kind === "exit") {
       const pnl = await exec.exit(pos, state, action.reason);
       realizedPnl += pnl;
       exits++;
+      if (pnl >= 0) wins++;
+      else losses++;
       pos = { ...EMPTY_POSITION };
       console.log(
-        `   PnL acumulado ~$${realizedPnl.toFixed(2)} | entradas ${entries} salidas ${exits}`,
+        `   PnL acum ~$${realizedPnl.toFixed(2)} | entradas ${entries} salidas ${exits} ` +
+          `reposiciones ${repositions} | W:${wins} L:${losses}`,
       );
     }
 

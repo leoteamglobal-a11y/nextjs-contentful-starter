@@ -78,3 +78,30 @@ test("sin config de increase, se mantiene", () => {
   const a = decide(st(1.02, 120), pos({ rangeLow: 0.5, rangeHigh: 2, sizeUsd: 100 }), cfg);
   assert.equal(a.kind, "hold");
 });
+
+const cfgRepo: SignalConfig = { ...cfg, reposition: true, repositionApyMin: 80 };
+
+test("reposiciona si sale de rango y el APY sigue alto", () => {
+  const a = decide(st(1.2, 100), pos({ rangeLow: 0.85, rangeHigh: 1.15 }), cfgRepo);
+  assert.equal(a.kind, "reposition");
+  if (a.kind === "reposition") {
+    // rango nuevo centrado en el precio actual (±rangeWidthPct)
+    assert.ok(a.rangeLow < 1.2 && a.rangeHigh > 1.2);
+  }
+});
+
+test("NO reposiciona si el APY es bajo (sale)", () => {
+  const a = decide(st(1.3, 25), pos({ rangeLow: 0.85, rangeHigh: 1.15 }), cfgRepo);
+  assert.equal(a.kind, "exit"); // APY < exitApyMin gana
+});
+
+test("fuera de rango con TP alcanzado => toma ganancia (no reposiciona)", () => {
+  // pnl +35% (>= TP 30) aunque reposition esté on
+  const a = decide(st(1.35, 100), pos({ rangeLow: 0.85, rangeHigh: 1.15 }), cfgRepo);
+  assert.equal(a.kind, "exit");
+});
+
+test("fuera de rango con reposition off => sale", () => {
+  const a = decide(st(1.2, 100), pos({ rangeLow: 0.85, rangeHigh: 1.15 }), cfg);
+  assert.equal(a.kind, "exit");
+});

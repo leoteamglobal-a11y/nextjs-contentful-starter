@@ -72,10 +72,15 @@ Slipstream** (`0x827922686190790b37229fd06084350e74485b72`):
   tokens, abre la posición NFT).
 - **increase** → `increaseLiquidity(...)` sobre el MISMO NFT: agrega exposición
   sin cerrar/abrir, hasta `maxPositionUsd`, cuando el APY sigue alto y en rango.
+- **reposition** → cuando el precio se sale del rango pero el pool sigue
+  atractivo: `decreaseLiquidity`+`collect`+`mint` en un rango nuevo centrado en
+  el precio actual, en un paso (el capital no queda parado).
 - **exit** → `decreaseLiquidity(...)` + `collect(...)`.
 
-Señales de aporte (config `signals`): `increaseApyMin`, `increaseStepUsd`,
-`maxPositionUsd`. Si faltan (o son 0), el bot nunca agrega.
+Config `signals`:
+- Aporte: `increaseApyMin`, `increaseStepUsd`, `maxPositionUsd`.
+- Reposición: `reposition` (bool), `repositionApyMin`.
+- Fuera de rango, el orden es: take-profit → stop-loss → reposición → salida.
 
 ### Cómo activarlo (con MUCHO cuidado)
 
@@ -110,8 +115,8 @@ incluidas las constantes canónicas `MIN/MAX_SQRT_RATIO` de Uniswap (`npm test`)
 
 ### Mejoras futuras
 
-- Reposicionamiento del rango en un paso (decrease+collect+mint) cuando el
-  precio se sale, en vez de esperar a re-entrar.
+- Modelo de impermanent loss real en el PnL estimado del paper.
+- Cobro de fees sin cerrar (`collect` periódico) para posiciones de largo plazo.
 
 ## Seguridad
 

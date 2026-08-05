@@ -14,19 +14,21 @@
     "enterApyMin": 80,
     "exitApyMin": 30,
     "maxVelvetMovePct": 50,
-    "rangeWidthPct": 40,
+    "rangeWidthPct": 10,
     "exitOnOutOfRange": true,
     "stopLossPct": 30,
     "takeProfitPct": 60,
     "increaseApyMin": 80,
     "increaseStepUsd": 100,
-    "maxPositionUsd": 300
+    "maxPositionUsd": 300,
+    "reposition": true,
+    "repositionApyMin": 80
   },
   "sim": {
     "intervalMs": 300,
     "startPriceUsd": 0.41,
     "startApy": 300,
-    "apyDecayPerTick": 6,
-    "priceVolPct": 2
+    "apyDecayPerTick": 4,
+    "priceVolPct": 5
   }
 }

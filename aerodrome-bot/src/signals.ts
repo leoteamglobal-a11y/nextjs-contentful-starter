@@ -24,9 +24,27 @@ export function decide(state: PoolState, pos: Position, cfg: SignalConfig): Acti
   if (state.apy < cfg.exitApyMin) {
     return { kind: "exit", reason: `APY ${state.apy.toFixed(0)}% < mínimo ${cfg.exitApyMin}%` };
   }
-  if (cfg.exitOnOutOfRange && (state.velvetUsd < pos.rangeLow || state.velvetUsd > pos.rangeHigh)) {
+
+  // Fuera de rango: tomar ganancia / cortar pérdida / reposicionar / o salir.
+  const outOfRange = state.velvetUsd < pos.rangeLow || state.velvetUsd > pos.rangeHigh;
+  if (cfg.exitOnOutOfRange && outOfRange) {
+    if (pnlPct >= cfg.takeProfitPct) {
+      return { kind: "exit", reason: `take-profit +${pnlPct.toFixed(1)}%` };
+    }
+    if (pnlPct <= -cfg.stopLossPct) {
+      return { kind: "exit", reason: `stop-loss ${pnlPct.toFixed(1)}%` };
+    }
+    if (cfg.reposition && state.apy >= (cfg.repositionApyMin ?? cfg.enterApyMin)) {
+      const half = cfg.rangeWidthPct / 100;
+      return {
+        kind: "reposition",
+        rangeLow: state.velvetUsd * (1 - half),
+        rangeHigh: state.velvetUsd * (1 + half),
+      };
+    }
     return { kind: "exit", reason: "precio fuera de rango" };
   }
+
   if (movePct >= cfg.maxVelvetMovePct) {
     return { kind: "exit", reason: `VELVET se movió ${movePct.toFixed(1)}% (≥ ${cfg.maxVelvetMovePct}%)` };
   }

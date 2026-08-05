@@ -40,5 +40,6 @@ export const EMPTY_POSITION: Position = {
 export type Action =
   | { kind: "enter"; rangeLow: number; rangeHigh: number }
   | { kind: "increase"; addUsd: number }
+  | { kind: "reposition"; rangeLow: number; rangeHigh: number }
   | { kind: "exit"; reason: string }
   | { kind: "hold" };

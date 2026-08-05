@@ -31,7 +31,9 @@
     "takeProfitPct": 30,
     "increaseApyMin": 100,
     "increaseStepUsd": 50,
-    "maxPositionUsd": 200
+    "maxPositionUsd": 200,
+    "reposition": true,
+    "repositionApyMin": 80
   },
   "sim": {
     "intervalMs": 5000,

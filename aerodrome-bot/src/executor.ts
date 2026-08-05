@@ -10,8 +10,30 @@ export interface Executor {
   enter(state: PoolState, action: Extract<Action, { kind: "enter" }>, sizeUsd: number): Promise<Position>;
   /** Agrega `addUsd` de liquidez a la posición existente (mismo NFT). */
   increase(pos: Position, state: PoolState, addUsd: number): Promise<Position>;
+  /** Cierra y reabre en un rango nuevo (decrease+collect+mint). */
+  reposition(
+    pos: Position,
+    state: PoolState,
+    action: Extract<Action, { kind: "reposition" }>,
+  ): Promise<{ position: Position; closedPnl: number }>;
   /** Cierra la posición. Devuelve el PnL estimado en USD. */
   exit(pos: Position, state: PoolState, reason: string): Promise<number>;
+}
+
+/** Reposición común: cierra la posición y abre otra en el rango nuevo. */
+async function repositionVia(
+  exec: Executor,
+  pos: Position,
+  state: PoolState,
+  action: Extract<Action, { kind: "reposition" }>,
+): Promise<{ position: Position; closedPnl: number }> {
+  const closedPnl = await exec.exit(pos, state, "reposicionamiento");
+  const position = await exec.enter(
+    state,
+    { kind: "enter", rangeLow: action.rangeLow, rangeHigh: action.rangeHigh },
+    pos.sizeUsd,
+  );
+  return { position, closedPnl };
 }
 
 const YEAR_SECS = 365 * 24 * 3600;
@@ -38,6 +60,10 @@ export class PaperExecutor implements Executor {
     const sizeUsd = pos.sizeUsd + addUsd;
     console.log(`[PAPER] INCREASE +$${addUsd} (total $${sizeUsd}) @ APY ${state.apy.toFixed(0)}%`);
     return { ...pos, sizeUsd };
+  }
+
+  async reposition(pos: Position, state: PoolState, action: Extract<Action, { kind: "reposition" }>) {
+    return repositionVia(this, pos, state, action);
   }
 
   async exit(pos: Position, state: PoolState, reason: string): Promise<number> {
@@ -418,6 +444,11 @@ export class LiveExecutor implements Executor {
     await this.pub.waitForTransactionReceipt({ hash });
     console.log(`[LIVE] INCREASE +$${addUsd} tokenId ${pos.tokenId} +liq ${addedLiquidity} | tx ${hash}`);
     return { ...pos, sizeUsd: pos.sizeUsd + addUsd, liquidity: pos.liquidity + addedLiquidity };
+  }
+
+  async reposition(pos: Position, state: PoolState, action: Extract<Action, { kind: "reposition" }>) {
+    console.log("[LIVE] REPOSICIÓN — cerrando y reabriendo en rango nuevo");
+    return repositionVia(this, pos, state, action);
   }
 
   async exit(pos: Position, state: PoolState, reason: string): Promise<number> {

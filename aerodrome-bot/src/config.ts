@@ -23,6 +23,11 @@ export interface SignalConfig {
   increaseStepUsd?: number;
   /** Tamaño máximo de la posición en USD (tope para los aportes). */
   maxPositionUsd?: number;
+  // --- reposicionamiento: al salir de rango, mover a un rango nuevo en un paso ---
+  /** Si true, al salir de rango reabre en un rango nuevo en vez de cerrar y esperar. */
+  reposition?: boolean;
+  /** APY mínimo para reposicionar (default: enterApyMin). */
+  repositionApyMin?: number;
 }
 
 export interface SimConfig {
