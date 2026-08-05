@@ -13,12 +13,20 @@ sistema que rote capital maximizando el rendimiento ajustado al riesgo?"*
 
 ---
 
-## 1. ¿Existe el 1% diario sostenible? La matemática dice que no
+## 1. ¿Existe el 1% diario sostenible? El mercado lo impide (no "la matemática")
 
 1% diario compuesto = **(1.01)^365 ≈ 37.8x al año** (+3.678%). En dos años,
 $1.000 → $1.4 millones. En cuatro, superaría el market cap de todo el mercado
-cripto. **Ningún capital puede crecer así sostenidamente** — si existiera, se
-arbitraría a muerte en semanas.
+cripto.
+
+**Precisión importante:** no es que "la matemática lo prohíba" — la matemática
+solo *describe* lo insostenible que sería. La barrera real es **económica y de
+mercado**: si alguien pudiera sostener 1% diario con capital significativo,
+entraría más dinero, se llenaría el trade, desaparecería la ineficiencia,
+bajarían los rendimientos y aparecerían competidores. Es el **límite de
+capacidad + eficiencia de mercado**, no una ley absoluta. (Un edge chiquito y
+efímero *puede* dar >1% diario un rato; lo que no existe es sostenerlo a escala
+y en el tiempo.)
 
 Por eso tu propia investigación acertó: **todo lo que muestra >1% diario es una
 campaña temporal de incentivos** (emisiones de AERO, puntos, airdrops), no
