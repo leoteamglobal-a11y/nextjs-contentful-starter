@@ -32,6 +32,7 @@ export function normalizePool(p: RawPool, date: string): NormalizedRow {
     incentiveShare,
     realYield,
     isMirage,
+    ageDays: num(p.count),
     stablecoin: !!p.stablecoin,
     ilRisk: p.ilRisk ?? null,
     exposure: p.exposure ?? null,
@@ -59,6 +60,38 @@ export function rankByRealYield(rows: NormalizedRow[], f: RankFilters = {}): Nor
     .filter((r) => (f.excludeMirage ? !r.isMirage : true))
     .filter((r) => (f.stableOnly ? r.stablecoin : true))
     .filter((r) => r.realYield != null)
+    .sort((a, b) => (b.realYield as number) - (a.realYield as number));
+}
+
+/**
+ * Screen de CALIDAD (criterios sostenibles, no APY llamativo):
+ *   - apyBase ≥ 10%          (yield real alto, no incentivos)
+ *   - TVL ≥ $10M             (liquidez seria)
+ *   - antigüedad ≥ 1 año     (sobrevivió; proxy = días de historia)
+ *   - base predominante      (incentivos ≤ 50% del APY)
+ *
+ * NOTA: auditorías y calendario de desbloqueos NO están en el snapshot de
+ * DefiLlama — requieren las tablas de eventos de la etapa 3. Este screen cubre
+ * lo que sí es medible hoy. Es deliberadamente ESTRICTO: puede devolver pocas o
+ * cero oportunidades — eso también es información honesta (hay poco yield real
+ * alto y sostenible).
+ */
+export interface QualityThresholds {
+  minApyBase?: number;
+  minTvlUsd?: number;
+  minAgeDays?: number;
+  maxIncentiveShare?: number;
+}
+export function qualityScreen(rows: NormalizedRow[], t: QualityThresholds = {}): NormalizedRow[] {
+  const minApyBase = t.minApyBase ?? 10;
+  const minTvl = t.minTvlUsd ?? 10_000_000;
+  const minAge = t.minAgeDays ?? 365;
+  const maxInc = t.maxIncentiveShare ?? 0.5;
+  return rows
+    .filter((r) => r.apyBase != null && r.apyBase >= minApyBase)
+    .filter((r) => r.tvlUsd >= minTvl)
+    .filter((r) => r.ageDays != null && r.ageDays >= minAge)
+    .filter((r) => (r.incentiveShare == null ? true : r.incentiveShare <= maxInc))
     .sort((a, b) => (b.realYield as number) - (a.realYield as number));
 }
 

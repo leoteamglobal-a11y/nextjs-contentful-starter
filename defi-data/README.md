@@ -44,6 +44,20 @@ El reporte rankea por **yield real, no por APY bruto**. Un pool con 291.000% APY
 donde el 99,99% son incentivos aparece como espejismo; uno con 12% real de
 comisiones sube al tope. Esa distinción es la base de todo el sistema.
 
+## Screen de calidad
+
+`qualityScreen()` codifica los criterios sostenibles (configurables):
+
+- `apyBase ≥ 10%` — yield real alto, no incentivos.
+- `TVL ≥ $10M` — liquidez seria.
+- antigüedad `≥ 1 año` (proxy = `count`, días de historia de DefiLlama).
+- incentivos `≤ 50%` del APY — base predominante.
+
+Es **deliberadamente estricto**: puede devolver pocas o cero oportunidades, y eso
+también es información honesta. **Auditorías** y **calendario de desbloqueos**
+NO están en el snapshot de DefiLlama → se agregan en la etapa 3 (tablas de
+eventos).
+
 ## Próximas etapas
 
 - **Etapa 2:** backfill histórico por pool (`/chart/{id}`) → SQLite/Parquet.

@@ -1,7 +1,7 @@
 // Reporte sobre un snapshot ya guardado.
 //   npm run report                 -> usa el snapshot de hoy (UTC)
 //   npm run report -- --date 2026-01-15
-import { rankByRealYield, topMirages } from "./normalize.js";
+import { qualityScreen, rankByRealYield, topMirages } from "./normalize.js";
 import { readNormalizedSnapshot, todayUtc } from "./store.js";
 
 function arg(flag: string): string | undefined {
@@ -23,7 +23,22 @@ function main(): void {
 
   console.log(`== Reporte ${date} (${rows.length} pools) ==\n`);
 
-  console.log("YIELD REAL — top 15 (TVL ≥ $1M, con apyBase, sin espejismos):");
+  // El screen de CALIDAD: apyBase≥10%, TVL≥$10M, ≥1 año, base predominante.
+  const quality = qualityScreen(rows);
+  console.log(`SCREEN DE CALIDAD — apyBase≥10%, TVL≥$10M, ≥1año, incentivos≤50% (${quality.length} pasan):`);
+  if (quality.length === 0) {
+    console.log("  (ninguno hoy — el yield real alto y sostenible es escaso; eso es info honesta)");
+  }
+  for (const r of quality.slice(0, 20)) {
+    const basePct = ((r.apyBaseShare ?? 0) * 100).toFixed(0);
+    const yrs = r.ageDays != null ? (r.ageDays / 365).toFixed(1) : "?";
+    console.log(
+      `  ${(r.realYield ?? 0).toFixed(1).padStart(6)}% base  ${r.symbol.padEnd(18)} ` +
+        `${(r.project + "/" + r.chain).padEnd(26)} TVL $${fmt(r.tvlUsd).padStart(6)}  ${yrs}a  base ${basePct}%`,
+    );
+  }
+
+  console.log("\nYIELD REAL — top 15 (TVL ≥ $1M, con apyBase, sin espejismos):");
   for (const r of rankByRealYield(rows, { minTvlUsd: 1_000_000, requireApyBase: true, excludeMirage: true }).slice(0, 15)) {
     const basePct = ((r.apyBaseShare ?? 0) * 100).toFixed(0);
     console.log(

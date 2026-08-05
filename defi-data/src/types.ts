@@ -17,6 +17,8 @@ export interface RawPool {
   rewardTokens?: string[] | null;
   underlyingTokens?: string[] | null;
   apyMean30d?: number | null;
+  /** Días de historia que DefiLlama tiene del pool (proxy de antigüedad). */
+  count?: number | null;
   [k: string]: unknown;
 }
 
@@ -39,6 +41,8 @@ export interface NormalizedRow {
   realYield: number | null;
   /** true si >90% del APY viene de incentivos (espejismo). */
   isMirage: boolean;
+  /** Días de historia (proxy de antigüedad). null si desconocido. */
+  ageDays: number | null;
   stablecoin: boolean;
   ilRisk: string | null;
   exposure: string | null;
