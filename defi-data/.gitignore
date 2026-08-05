@@ -1,0 +1,4 @@
+node_modules/
+# Los snapshots de datos NO se commitean (crecen mucho). Se regeneran ingiriendo.
+data/
+*.log
