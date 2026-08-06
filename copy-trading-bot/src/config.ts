@@ -25,6 +25,23 @@ const schema = z.object({
   ANALYZE_TX_LIMIT: z.coerce.number().int().positive().default(500),
   ANALYZE_LOOKBACK_DAYS: z.coerce.number().int().min(0).default(30),
   ANALYZE_MIN_TRADE_SOL: z.coerce.number().min(0).default(0.05),
+
+  // Monitor (Phase C)
+  TELEGRAM_BOT_TOKEN: z.string().optional().default(''),
+  TELEGRAM_CHAT_ID: z.string().optional().default(''),
+  WATCH_POLL_SECONDS: z.coerce.number().int().positive().default(60),
+  // Anti-chase: when false (default) we do NOT alert on adds to a position the
+  // trader already holds — that's how the "buy MarsCoin at +3,193%" trap slips in.
+  ALERT_ON_ADDS: z
+    .string()
+    .optional()
+    .default('false')
+    .transform((v) => v.toLowerCase() === 'true'),
+  ALERT_ON_EXITS: z
+    .string()
+    .optional()
+    .default('true')
+    .transform((v) => v.toLowerCase() === 'true'),
 });
 
 const parsed = schema.parse(process.env);
@@ -34,6 +51,12 @@ export const config = {
   txLimit: parsed.ANALYZE_TX_LIMIT,
   lookbackDays: parsed.ANALYZE_LOOKBACK_DAYS,
   minTradeSol: parsed.ANALYZE_MIN_TRADE_SOL,
+
+  telegramBotToken: parsed.TELEGRAM_BOT_TOKEN,
+  telegramChatId: parsed.TELEGRAM_CHAT_ID,
+  watchPollSeconds: parsed.WATCH_POLL_SECONDS,
+  alertOnAdds: parsed.ALERT_ON_ADDS,
+  alertOnExits: parsed.ALERT_ON_EXITS,
 };
 
 // Well-known mints used to identify the "quote" side of a swap.

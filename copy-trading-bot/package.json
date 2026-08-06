@@ -11,6 +11,9 @@
     "build": "tsc -p tsconfig.json",
     "analyze": "node --loader ts-node/esm src/cli.ts",
     "analyze:demo": "node --loader ts-node/esm src/cli.ts --demo",
+    "watch": "node --loader ts-node/esm src/watch.ts",
+    "watch:once": "node --loader ts-node/esm src/watch.ts --once",
+    "watch:demo": "node --loader ts-node/esm src/watch.ts --demo",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {

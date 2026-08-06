@@ -49,6 +49,7 @@ function errorReport(wallet: string, err: unknown): WalletReport {
     distinctTokens: 0,
     worstTokenPnlSol: 0,
     bestTokenPnlSol: 0,
+    concentration: 0,
     copyabilityScore: 0,
     perToken: [],
     notes: [`ERROR: ${err instanceof Error ? err.message : String(err)}`],

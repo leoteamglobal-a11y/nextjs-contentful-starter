@@ -1,0 +1,11 @@
+{
+  "_comment": "Simulates a monitoring tick for @reboot. The bootstrap seeds MarsCoin as already-held (a +3193% runner). Then: a NEW entry (alerts), an ADD to MarsCoin (suppressed = anti-chase), and an EXIT (alerts).",
+  "bootstrap": [
+    { "signature": "seed1", "timestamp": 1722800000, "action": "BUY", "tokenMint": "MarsCoinMint", "tokenSymbol": "MarsCoin", "tokenAmount": 6838511, "quoteMint": "So11111111111111111111111111111111111111112", "quoteSymbol": "SOL", "quoteAmount": 72.0, "source": "JUPITER" }
+  ],
+  "tick": [
+    { "signature": "live1", "timestamp": 1722900100, "action": "BUY",  "tokenMint": "SDOGmint", "tokenSymbol": "Sleepy Dog", "tokenAmount": 2027444, "quoteMint": "So11111111111111111111111111111111111111112", "quoteSymbol": "SOL", "quoteAmount": 1.0, "source": "JUPITER" },
+    { "signature": "live2", "timestamp": 1722900200, "action": "BUY",  "tokenMint": "MarsCoinMint", "tokenSymbol": "MarsCoin", "tokenAmount": 500000, "quoteMint": "So11111111111111111111111111111111111111112", "quoteSymbol": "SOL", "quoteAmount": 5.0, "source": "JUPITER" },
+    { "signature": "live3", "timestamp": 1722900300, "action": "SELL", "tokenMint": "SDOGmint", "tokenSymbol": "Sleepy Dog", "tokenAmount": 2027444, "quoteMint": "So11111111111111111111111111111111111111112", "quoteSymbol": "SOL", "quoteAmount": 1.6, "source": "JUPITER" }
+  ]
+}

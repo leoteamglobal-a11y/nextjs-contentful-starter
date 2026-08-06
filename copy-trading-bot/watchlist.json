@@ -1,0 +1,16 @@
+{
+  "targets": [
+    {
+      "wallet": "H1XD6MKNWhJDaNBgsJxNWCMEb7yTTMeqCod1jfYhh9iq",
+      "label": "@reboot",
+      "verified": {
+        "source": "fomoscan.sh",
+        "winRateAllTime": 0.628,
+        "realizedPnlUsd": 264640,
+        "trades": 684,
+        "avgHold": "22h49m",
+        "note": "Strong verified track record. Book was 99.6% concentrated in one runner at review time — copy NEW ENTRIES only, never the current holdings."
+      }
+    }
+  ]
+}

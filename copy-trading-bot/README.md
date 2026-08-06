@@ -53,6 +53,35 @@ npm run analyze -- --file wallets.example.txt
 npm run analyze -- --file wallets.txt --out out/report.json
 ```
 
+## Monitor (Phase C) — real-time alerts
+
+The watcher polls the wallets in `watchlist.json` and sends a Telegram alert when
+one opens a **new position** or **exits** — the copyable moments. It deliberately
+**does not** alert on adds to a position the trader already holds (that's how you
+end up chasing a coin already up +3,000%).
+
+```bash
+npm run watch:demo     # offline simulation — see the anti-chase in action
+npm run watch:once     # one polling pass, then exit (needs HELIUS_API_KEY)
+npm run watch          # poll continuously (every WATCH_POLL_SECONDS)
+```
+
+Telegram is optional — with no `TELEGRAM_BOT_TOKEN` set, alerts print to the
+console, so the monitor is fully usable without any secrets.
+
+### Anti-chase logic
+
+| Event | Meaning | Alert? |
+|---|---|---|
+| **NEW_ENTRY** | trader opens a token they didn't hold | ✅ yes — copyable entry |
+| **EXIT** | trader fully closes a position | ✅ yes — mirror the exit |
+| **ADD** | trader buys more of a runner they hold | ⛔ suppressed (likely a late chase) |
+| **REDUCE** | trader trims but still holds | ⛔ suppressed |
+
+`watchlist.json` ships with one verified target, **@reboot**
+(`H1XD…h9iq` — 62.8% win rate, $264,640 realized on fomoscan), flagged
+"copy new entries only" because its book was 99.6% concentrated in one runner.
+
 ### Sample output
 
 ```
@@ -109,9 +138,9 @@ wallet ──▶ Helius (parsed SWAP txs) ──▶ normalize ──▶ FIFO PnL
 
 ## Roadmap
 
-- [x] **M1** Wallet Analyzer (this module)
-- [ ] **M2** Telegram notifier — alert on new swaps from top-scored wallets
-- [ ] **M3** Multi-wallet watcher (Helius webhooks) + `/add /remove /list`
+- [x] **M1** Wallet Analyzer (with concentration-risk scoring)
+- [x] **M2** Monitor — watcher + Telegram notifier + anti-chase filter
+- [ ] **M3** Helius webhooks (push instead of poll) + `/add /remove /list` Telegram commands
 - [ ] **M4** Executor in **dry-run** (Jupiter quotes, no send) + position manager
 - [ ] **M5** Live execution with risk controls + kill switch
 - [ ] **M6** 24/7 deploy (Docker/pm2)

@@ -34,6 +34,20 @@ export interface TokenPnL {
   isWin: boolean; // realizedPnlSol > 0
 }
 
+/** How a freshly-detected swap relates to the trader's existing book. */
+export type AlertKind = 'NEW_ENTRY' | 'ADD' | 'REDUCE' | 'EXIT';
+
+/** A classified, alert-worthy event from a watched wallet. */
+export interface Alert {
+  kind: AlertKind;
+  wallet: string;
+  walletLabel?: string;
+  swap: Swap;
+  /** Anti-chase: true when we suppress this alert (e.g. an ADD to a runner). */
+  suppressed: boolean;
+  reason?: string;
+}
+
 /** Full profitability + copyability profile for one wallet. */
 export interface WalletReport {
   wallet: string;
@@ -56,6 +70,7 @@ export interface WalletReport {
   // risk
   worstTokenPnlSol: number; // largest single-token loss
   bestTokenPnlSol: number;
+  concentration: number; // 0–1 Herfindahl index of cost basis across tokens (1 = all-in one token)
 
   // composite 0–100 score (higher = better copy candidate)
   copyabilityScore: number;
