@@ -82,6 +82,46 @@ console, so the monitor is fully usable without any secrets.
 (`H1XD…h9iq` — 62.8% win rate, $264,640 realized on fomoscan), flagged
 "copy new entries only" because its book was 99.6% concentrated in one runner.
 
+## Executor (Phase A) — autonomous trading
+
+The executor lets the bot **act on its own** when a copyable entry appears. It is
+governed by `EXECUTION_MODE`:
+
+| Mode | What happens |
+|---|---|
+| `off` | Monitor only — never trades. |
+| `dry` *(default)* | **Autonomous paper trading** — decides + "fills" with fake money, tracks realized PnL. Zero risk. |
+| `live` | Real swaps via Jupiter with a funded wallet. |
+
+```bash
+npm run exec:demo      # offline: watch it buy an entry, skip a chase, close for +PnL
+npm run stop           # KILL SWITCH — halt all trading now (creates out/STOP)
+npm run resume         # clear the kill switch
+```
+
+**Every trade passes the same guardrails** (in dry *and* live), enforced in
+`executor/risk.ts`:
+
+- Opens **only on NEW entries** — never adds/chases a runner (the MarsCoin guard).
+- `MAX_TRADE_SOL` per trade, `DAILY_CAP_SOL` + `MAX_TRADES_PER_DAY` per day.
+- `MAX_SLIPPAGE_BPS` slippage ceiling on the swap.
+- Never double-opens a token it already holds.
+- **Kill switch**: `out/STOP` halts everything instantly.
+- Mirrors the trader's **exit** to close and realize PnL.
+
+### Going live (only when you're ready)
+
+1. Run in `dry` for a while. Watch the paper PnL. Read every decision.
+2. Fund a **dedicated** wallet with a small amount you can afford to lose
+   (never your main wallet).
+3. In `.env`: set `EXECUTION_MODE=live`, `WALLET_PRIVATE_KEY` (base58), `RPC_URL`.
+4. Start with tiny `FIXED_SIZE_SOL` and a low `DAILY_CAP_SOL`.
+5. Keep `npm run stop` one command away.
+
+> ⚠️ Live mode trades real money automatically. Bugs, slippage, and rug-pulls can
+> cause loss. This is not financial advice. You are responsible for the wallet
+> you point it at.
+
 ### Sample output
 
 ```
@@ -140,7 +180,7 @@ wallet ──▶ Helius (parsed SWAP txs) ──▶ normalize ──▶ FIFO PnL
 
 - [x] **M1** Wallet Analyzer (with concentration-risk scoring)
 - [x] **M2** Monitor — watcher + Telegram notifier + anti-chase filter
+- [x] **M4** Autonomous executor — paper (dry) + live Jupiter swaps, risk gate, kill switch
 - [ ] **M3** Helius webhooks (push instead of poll) + `/add /remove /list` Telegram commands
-- [ ] **M4** Executor in **dry-run** (Jupiter quotes, no send) + position manager
-- [ ] **M5** Live execution with risk controls + kill switch
+- [ ] **M5** Live hardening — min-liquidity/honeypot checks, retries, alert-on-fill
 - [ ] **M6** 24/7 deploy (Docker/pm2)

@@ -48,6 +48,29 @@ export interface Alert {
   reason?: string;
 }
 
+/** A position the executor holds (paper in dry mode, real in live mode). */
+export interface Position {
+  tokenMint: string;
+  tokenSymbol?: string;
+  sizeSol: number; // quote spent to open
+  tokenAmount: number; // token received (estimated in dry mode)
+  openedAt: number;
+  openTx?: string;
+}
+
+/** Outcome of running an alert through the executor. */
+export interface ExecDecision {
+  action: 'BUY' | 'SELL' | 'SKIP';
+  mode: 'off' | 'dry' | 'live';
+  tokenMint: string;
+  tokenSymbol?: string;
+  sizeSol: number;
+  ok: boolean;
+  reasons: string[]; // why blocked, or notes about the fill
+  tx?: string; // set in live mode when a swap lands
+  realizedPnlSol?: number; // set when closing a position
+}
+
 /** Full profitability + copyability profile for one wallet. */
 export interface WalletReport {
   wallet: string;

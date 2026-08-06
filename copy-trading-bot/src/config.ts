@@ -42,6 +42,26 @@ const schema = z.object({
     .optional()
     .default('true')
     .transform((v) => v.toLowerCase() === 'true'),
+
+  // === Executor (Phase A) ===
+  // off  = never trade (monitor only)
+  // dry  = autonomous PAPER trading (decides + "fills" with fake money) [DEFAULT]
+  // live = real swaps with real funds (requires WALLET_PRIVATE_KEY + RPC_URL)
+  EXECUTION_MODE: z.enum(['off', 'dry', 'live']).optional().default('dry'),
+  WALLET_PRIVATE_KEY: z.string().optional().default(''), // base58, LIVE only
+  RPC_URL: z.string().optional().default(''), // your Solana RPC, LIVE only
+
+  // Sizing
+  SIZING_MODE: z.enum(['fixed', 'proportional']).optional().default('fixed'),
+  FIXED_SIZE_SOL: z.coerce.number().positive().default(0.1),
+  BANKROLL_SOL: z.coerce.number().positive().default(1), // your total, for proportional + caps
+  PROPORTIONAL_PCT: z.coerce.number().min(0).max(1).default(0.02), // 2% of bankroll per trade
+
+  // Hard risk limits — the guardrails
+  MAX_TRADE_SOL: z.coerce.number().positive().default(0.25),
+  DAILY_CAP_SOL: z.coerce.number().positive().default(1),
+  MAX_SLIPPAGE_BPS: z.coerce.number().int().positive().default(100), // 100 = 1%
+  MAX_TRADES_PER_DAY: z.coerce.number().int().positive().default(20),
 });
 
 const parsed = schema.parse(process.env);
@@ -57,6 +77,18 @@ export const config = {
   watchPollSeconds: parsed.WATCH_POLL_SECONDS,
   alertOnAdds: parsed.ALERT_ON_ADDS,
   alertOnExits: parsed.ALERT_ON_EXITS,
+
+  executionMode: parsed.EXECUTION_MODE,
+  walletPrivateKey: parsed.WALLET_PRIVATE_KEY,
+  rpcUrl: parsed.RPC_URL,
+  sizingMode: parsed.SIZING_MODE,
+  fixedSizeSol: parsed.FIXED_SIZE_SOL,
+  bankrollSol: parsed.BANKROLL_SOL,
+  proportionalPct: parsed.PROPORTIONAL_PCT,
+  maxTradeSol: parsed.MAX_TRADE_SOL,
+  dailyCapSol: parsed.DAILY_CAP_SOL,
+  maxSlippageBps: parsed.MAX_SLIPPAGE_BPS,
+  maxTradesPerDay: parsed.MAX_TRADES_PER_DAY,
 };
 
 // Well-known mints used to identify the "quote" side of a swap.

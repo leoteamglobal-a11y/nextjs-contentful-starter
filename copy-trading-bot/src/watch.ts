@@ -4,7 +4,9 @@ import { dirname, join } from 'node:path';
 import { config } from './config.js';
 import { tick, processWallet, type WatchTarget } from './watcher/index.js';
 import type { WatchState } from './watcher/state.js';
-import type { Swap } from './types.js';
+import type { Alert, Swap } from './types.js';
+import { handleAlert } from './executor/index.js';
+import { formatDecision } from './executor/report.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -35,12 +37,39 @@ async function runDemo(): Promise<void> {
   console.log('[demo] Set ALERT_ON_ADDS=true in .env if you ever want add alerts too.\n');
 }
 
+/** Run the executor over the alerts a tick produced, and log each decision. */
+async function execute(alerts: Alert[]): Promise<void> {
+  if (config.executionMode === 'off') return;
+  for (const a of alerts) {
+    try {
+      const decision = await handleAlert(a);
+      console.log(`[exec] ${formatDecision(decision)}`);
+    } catch (err) {
+      console.error(`[exec] error on ${a.swap.tokenSymbol ?? a.swap.tokenMint}:`, err instanceof Error ? err.message : err);
+    }
+  }
+}
+
+function modeBanner(): void {
+  if (config.executionMode === 'live') {
+    console.log('⚠️  EXECUTION_MODE=live — this will trade REAL funds automatically.');
+    console.log(`   Limits: ≤${config.maxTradeSol} SOL/trade, ≤${config.dailyCapSol} SOL/day, ≤${config.maxTradesPerDay} trades/day, ${config.maxSlippageBps / 100}% max slippage.`);
+    console.log('   Kill switch: create the file  out/STOP  to halt instantly.');
+  } else if (config.executionMode === 'dry') {
+    console.log('🧪 EXECUTION_MODE=dry — autonomous PAPER trading (no real funds).');
+  } else {
+    console.log('👀 EXECUTION_MODE=off — monitor/alerts only, no trading.');
+  }
+}
+
 async function loop(targets: WatchTarget[]): Promise<void> {
+  modeBanner();
   console.log(`Watching ${targets.length} wallet(s), polling every ${config.watchPollSeconds}s. Ctrl+C to stop.`);
   const run = async () => {
     try {
       const sent = await tick(targets);
       if (sent.length) console.log(`[watch] ${sent.length} alert(s) this tick.`);
+      await execute(sent);
     } catch (err) {
       console.error('[watch] tick error:', err instanceof Error ? err.message : err);
     }
@@ -65,8 +94,10 @@ async function main(): Promise<void> {
   }
 
   if (argv.includes('--once')) {
+    modeBanner();
     const sent = await tick(targets);
-    console.log(`\nDone. ${sent.length} alert(s) sent this run.`);
+    console.log(`\n${sent.length} alert(s) this run.`);
+    await execute(sent);
     return;
   }
 

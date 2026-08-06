@@ -14,9 +14,14 @@
     "watch": "node --loader ts-node/esm src/watch.ts",
     "watch:once": "node --loader ts-node/esm src/watch.ts --once",
     "watch:demo": "node --loader ts-node/esm src/watch.ts --demo",
+    "exec:demo": "node --loader ts-node/esm src/executor/demo.ts",
+    "stop": "mkdir -p out && touch out/STOP && echo 'Kill switch ON (out/STOP). Delete it to resume.'",
+    "resume": "rm -f out/STOP && echo 'Kill switch OFF.'",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
+    "@solana/web3.js": "^1.95.3",
+    "bs58": "^6.0.0",
     "zod": "^3.23.8"
   },
   "devDependencies": {
