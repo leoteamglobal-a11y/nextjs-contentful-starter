@@ -1,0 +1,26 @@
+{
+  "AlphaSw1ngTraderExampleWa11etDoNotSendFundsAAA": [
+    { "signature": "a1", "timestamp": 1722900000, "action": "BUY",  "tokenMint": "BONKmint", "tokenSymbol": "BONK", "tokenAmount": 1000000, "quoteMint": "So11111111111111111111111111111111111111112", "quoteSymbol": "SOL", "quoteAmount": 1.0, "source": "JUPITER" },
+    { "signature": "a2", "timestamp": 1723072800, "action": "SELL", "tokenMint": "BONKmint", "tokenSymbol": "BONK", "tokenAmount": 1000000, "quoteMint": "So11111111111111111111111111111111111111112", "quoteSymbol": "SOL", "quoteAmount": 3.5, "source": "JUPITER" },
+    { "signature": "a3", "timestamp": 1722903600, "action": "BUY",  "tokenMint": "WIFmint", "tokenSymbol": "WIF", "tokenAmount": 500, "quoteMint": "So11111111111111111111111111111111111111112", "quoteSymbol": "SOL", "quoteAmount": 2.0, "source": "JUPITER" },
+    { "signature": "a4", "timestamp": 1722990000, "action": "SELL", "tokenMint": "WIFmint", "tokenSymbol": "WIF", "tokenAmount": 500, "quoteMint": "So11111111111111111111111111111111111111112", "quoteSymbol": "SOL", "quoteAmount": 5.5, "source": "JUPITER" },
+    { "signature": "a5", "timestamp": 1722907200, "action": "BUY",  "tokenMint": "JUPmint", "tokenSymbol": "JUP", "tokenAmount": 300, "quoteMint": "So11111111111111111111111111111111111111112", "quoteSymbol": "SOL", "quoteAmount": 1.5, "source": "JUPITER" },
+    { "signature": "a6", "timestamp": 1722950400, "action": "SELL", "tokenMint": "JUPmint", "tokenSymbol": "JUP", "tokenAmount": 300, "quoteMint": "So11111111111111111111111111111111111111112", "quoteSymbol": "SOL", "quoteAmount": 1.2, "source": "JUPITER" }
+  ],
+  "Sn1perBotHighFreqExampleWa11etDoNotSendFundsBBB": [
+    { "signature": "b1", "timestamp": 1722900000, "action": "BUY",  "tokenMint": "PEPEmint", "tokenSymbol": "PEPE", "tokenAmount": 1000, "quoteMint": "So11111111111111111111111111111111111111112", "quoteSymbol": "SOL", "quoteAmount": 0.50, "source": "PUMP_FUN" },
+    { "signature": "b2", "timestamp": 1722900018, "action": "SELL", "tokenMint": "PEPEmint", "tokenSymbol": "PEPE", "tokenAmount": 1000, "quoteMint": "So11111111111111111111111111111111111111112", "quoteSymbol": "SOL", "quoteAmount": 0.53, "source": "PUMP_FUN" },
+    { "signature": "b3", "timestamp": 1722900040, "action": "BUY",  "tokenMint": "PEPEmint", "tokenSymbol": "PEPE", "tokenAmount": 1000, "quoteMint": "So11111111111111111111111111111111111111112", "quoteSymbol": "SOL", "quoteAmount": 0.50, "source": "PUMP_FUN" },
+    { "signature": "b4", "timestamp": 1722900061, "action": "SELL", "tokenMint": "PEPEmint", "tokenSymbol": "PEPE", "tokenAmount": 1000, "quoteMint": "So11111111111111111111111111111111111111112", "quoteSymbol": "SOL", "quoteAmount": 0.48, "source": "PUMP_FUN" },
+    { "signature": "b5", "timestamp": 1722900090, "action": "BUY",  "tokenMint": "MEWmint", "tokenSymbol": "MEW", "tokenAmount": 2000, "quoteMint": "So11111111111111111111111111111111111111112", "quoteSymbol": "SOL", "quoteAmount": 0.60, "source": "PUMP_FUN" },
+    { "signature": "b6", "timestamp": 1722900122, "action": "SELL", "tokenMint": "MEWmint", "tokenSymbol": "MEW", "tokenAmount": 2000, "quoteMint": "So11111111111111111111111111111111111111112", "quoteSymbol": "SOL", "quoteAmount": 0.66, "source": "PUMP_FUN" },
+    { "signature": "b7", "timestamp": 1722900150, "action": "BUY",  "tokenMint": "MEWmint", "tokenSymbol": "MEW", "tokenAmount": 2000, "quoteMint": "So11111111111111111111111111111111111111112", "quoteSymbol": "SOL", "quoteAmount": 0.60, "source": "PUMP_FUN" },
+    { "signature": "b8", "timestamp": 1722900175, "action": "SELL", "tokenMint": "MEWmint", "tokenSymbol": "MEW", "tokenAmount": 2000, "quoteMint": "So11111111111111111111111111111111111111112", "quoteSymbol": "SOL", "quoteAmount": 0.62, "source": "PUMP_FUN" }
+  ],
+  "L0ssyExitL1qu1dityExampleWa11etDoNotSendFundCCC": [
+    { "signature": "c1", "timestamp": 1722900000, "action": "BUY",  "tokenMint": "SCAMmint", "tokenSymbol": "SCAM", "tokenAmount": 10000, "quoteMint": "So11111111111111111111111111111111111111112", "quoteSymbol": "SOL", "quoteAmount": 2.0, "source": "RAYDIUM" },
+    { "signature": "c2", "timestamp": 1722986400, "action": "SELL", "tokenMint": "SCAMmint", "tokenSymbol": "SCAM", "tokenAmount": 10000, "quoteMint": "So11111111111111111111111111111111111111112", "quoteSymbol": "SOL", "quoteAmount": 0.4, "source": "RAYDIUM" },
+    { "signature": "c3", "timestamp": 1722910000, "action": "BUY",  "tokenMint": "FOOmint", "tokenSymbol": "FOO", "tokenAmount": 500, "quoteMint": "So11111111111111111111111111111111111111112", "quoteSymbol": "SOL", "quoteAmount": 1.0, "source": "RAYDIUM" },
+    { "signature": "c4", "timestamp": 1722960000, "action": "SELL", "tokenMint": "FOOmint", "tokenSymbol": "FOO", "tokenAmount": 500, "quoteMint": "So11111111111111111111111111111111111111112", "quoteSymbol": "SOL", "quoteAmount": 0.7, "source": "RAYDIUM" }
+  ]
+}

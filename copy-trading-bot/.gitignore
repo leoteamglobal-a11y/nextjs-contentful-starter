@@ -1,0 +1,17 @@
+# dependencies
+node_modules/
+
+# build output
+dist/
+
+# secrets — NEVER commit real keys
+.env
+.env.local
+*.key
+
+# analyzer output
+out/
+*.report.json
+
+# logs
+*.log

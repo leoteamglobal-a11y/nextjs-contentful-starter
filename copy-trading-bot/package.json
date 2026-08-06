@@ -1,0 +1,24 @@
+{
+  "name": "copy-trading-bot",
+  "version": "0.1.0",
+  "private": true,
+  "description": "On-chain Solana wallet analyzer for copy trading — ranks wallets by profitability and copyability. Phase C→A of the copy trading bot.",
+  "type": "module",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "analyze": "node --loader ts-node/esm src/cli.ts",
+    "analyze:demo": "node --loader ts-node/esm src/cli.ts --demo",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.5.0"
+  }
+}

@@ -1,0 +1,8 @@
+# One Solana wallet address per line. Lines starting with # are ignored.
+# Fill this with addresses you want to evaluate as copy-trading targets —
+# e.g. wallets you found on GMGN / Kolscan / Birdeye, or pulled from fomo.
+#
+# Then run:  npm run analyze -- --file wallets.example.txt
+#
+# 5vJRz... (example — replace with real addresses)
+# 7xKp2...
