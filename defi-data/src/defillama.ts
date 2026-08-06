@@ -15,11 +15,11 @@ export async function fetchPools(): Promise<RawPool[]> {
 }
 
 /**
- * Histórico de un pool (apy/apyBase/apyReward/tvl por día). Para el backfill de
- * la etapa 2. Endpoint: /chart/{poolId}.
+ * Histórico de un pool (apy/apyBase/apyReward/tvl por día). Endpoint:
+ * /chart/{poolId}. Devuelve el JSON crudo; se normaliza con `normalizeChart`.
  */
 export async function fetchPoolChart(poolId: string): Promise<unknown> {
   const res = await fetch(`https://yields.llama.fi/chart/${poolId}`);
-  if (!res.ok) throw new Error(`DefiLlama /chart HTTP ${res.status}`);
+  if (!res.ok) throw new Error(`DefiLlama /chart/${poolId} HTTP ${res.status}`);
   return res.json();
 }

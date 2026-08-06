@@ -58,9 +58,38 @@ también es información honesta. **Auditorías** y **calendario de desbloqueos*
 NO están en el snapshot de DefiLlama → se agregan en la etapa 3 (tablas de
 eventos).
 
+## Etapa 2 — backfill histórico + persistencia ✅
+
+Baja la serie temporal de cada pool (`/chart/{id}`) y calcula **persistencia**:
+¿el yield real se sostuvo, o el APY colapsó cuando terminaron los incentivos?
+
+```bash
+# En vivo (requiere red):
+npm run backfill -- --from-snapshot 2026-01-15 --limit 25   # top pools por TVL
+npm run backfill -- --pools <poolId1,poolId2>
+
+# Offline (prueba):
+npm run backfill -- --pools velvet,weth --fixture-dir fixtures/charts
+
+# Resumen detallado de un pool:
+npm run summary -- --pool velvet --fixture fixtures/charts/velvet.json
+```
+
+Métricas de persistencia (`summarizeHistory`):
+- `apyBaseMean/median/min/max/stdev` — el yield real a lo largo del tiempo.
+- `daysApyBaseAboveThreshold` / `shareDaysAboveThreshold` — **¿cuántos días
+  sostuvo yield real alto?** (la métrica clave).
+- `apyDecayPct` — cuánto colapsó el APY desde su pico (señal de espejismo).
+- `tvlDrawdownPct`, `alive` — supervivencia.
+- **Veredicto** automático: espejismo / sostenible / mixto.
+
+Ejemplo real de la demo: VELVET → *"❌ nunca yield real alto, APY decay 100%,
+TVL DD 95%"*; WETH-USDC → *"✅ yield real persistente, días≥10%: 100%"*.
+
+Los históricos se guardan en `data/history/<poolId>.jsonl`.
+
 ## Próximas etapas
 
-- **Etapa 2:** backfill histórico por pool (`/chart/{id}`) → SQLite/Parquet.
 - **Etapa 3:** tablas de eventos (hacks, unlocks, depegs) — incluir los "muertos".
-- **Etapa 4:** features (persistencia, post-evento) + backtest.
+- **Etapa 4:** features (post-evento) + backtest sin sesgo de supervivencia.
 - **Etapa 5:** scoring → allocator (ver `../defi-research/STRATEGY.md`).

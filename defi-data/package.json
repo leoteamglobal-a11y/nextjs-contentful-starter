@@ -7,6 +7,8 @@
   "scripts": {
     "ingest": "tsx src/ingest.ts",
     "report": "tsx src/report.ts",
+    "backfill": "tsx src/backfill.ts",
+    "summary": "tsx src/summary.ts",
     "typecheck": "tsc --noEmit",
     "test": "node --import tsx --test test/*.test.ts"
   },

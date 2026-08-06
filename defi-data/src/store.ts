@@ -3,7 +3,7 @@
 // SQLite/Parquet para consultas, pero el crudo JSONL siempre se conserva.
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
-import type { NormalizedRow, RawPool } from "./types.js";
+import type { ChartPoint, NormalizedRow, RawPool } from "./types.js";
 
 export const DEFAULT_DATA_DIR = "data";
 
@@ -53,4 +53,30 @@ export function readNormalizedSnapshot(date: string, dir = DEFAULT_DATA_DIR): No
 /** Fecha UTC de hoy en formato YYYY-MM-DD. */
 export function todayUtc(): string {
   return new Date().toISOString().slice(0, 10);
+}
+
+// --- Histórico por pool (etapa 2) ---
+
+function sanitize(pool: string): string {
+  return pool.replace(/[^a-zA-Z0-9._-]/g, "_");
+}
+
+export function historyPath(pool: string, dir = DEFAULT_DATA_DIR): string {
+  return join(dir, "history", `${sanitize(pool)}.jsonl`);
+}
+
+/** Guarda el histórico completo de un pool (canónico; se re-escribe entero). */
+export function writeHistory(points: ChartPoint[], pool: string, dir = DEFAULT_DATA_DIR): void {
+  const file = historyPath(pool, dir);
+  ensureDir(file);
+  writeFileSync(file, toJsonl(points));
+}
+
+/** Lee el histórico guardado de un pool. */
+export function readHistory(pool: string, dir = DEFAULT_DATA_DIR): ChartPoint[] {
+  const text = readFileSync(historyPath(pool, dir), "utf8");
+  return text
+    .split("\n")
+    .filter((l) => l.trim().length > 0)
+    .map((l) => JSON.parse(l) as ChartPoint);
 }

@@ -1,0 +1,12 @@
+{
+  "status": "success",
+  "data": [
+    { "timestamp": "2025-02-01T00:00:00.000Z", "tvlUsd": 12000000, "apy": 15.2, "apyBase": 12.8, "apyReward": 2.4 },
+    { "timestamp": "2025-04-01T00:00:00.000Z", "tvlUsd": 14500000, "apy": 13.9, "apyBase": 11.6, "apyReward": 2.3 },
+    { "timestamp": "2025-06-01T00:00:00.000Z", "tvlUsd": 16000000, "apy": 14.4, "apyBase": 12.1, "apyReward": 2.3 },
+    { "timestamp": "2025-08-01T00:00:00.000Z", "tvlUsd": 15200000, "apy": 13.1, "apyBase": 10.9, "apyReward": 2.2 },
+    { "timestamp": "2025-10-01T00:00:00.000Z", "tvlUsd": 17800000, "apy": 14.9, "apyBase": 12.6, "apyReward": 2.3 },
+    { "timestamp": "2025-12-01T00:00:00.000Z", "tvlUsd": 18500000, "apy": 13.7, "apyBase": 11.4, "apyReward": 2.3 },
+    { "timestamp": "2026-01-15T00:00:00.000Z", "tvlUsd": 18000000, "apy": 14.6, "apyBase": 12.1, "apyReward": 2.5 }
+  ]
+}
