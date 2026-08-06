@@ -88,8 +88,32 @@ TVL DD 95%"*; WETH-USDC → *"✅ yield real persistente, días≥10%: 100%"*.
 
 Los históricos se guardan en `data/history/<poolId>.jsonl`.
 
+## Etapa 3 — eventos + auditorías + pools muertos ✅
+
+Completa los criterios que faltaban (auditorías, exploits) y agrega el registro
+de muertes para el backtest **sin sesgo de supervivencia**.
+
+```bash
+# Ingesta de hacks + metadata de protocolos (auditorías, edad):
+npm run events                                    # en vivo
+npm run events -- --fixtures fixtures/events      # offline
+
+# Detector de muertes (compara dos snapshots → eventos `death`):
+npm run deaths -- --prev 2026-01-01 --curr 2026-01-15
+```
+
+- **`events.ts`** — log append-only (`hack`/`unlock`/`depeg`/`audit`/`death`) +
+  `detectDeaths()` (diff de snapshots).
+- **`protocols.ts`** — auditorías y edad de protocolos + hacks → `ProtocolInfo`.
+- **`screen2.ts`** — `qualityScreenV2()`: el screen de calidad + **exige
+  auditoría** y **excluye protocolos con hack reciente**.
+
+Con esto el screen cubre TODOS tus criterios: apyBase≥10%, TVL≥$10M, ≥1año, base
+predominante, **auditado**, **sin hack reciente**. (El evento `unlock` ya existe
+en el modelo; falta solo la fuente automática — se puede sembrar a mano.)
+
 ## Próximas etapas
 
-- **Etapa 3:** tablas de eventos (hacks, unlocks, depegs) — incluir los "muertos".
-- **Etapa 4:** features (post-evento) + backtest sin sesgo de supervivencia.
+- **Etapa 4:** features (comportamiento post-evento) + backtest sin sesgo de
+  supervivencia (usando los eventos `death`).
 - **Etapa 5:** scoring → allocator (ver `../defi-research/STRATEGY.md`).

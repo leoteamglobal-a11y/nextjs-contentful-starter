@@ -1,0 +1,4 @@
+[
+  { "date": 1754006400, "name": "Curve", "amount": 70000000, "classification": "Protocol logic", "technique": "Reentrancy", "chains": ["Ethereum"] },
+  { "date": 1690000000, "name": "Some Old Bridge", "amount": 200000000, "classification": "Bridge", "technique": "Private key", "chains": ["BSC"] }
+]

@@ -1,0 +1,9 @@
+[
+  { "name": "AAVE V3", "slug": "aave-v3", "category": "Lending", "audits": "3", "audit_links": ["https://x"], "listedAt": 1610000000 },
+  { "name": "Aerodrome Slipstream", "slug": "aerodrome-slipstream", "category": "Dexes", "audits": "1", "listedAt": 1700000000 },
+  { "name": "GMX", "slug": "gmx", "category": "Derivatives", "audits": "2", "listedAt": 1630000000 },
+  { "name": "Ethena", "slug": "ethena", "category": "Basis Trading", "audits": "2", "listedAt": 1705000000 },
+  { "name": "Pendle", "slug": "pendle", "category": "Yield", "audits": "3", "listedAt": 1650000000 },
+  { "name": "Curve", "slug": "curve", "category": "Dexes", "audits": "4", "listedAt": 1600000000 },
+  { "name": "Yield Maxi", "slug": "yield-maxi", "category": "Farm", "audits": "0", "listedAt": 1767000000 }
+]

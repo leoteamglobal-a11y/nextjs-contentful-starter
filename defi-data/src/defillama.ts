@@ -23,3 +23,17 @@ export async function fetchPoolChart(poolId: string): Promise<unknown> {
   if (!res.ok) throw new Error(`DefiLlama /chart/${poolId} HTTP ${res.status}`);
   return res.json();
 }
+
+/** Metadata de protocolos (auditorías, categoría, edad). Etapa 3. */
+export async function fetchProtocols(): Promise<unknown> {
+  const res = await fetch("https://api.llama.fi/protocols");
+  if (!res.ok) throw new Error(`DefiLlama /protocols HTTP ${res.status}`);
+  return res.json();
+}
+
+/** Histórico de hacks/exploits. Etapa 3. */
+export async function fetchHacks(): Promise<unknown> {
+  const res = await fetch("https://api.llama.fi/hacks");
+  if (!res.ok) throw new Error(`DefiLlama /hacks HTTP ${res.status}`);
+  return res.json();
+}
