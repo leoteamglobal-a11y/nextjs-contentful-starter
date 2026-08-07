@@ -5,6 +5,19 @@ function num(x: unknown): number | null {
   return typeof x === "number" && Number.isFinite(x) ? x : null;
 }
 
+/** Deriva las métricas de yield (real vs incentivo) desde apy/apyBase/apyReward. */
+export function deriveYieldMetrics(
+  apy: number | null,
+  apyBase: number | null,
+  apyReward: number | null,
+): { apyBaseShare: number | null; incentiveShare: number | null; realYield: number | null; isMirage: boolean } {
+  const apyBaseShare = apy && apy > 0 && apyBase != null ? apyBase / apy : null;
+  const incentiveShare = apy && apy > 0 && apyReward != null ? apyReward / apy : null;
+  const realYield = apyBase != null ? apyBase : apy != null ? apy - (apyReward ?? 0) : null;
+  const isMirage = incentiveShare != null ? incentiveShare > 0.9 : false;
+  return { apyBaseShare, incentiveShare, realYield, isMirage };
+}
+
 /** Convierte un pool crudo de DefiLlama en una fila normalizada con las métricas de riesgo. */
 export function normalizePool(p: RawPool, date: string): NormalizedRow {
   const apy = num(p.apy);
@@ -12,11 +25,7 @@ export function normalizePool(p: RawPool, date: string): NormalizedRow {
   const apyReward = num(p.apyReward);
   const tvlUsd = num(p.tvlUsd) ?? 0;
 
-  const apyBaseShare = apy && apy > 0 && apyBase != null ? apyBase / apy : null;
-  const incentiveShare = apy && apy > 0 && apyReward != null ? apyReward / apy : null;
-  // yield real: apyBase si existe; si no, apy menos incentivos.
-  const realYield = apyBase != null ? apyBase : apy != null ? apy - (apyReward ?? 0) : null;
-  const isMirage = incentiveShare != null ? incentiveShare > 0.9 : false;
+  const { apyBaseShare, incentiveShare, realYield, isMirage } = deriveYieldMetrics(apy, apyBase, apyReward);
 
   return {
     date,

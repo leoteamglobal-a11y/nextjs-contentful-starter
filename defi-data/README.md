@@ -112,8 +112,29 @@ Con esto el screen cubre TODOS tus criterios: apyBase≥10%, TVL≥$10M, ≥1añ
 predominante, **auditado**, **sin hack reciente**. (El evento `unlock` ya existe
 en el modelo; falta solo la fuente automática — se puede sembrar a mano.)
 
-## Próximas etapas
+## Etapa 4 — backtest sin sesgo de supervivencia ✅
 
-- **Etapa 4:** features (comportamiento post-evento) + backtest sin sesgo de
-  supervivencia (usando los eventos `death`).
-- **Etapa 5:** scoring → allocator (ver `../defi-research/STRATEGY.md`).
+Simula "¿qué habría pasado si aplicaba la regla X?", **incluyendo los pools que
+murieron**. Demuestra con números que perseguir APY alto te funde y el screen de
+calidad compone.
+
+```bash
+npm run backtest -- --universe fixtures/universe.json --start 2025-01-01 --end 2026-01-01
+```
+
+Resultado de la demo (1 año, $1000):
+
+| Estrategia | Final | Retorno | Max drawdown |
+|---|---|---|---|
+| Perseguir APY más alto | $271 | **−72,9%** | 74,4% |
+| Screen de calidad | $1.122 | **+12,2%** | 0,0% |
+
+- **`backtest.ts`** — motor puro `runBacktest(universe, cfg)` + estrategias
+  (`chaseTopApy`, `topRealYield`, `qualityStrategy`). Cada pool held que **muere**
+  aplica una pérdida al sleeve (`deathHaircut`) — así los muertos cuentan.
+- El retorno de cada período usa el **apyBase** (yield real), no el APY inflado.
+
+## Próxima etapa
+
+- **Etapa 5:** scoring → allocator en vivo (ver `../defi-research/STRATEGY.md`) —
+  usar el screen + la persistencia para asignar capital automáticamente.

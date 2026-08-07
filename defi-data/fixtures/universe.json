@@ -1,0 +1,67 @@
+[
+  {
+    "pool": "aave-usdc",
+    "project": "aave-v3",
+    "chain": "Ethereum",
+    "symbol": "USDC",
+    "stablecoin": true,
+    "points": [
+      { "date": "2025-01-01", "tvlUsd": 1200000000, "apy": 5.0, "apyBase": 5.0, "apyReward": 0 },
+      { "date": "2025-07-01", "tvlUsd": 1300000000, "apy": 5.3, "apyBase": 5.3, "apyReward": 0 },
+      { "date": "2026-01-01", "tvlUsd": 1200000000, "apy": 5.1, "apyBase": 5.1, "apyReward": 0 }
+    ]
+  },
+  {
+    "pool": "weth-usdc",
+    "project": "aerodrome-slipstream",
+    "chain": "Base",
+    "symbol": "WETH-USDC",
+    "stablecoin": false,
+    "points": [
+      { "date": "2025-01-01", "tvlUsd": 12000000, "apy": 14.5, "apyBase": 12.0, "apyReward": 2.5 },
+      { "date": "2025-04-01", "tvlUsd": 15000000, "apy": 13.8, "apyBase": 11.5, "apyReward": 2.3 },
+      { "date": "2025-07-01", "tvlUsd": 16000000, "apy": 14.2, "apyBase": 12.1, "apyReward": 2.1 },
+      { "date": "2025-10-01", "tvlUsd": 18000000, "apy": 14.9, "apyBase": 12.6, "apyReward": 2.3 },
+      { "date": "2026-01-01", "tvlUsd": 18000000, "apy": 14.0, "apyBase": 11.8, "apyReward": 2.2 }
+    ]
+  },
+  {
+    "pool": "gmx-gm",
+    "project": "gmx",
+    "chain": "Arbitrum",
+    "symbol": "GM-BTC-USD",
+    "stablecoin": false,
+    "points": [
+      { "date": "2025-01-01", "tvlUsd": 20000000, "apy": 11.5, "apyBase": 11.0, "apyReward": 0.5 },
+      { "date": "2025-06-01", "tvlUsd": 24000000, "apy": 12.0, "apyBase": 11.4, "apyReward": 0.6 },
+      { "date": "2026-01-01", "tvlUsd": 25000000, "apy": 11.8, "apyBase": 11.2, "apyReward": 0.6 }
+    ]
+  },
+  {
+    "pool": "mirage-a",
+    "project": "yield-maxi",
+    "chain": "SomeChain",
+    "symbol": "MOON-USDC",
+    "stablecoin": false,
+    "points": [
+      { "date": "2025-01-01", "tvlUsd": 500000, "apy": 400000, "apyBase": 2.1, "apyReward": 399997.9 },
+      { "date": "2025-02-01", "tvlUsd": 300000, "apy": 120000, "apyBase": 1.8, "apyReward": 119998.2 },
+      { "date": "2025-03-01", "tvlUsd": 150000, "apy": 30000, "apyBase": 1.5, "apyReward": 29998.5 },
+      { "date": "2025-04-01", "tvlUsd": 60000, "apy": 5000, "apyBase": 1.2, "apyReward": 4998.8 },
+      { "date": "2025-05-01", "tvlUsd": 8000, "apy": 200, "apyBase": 0.9, "apyReward": 199.1 }
+    ]
+  },
+  {
+    "pool": "mirage-b",
+    "project": "farm-inferno",
+    "chain": "SomeChain",
+    "symbol": "BLAZE-ETH",
+    "stablecoin": false,
+    "points": [
+      { "date": "2025-01-01", "tvlUsd": 800000, "apy": 250000, "apyBase": 3.0, "apyReward": 249997 },
+      { "date": "2025-03-01", "tvlUsd": 600000, "apy": 90000, "apyBase": 2.7, "apyReward": 89997.3 },
+      { "date": "2025-05-01", "tvlUsd": 200000, "apy": 8000, "apyBase": 2.2, "apyReward": 7997.8 },
+      { "date": "2025-07-01", "tvlUsd": 15000, "apy": 100, "apyBase": 1.5, "apyReward": 98.5 }
+    ]
+  }
+]
