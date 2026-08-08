@@ -1,7 +1,0 @@
-{
-  "functions": {
-    "src/app/api/signal/stream/route.js": {
-      "maxDuration": 300
-    }
-  }
-}
