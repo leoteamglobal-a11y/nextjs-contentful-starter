@@ -26,9 +26,17 @@ mal, se **regenera** — no se entrega "a ver si cuela".
 
 ## 1. Voz oficial de Aroma World
 - **Identidad:** voz **femenina, elegante, cálida, español neutro/Miami.** Es identidad
-  de marca, no depende del proveedor (hoy: ElevenLabs `eleven_multilingual_v2`,
-  `voice_id: EXAVITQu4vr4xnSDxMaL`, `language_code: es`). Si cambia el proveedor, la
-  identidad "voz femenina elegante Aroma World" manda.
+  de marca, no depende del proveedor. **Voz oficial confirmada: "Charlotte"**
+  (hoy: ElevenLabs `eleven_multilingual_v2`, `voice_id: XB0fDUnXU5powFXDhCwa`,
+  `language_code: es`). Si cambia el proveedor, la identidad "voz femenina elegante
+  Charlotte" manda.
+- **Naturalidad (regla dura — evitar voz robótica):**
+  - `voice_settings` base: `stability 0.5 · similarity_boost 0.9 · style 0.28 ·
+    use_speaker_boost true · speed 0.9` (ritmo lento = lujo).
+  - **Pausas explícitas** con `<break time="0.3s–0.6s" />` entre frases (respira, no
+    atropella). Puntos suspensivos `...` para dar peso antes del golpe.
+  - Frases cortas (8–12 palabras), una idea por frase, palabra clave al final.
+  - Pasar el guion por el `body` del TTS con `voice_settings` (no dejar el default plano).
 - **Prosodia por bloque** (voice_settings distintos por intención — lujo = control, no drama):
   - Hook (intriga elegante): `stability 0.55 · style 0.30`
   - Narrativo: `stability 0.60 · style 0.25`
