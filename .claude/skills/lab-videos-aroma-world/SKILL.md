@@ -93,6 +93,26 @@ Pedir explícitamente, con estas palabras o equivalentes:
 - **Audio broadcast:** normalizar a `loudnorm I=-14 · TP=-1.5 · LRA=11`. La voz nunca
   compite con música/SFX (verificar al oído en los picos).
 
+## 5.b Ficha de productos VERIFICADA (usar como referencia real)
+Nunca inventar productos ni sus proporciones. Estos son los reales:
+- **Tower** (Modelo A326) — difusor cold-air de **mesa**, columna **alta y esbelta**:
+  **342 mm de alto × 117.5 mm Ø**, base redonda con tira de control al frente,
+  aluminio, botella 120 ml, cable + **wireless** (batería 2200 mAh), Bluetooth + touch,
+  colores oro/plata/negro, cobertura 100 m²/1,100 ft². Foto ref: `8860b7c5`.
+- **Jet** — difusor **plug-in de pared** (va enchufado, no sobre mueble). Foto ref: `41937782`.
+- **Mist** — difusor **wireless, pequeño, para autos** 🚗. Foto ref: `5b335944`.
+- **Botella de aroma (oils)** — **AZUL** con logo. Foto ref: `f6fe3685`.
+- **Logo** (fondo transparente): `132d44e9`. Logo original: `63643db4`.
+> Al pedir una imagen, PASAR la foto real como referencia (`role:image`) y respetar
+> tamaño/forma/etiqueta. El Tower es alto (34 cm): que no salga "chaparro".
+
+## Regla dura: VERIFICAR antes de generar (no quemar créditos)
+Antes de gastar créditos en una imagen/video de producto: (1) usar SIEMPRE la foto real
+de la ficha como referencia; (2) si hay duda del producto (cuál es, tipo, proporción),
+**mostrar el plan y confirmar con el dueño ANTES de generar** — no inventar. El agente
+no puede ver las imágenes generadas (proxy bloquea la descarga), así que la verificación
+visual la hace el dueño: entregar y pedir el OK antes de escalar a más piezas.
+
 ## 6. Flujo de producción (orden)
 1. **Guion + prosodia** (usa `fabrica-contenido-aroma-world` para el texto/gancho).
 2. **Imagen base** (Higgsfield `nano_banana_pro`/marketing) con reglas de fotorrealismo
