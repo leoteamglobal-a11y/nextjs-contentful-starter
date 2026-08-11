@@ -84,7 +84,14 @@ Pedir explícitamente, con estas palabras o equivalentes:
 
 ## 5. Estilo visual y estructura de marca
 - **Formato:** vertical **9:16**, **1080p**.
-- **Paleta:** azul marino + dorado, luz cálida, ambiente premium (hotel 5★, hogar de lujo).
+- **Paleta OFICIAL (manual de marca, Santiago Honoré):**
+  - Dorado champán **`#D9C562`** (RGB 217/197/098) — acento principal.
+  - Navy casi negro **`#010C1C`** (RGB 001/012/028) — fondo/oscuro.
+  - (No usar el bronce `#B0863B` que traía el tema; el oficial es `#D9C562`.)
+- **Tipografías OFICIALES (manual):** Principal **Adelia** (serif display de lujo,
+  licenciada — necesita archivo para web); Apoyo **Cambria**. En Shopify (sin Adelia)
+  usar **Playfair Display** como equivalente elegante para títulos.
+- Luz cálida, ambiente premium (hotel 5★, hogar de lujo).
 - **Hook primero** (≤3 s): el gancho más fuerte en t=0 (pasa el test de mudo).
 - **Rótulos en pantalla** (si aplican): mayúsculas, tercio bajo, blanco/ámbar, fade ~2.5 s,
   máximo 2–4. **Gradación de color natural** (nada saturado/artificial).
