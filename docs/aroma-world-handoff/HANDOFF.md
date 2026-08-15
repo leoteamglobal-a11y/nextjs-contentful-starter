@@ -92,3 +92,29 @@ gratis **Translate & Adapt** y traducir ahí). Los recursos traducibles del tema
 - Branding del tema: Playfair, dorado/navy oficial, botones dorados, banner de marca, logo AW, fondos crema.
 - Quiz de 2 botones cableado al hero. Favicon AW. Chat (Messenger) funciona.
 - **Falta solo:** portada inglés-principal + quiz bilingüe con ft² en una copia del MAIN, y publicar.
+
+---
+
+## ACTUALIZACIÓN (traducciones cruzadas) — 2026-08-15
+
+**Problema nuevo detectado:** en el tema en vivo `190353998133` el hero tiene las
+traducciones CRUZADAS: en vista inglés el letrero sale en español; en vista español el
+subtítulo/botones salen en inglés. Es un registro de traducciones mal hecho (posible app
+de traducción o intento previo). **NO publicar ese tema.**
+
+**Ya hecho:**
+- Clon limpio del tema EN VIVO creado: `gid://shopify/OnlineStoreTheme/190394990901`
+  ("AW — Inglés + Quiz bilingüe (PUBLICAR)"), role UNPUBLISHED.
+- Archivo corregido listo: `docs/aroma-world-handoff/final_index.json` — pone el hero
+  visible (`2a92e6a7-...`, hero-image) en INGLÉS ("The scent of a 5-star hotel, at home",
+  "Find your scent" #awq-scent, "Find your diffuser" #awq-dif) y mete el quiz bilingüe con
+  ft² conservadores. La sección `background_video_ewaMP6` está `disabled: true` (no muestra).
+
+**Falta (hacer en chat nuevo con Shopify OK):**
+1. Verificar `theme(190394990901).role == UNPUBLISHED`.
+2. Subir `final_index.json` a `templates/index.json` del clon (staged upload → themeFilesUpsert).
+3. Revisar traducciones cruzadas: `shopLocales` (ver primary), luego `translatableResource`
+   del template index / de los bloques del hero, y **corregir o borrar** las traducciones
+   cruzadas del hero para el clon. Objetivo: inglés parejo + español parejo (sin mezclar).
+4. Verificar leyendo de vuelta el index.json del clon.
+5. Decirle al dueño que publique el clon `190394990901`.
