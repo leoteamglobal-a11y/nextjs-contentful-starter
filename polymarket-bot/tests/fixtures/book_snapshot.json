@@ -1,0 +1,16 @@
+{
+  "event_type": "book",
+  "asset_id": "t1",
+  "market": "0xcondition",
+  "timestamp": "1739000000000",
+  "bids": [
+    {"price": "0.59", "size": "1200"},
+    {"price": "0.60", "size": "800"},
+    {"price": "0.61", "size": "400"}
+  ],
+  "asks": [
+    {"price": "0.65", "size": "900"},
+    {"price": "0.64", "size": "550"},
+    {"price": "0.63", "size": "300"}
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "event_type": "price_change",
+  "asset_id": "t1",
+  "timestamp": "1739000001000",
+  "changes": [
+    {"side": "BUY", "price": "0.62", "size": "150"},
+    {"side": "SELL", "price": "0.63", "size": "0"}
+  ]
+}
