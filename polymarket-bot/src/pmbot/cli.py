@@ -1,8 +1,8 @@
 """Command line entry point.
 
     python -m pmbot.cli doctor
-    python -m pmbot.cli market <url-or-slug>
-    python -m pmbot.cli watch  <url-or-slug> [--seconds N]
+    python -m pmbot.cli market <url-or-slug> [<url-or-slug> ...]
+    python -m pmbot.cli watch  <url-or-slug> [<url-or-slug> ...] [--seconds N]
     python -m pmbot.cli report <journal-file.jsonl>
 
 None of these commands can place an order. There is no signing code in this
@@ -23,9 +23,10 @@ import httpx
 from . import endpoints
 from .book import BookSet
 from .config import Settings
-from .discovery import DiscoveryError, fetch_market
+from .discovery import DiscoveryError, Market, fetch_market
 from .feed import MarketFeed
 from .journal import Journal, replay
+from .plan import WatchPlan, build_plan, label_width
 
 
 def _log_setup(verbose: bool) -> None:
@@ -33,6 +34,21 @@ def _log_setup(verbose: bool) -> None:
         level=logging.DEBUG if verbose else logging.INFO,
         format="%(asctime)s %(levelname)-7s %(name)s: %(message)s",
     )
+
+
+def resolve_markets(refs: list[str], settings: Settings) -> list[Market]:
+    """Resolve every market reference, reporting failures individually.
+
+    One unresolvable market must not abort a watch over the other nine: a
+    typo'd slug is a bad reason to lose an overnight recording.
+    """
+    markets: list[Market] = []
+    for ref in refs:
+        try:
+            markets.append(fetch_market(ref, timeout_s=settings.http_timeout_s))
+        except (DiscoveryError, httpx.HTTPError) as exc:
+            print(f"warning: skipping {ref!r}: {exc}", file=sys.stderr)
+    return markets
 
 
 def cmd_doctor(args: argparse.Namespace) -> int:
@@ -59,63 +75,84 @@ def cmd_doctor(args: argparse.Namespace) -> int:
 
 def cmd_market(args: argparse.Namespace) -> int:
     settings = Settings.from_env()
-    try:
-        market = fetch_market(args.market, timeout_s=settings.http_timeout_s)
-    except (DiscoveryError, httpx.HTTPError) as exc:
-        print(f"error: {exc}", file=sys.stderr)
+    markets = resolve_markets(args.market, settings)
+    if not markets:
+        print("error: no markets could be resolved", file=sys.stderr)
         return 1
 
-    print(f"question    {market.question}")
-    print(f"slug        {market.slug}")
-    print(f"conditionId {market.condition_id}")
-    print(f"closed      {market.closed}")
-    for token in market.tokens:
-        print(f"  {token.outcome:<12} {token.token_id}")
+    for market in markets:
+        print(f"question    {market.question}")
+        print(f"slug        {market.slug}")
+        print(f"conditionId {market.condition_id}")
+        print(f"closed      {market.closed}")
+        for token in market.tokens:
+            print(f"  {token.outcome:<12} {token.token_id}")
+        print()
+
+    if len(markets) > 1:
+        plan = build_plan(markets)
+        print(plan.describe())
     return 0
 
 
-async def _watch(market_ref: str, seconds: float | None, settings: Settings) -> int:
+def _print_plan(plan: WatchPlan) -> None:
+    for market in plan.markets:
+        flag = "  [CLOSED]" if market.closed else ""
+        print(f"{market.slug}{flag}")
+        print(f"  {market.question}")
+        for token in market.tokens:
+            print(f"    {token.outcome:<12} {token.token_id}")
+    print(f"\n{plan.describe()}\n")
+
+
+async def _watch(
+    refs: list[str], seconds: float | None, settings: Settings, stream_name: str
+) -> int:
+    markets = resolve_markets(refs, settings)
+    if not markets:
+        print("error: no markets could be resolved", file=sys.stderr)
+        return 1
+
     try:
-        market = fetch_market(market_ref, timeout_s=settings.http_timeout_s)
-    except (DiscoveryError, httpx.HTTPError) as exc:
+        plan = build_plan(markets)
+    except ValueError as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 1
 
-    if market.closed:
-        print(f"warning: market {market.slug!r} is closed", file=sys.stderr)
+    if plan.closed_markets:
+        names = ", ".join(m.slug for m in plan.closed_markets)
+        print(f"warning: already-closed market(s): {names}", file=sys.stderr)
 
-    print(f"watching: {market.question}")
-    for token in market.tokens:
-        print(f"  {token.outcome:<12} {token.token_id}")
-    print()
+    _print_plan(plan)
 
-    books = BookSet(market.token_ids)
-    labels = {t.token_id: t.outcome for t in market.tokens}
-    feed = MarketFeed(list(market.token_ids), settings=settings)
+    books = BookSet(plan.token_ids)
+    feed = MarketFeed(list(plan.token_ids), settings=settings)
+    width = label_width(plan.labels.values())
 
-    with Journal(settings.journal_dir, f"feed-{market.slug or 'market'}") as journal:
-        journal.write(
-            "market",
-            {
-                "condition_id": market.condition_id,
-                "slug": market.slug,
-                "question": market.question,
-                "tokens": [
-                    {"token_id": t.token_id, "outcome": t.outcome}
-                    for t in market.tokens
-                ],
-            },
-        )
+    with Journal(settings.journal_dir, stream_name) as journal:
+        # One record per market, so `report` can label token ids later without
+        # needing the network.
+        for market in plan.markets:
+            journal.write(
+                "market",
+                {
+                    "condition_id": market.condition_id,
+                    "slug": market.slug,
+                    "question": market.question,
+                    "closed": market.closed,
+                    "tokens": [
+                        {"token_id": t.token_id, "outcome": t.outcome}
+                        for t in market.tokens
+                    ],
+                },
+            )
 
         async def run() -> None:
             async for message in feed.stream():
                 event = str(message.get("event_type", ""))
 
                 if event == "_reconnected":
-                    # Missed increments cannot be recovered: throw the books
-                    # away and wait for fresh snapshots.
-                    books_reset = BookSet(market.token_ids)
-                    books.__dict__.update(books_reset.__dict__)
+                    books.reset()
                     journal.write("reconnected", {"n": message.get("reconnects")})
                     continue
                 if event == "_disconnected":
@@ -131,20 +168,20 @@ async def _watch(market_ref: str, seconds: float | None, settings: Settings) -> 
                     continue
 
                 summary = book.summary()
-                journal.write("book", summary)
+                label = plan.label_for(book.token_id)
+                journal.write("book", {"label": label, **summary})
                 if summary["crossed"]:
-                    journal.write("anomaly", {"reason": "crossed", **summary})
+                    journal.write("anomaly", {"reason": "crossed", "label": label, **summary})
 
-                outcome = labels.get(book.token_id, book.token_id[:10])
-                bid = summary["best_bid"]
-                ask = summary["best_ask"]
-                mid = summary["mid"]
+                def show(value: object) -> str:
+                    return "-" if value is None else str(value)
+
                 print(
-                    f"  {outcome:<10} "
-                    f"bid {bid if bid is not None else '-':<8} "
-                    f"ask {ask if ask is not None else '-':<8} "
-                    f"spread {summary['spread'] if summary['spread'] is not None else '-':<8} "
-                    f"mid {mid if mid is not None else '-'}"
+                    f"  {label:<{width}} "
+                    f"bid {show(summary['best_bid']):<8} "
+                    f"ask {show(summary['best_ask']):<8} "
+                    f"spread {show(summary['spread']):<8} "
+                    f"mid {show(summary['mid'])}"
                     + ("   << CROSSED" if summary["crossed"] else "")
                 )
 
@@ -169,36 +206,59 @@ async def _watch(market_ref: str, seconds: float | None, settings: Settings) -> 
 def cmd_watch(args: argparse.Namespace) -> int:
     settings = Settings.from_env()
     try:
-        return asyncio.run(_watch(args.market, args.seconds, settings))
+        return asyncio.run(_watch(args.market, args.seconds, settings, args.name))
     except KeyboardInterrupt:
         return 130
 
 
 def cmd_report(args: argparse.Namespace) -> int:
-    """Summarise a journal: how much data, how stable was the connection."""
+    """Summarise a journal: coverage per market, and connection stability."""
     path = Path(args.journal)
     if not path.exists():
         print(f"error: no such journal: {path}", file=sys.stderr)
         return 1
 
     counts: dict[str, int] = {}
-    spreads: list[float] = []
+    per_label: dict[str, list[float]] = {}
+    updates: dict[str, int] = {}
+    markets: list[str] = []
     anomalies = 0
+
     for record in replay(path):
         kind = str(record.get("kind"))
         counts[kind] = counts.get(kind, 0) + 1
-        if kind == "book" and isinstance(record.get("spread"), (int, float)):
-            spreads.append(float(record["spread"]))
-        if kind == "anomaly":
+
+        if kind == "market":
+            markets.append(f"{record.get('slug')}  {record.get('question', '')[:60]}")
+        elif kind == "book":
+            label = str(record.get("label") or record.get("token_id", "?"))
+            updates[label] = updates.get(label, 0) + 1
+            if isinstance(record.get("spread"), (int, float)):
+                per_label.setdefault(label, []).append(float(record["spread"]))
+        elif kind == "anomaly":
             anomalies += 1
 
     print(f"journal   {path}")
+    if markets:
+        print("\nmarkets")
+        for line in markets:
+            print(f"  {line}")
+
+    print("\nrecords")
     for kind, count in sorted(counts.items(), key=lambda kv: -kv[1]):
         print(f"  {kind:<14} {count}")
-    if spreads:
-        spreads.sort()
-        print(f"  spread    min={spreads[0]:.4f} "
-              f"median={spreads[len(spreads) // 2]:.4f} max={spreads[-1]:.4f}")
+
+    if updates:
+        width = min(max(len(k) for k in updates), 44)
+        print("\nper token")
+        for label in sorted(updates, key=lambda k: -updates[k]):
+            spreads = sorted(per_label.get(label, []))
+            median = f"{spreads[len(spreads) // 2]:.4f}" if spreads else "-"
+            print(f"  {label:<{width}}  updates={updates[label]:<7} median_spread={median}")
+
+    reconnects = counts.get("reconnected", 0)
+    if reconnects > 1:
+        print(f"\n  feed reconnected {reconnects - 1} time(s) during this run")
     if anomalies:
         print(f"\n  {anomalies} crossed-book anomalies — investigate before trusting this data")
     return 0
@@ -213,13 +273,19 @@ def build_parser() -> argparse.ArgumentParser:
         func=cmd_doctor
     )
 
-    p_market = sub.add_parser("market", help="resolve a market to its token ids")
-    p_market.add_argument("market", help="Polymarket URL or slug")
+    p_market = sub.add_parser("market", help="resolve markets to their token ids")
+    p_market.add_argument("market", nargs="+", help="Polymarket URL(s) or slug(s)")
     p_market.set_defaults(func=cmd_market)
 
-    p_watch = sub.add_parser("watch", help="stream a market's order book")
-    p_watch.add_argument("market", help="Polymarket URL or slug")
+    p_watch = sub.add_parser(
+        "watch",
+        help="stream one or more markets' order books over a single connection",
+    )
+    p_watch.add_argument("market", nargs="+", help="Polymarket URL(s) or slug(s)")
     p_watch.add_argument("--seconds", type=float, default=None, help="stop after N s")
+    p_watch.add_argument(
+        "--name", default="feed", help="journal stream name (default: feed)"
+    )
     p_watch.set_defaults(func=cmd_watch)
 
     p_report = sub.add_parser("report", help="summarise a journal file")

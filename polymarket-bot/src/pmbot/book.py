@@ -128,9 +128,18 @@ class BookSet:
     """Every book the bot is watching, keyed by token id."""
 
     def __init__(self, token_ids: Iterable[str] = ()) -> None:
-        self._books: dict[str, OrderBook] = {
-            tid: OrderBook(token_id=tid) for tid in token_ids
-        }
+        self._token_ids = tuple(token_ids)
+        self._books: dict[str, OrderBook] = {}
+        self.reset()
+
+    def reset(self) -> None:
+        """Drop all book state, keeping the set of watched tokens.
+
+        Called after a reconnect: increments missed while disconnected are
+        unrecoverable, so every book must be rebuilt from a fresh snapshot
+        rather than resumed.
+        """
+        self._books = {tid: OrderBook(token_id=tid) for tid in self._token_ids}
 
     def __contains__(self, token_id: str) -> bool:
         return token_id in self._books

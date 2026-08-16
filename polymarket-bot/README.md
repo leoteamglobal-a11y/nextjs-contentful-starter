@@ -44,23 +44,47 @@ export PYTHONPATH=src
 # Can this machine actually reach the venue?
 python -m pmbot.cli doctor
 
-# Resolve a market URL to its conditionId and per-outcome token ids.
+# Resolve market URLs to their conditionIds and per-outcome token ids.
 python -m pmbot.cli market https://polymarket.com/event/<slug>
 
 # Stream the book, print top-of-book, write a journal.
 python -m pmbot.cli watch <url-or-slug> --seconds 300
 
-# Summarise what a journal captured.
-python -m pmbot.cli report journal/feed-<slug>-<date>.jsonl
+# Several markets at once — one connection, one journal.
+python -m pmbot.cli watch <slug-a> <slug-b> <slug-c> --name overnight
+
+# Summarise what a journal captured, broken down per market.
+python -m pmbot.cli report journal/overnight-<date>.jsonl
 ```
 
 Journals land in `./journal/` as one JSONL file per stream per UTC day, and
 are gitignored.
 
+## Watching several markets
+
+Pass as many markets as you like. They are **multiplexed onto one WebSocket
+connection**, because the CLOB market channel accepts a list of asset ids in
+a single subscription — one socket to reconnect, one ordering of events, one
+journal to replay. Opening a connection per market would buy nothing and
+multiply the failure modes.
+
+```
+2 market(s), 4 token(s), 1 connection
+  btc-up-or-down/Up     bid 0.49   ask 0.51   mid 0.5
+  btc-up-or-down/Down   bid 0.49   ask 0.51   mid 0.5
+  madrid-barca/Yes      bid 0.61   ask 0.63   mid 0.62
+  madrid-barca/No       bid 0.37   ask 0.39   mid 0.38
+```
+
+Every row is labelled `slug/outcome`, which matters as soon as two markets
+both have a "Yes". Duplicate token ids across references are subscribed once.
+A market that fails to resolve is reported and skipped rather than aborting
+the run — a typo'd slug is a bad reason to lose an overnight recording.
+
 ## Tests
 
 ```bash
-python -m pytest -q     # 33 tests, no network required
+python -m pytest -q     # 49 tests, no network required
 ```
 
 The suite runs entirely against recorded fixtures in `tests/fixtures/`. This
@@ -68,7 +92,8 @@ is deliberate: an exchange is the one dependency you cannot spin up locally,
 so every piece of parsing and book-keeping logic is pure and testable
 offline. Covered: snapshot/increment application, level removal on zero size,
 crossed-book detection, malformed-level tolerance, outcome pairing under
-reordering, batched vs single WebSocket frames, and journal recovery from a
+reordering, multi-market planning and label collisions, book reset on
+reconnect, batched vs single WebSocket frames, and journal recovery from a
 truncated final line.
 
 ## Status of the endpoints
