@@ -3,7 +3,8 @@
     python -m pmbot.cli doctor
     python -m pmbot.cli market <url-or-slug> [<url-or-slug> ...]
     python -m pmbot.cli watch  <url-or-slug> [<url-or-slug> ...] [--seconds N]
-    python -m pmbot.cli report <journal-file.jsonl>
+    python -m pmbot.cli report   <journal-file.jsonl>
+    python -m pmbot.cli backtest <journal-file.jsonl> [...]
 
 None of these commands can place an order. There is no signing code in this
 package at all.
@@ -27,6 +28,10 @@ from .discovery import DiscoveryError, Market, fetch_market
 from .feed import MarketFeed
 from .journal import Journal, replay
 from .plan import WatchPlan, build_plan, label_width
+from .replay import run_replay
+from .risk import RiskLimits, RiskManager
+from .sim import PaperBroker
+from .strategy import MakerStrategy
 
 
 def _log_setup(verbose: bool) -> None:
@@ -264,6 +269,88 @@ def cmd_report(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_backtest(args: argparse.Namespace) -> int:
+    """Replay journals through a strategy. Nothing here touches the network."""
+    paths = [Path(p) for p in args.journal]
+    missing = [p for p in paths if not p.exists()]
+    if missing:
+        for path in missing:
+            print(f"error: no such journal: {path}", file=sys.stderr)
+        return 1
+
+    strategy = MakerStrategy(
+        half_spread=args.half_spread,
+        size=args.size,
+        min_edge=args.min_edge,
+        max_inventory=args.max_inventory,
+    )
+    risk = RiskManager(
+        RiskLimits(
+            max_shares_per_token=args.max_shares,
+            max_exposure=args.max_exposure,
+            max_loss=args.max_loss,
+            max_order_size=max(args.size, 1.0),
+        )
+    )
+    broker = PaperBroker(fee_bps=args.fee_bps, queue_factor=args.queue_factor)
+
+    result = run_replay(paths, strategy, risk=risk, broker=broker)
+
+    print(f"strategy      {strategy.name} "
+          f"(half_spread={args.half_spread}, size={args.size}, "
+          f"min_edge={args.min_edge})")
+    print(f"fill model    queue_factor={args.queue_factor}, fee_bps={args.fee_bps}")
+    print(f"\nmessages      {result.messages}")
+    print(f"book updates  {result.updates}")
+    print(f"trade prints  {result.trades}")
+    if result.reconnects:
+        print(f"reconnects    {result.reconnects}  (books and orders dropped each time)")
+
+    pf = result.portfolio
+    print(f"\nfills         {pf.fills}")
+    print(f"volume        {pf.volume:,.2f} USDC")
+    print(f"fees          {pf.fees_paid:,.4f} USDC")
+    print(f"\nrealized      {result.realized:+,.4f} USDC")
+    print(f"unrealized    {result.unrealized:+,.4f} USDC")
+    print(f"total         {result.total_pnl:+,.4f} USDC")
+
+    open_positions = pf.open_positions()
+    if open_positions:
+        print("\nopen positions")
+        for pos in open_positions:
+            mark = result.marks.get(pos.token_id)
+            mark_s = f"{mark:.4f}" if mark is not None else "-"
+            print(f"  {result.label(pos.token_id):<28} "
+                  f"shares={pos.shares:+9.2f} avg={pos.avg_cost:.4f} mark={mark_s}")
+
+    risk_summary = risk.summary()
+    if risk_summary["total_vetoed"]:
+        print("\nrisk vetoes")
+        for reason, count in risk_summary["vetoes"].items():  # type: ignore[union-attr]
+            print(f"  {reason:<22} {count}")
+    if risk.halted:
+        print(f"\n  HALTED: {risk.halt_reason}")
+
+    if pf.fills == 0:
+        print("\n  No fills. Either the strategy never quoted (check min_edge "
+              "against\n  the real spread), or the journal has no trade prints — a "
+              "book-only\n  recording almost never fills a maker. Check `report` "
+              "for trade events.")
+    else:
+        if result.trades == 0:
+            print("\n  WARNING: every fill came from the book crossing your quote, "
+                  "not from\n  a trade print. That path only triggers on large jumps, "
+                  "so this is a\n  poor proxy for how a maker really fills. Record "
+                  "trade events.")
+        print("\n  Fills are inferred, not observed. Latency, queue position and "
+              "\n  cancel races are all unmodelled, and every one of them costs "
+              "money\n  live. Treat a marginally profitable result as a losing one.")
+        if args.queue_factor >= 1.0:
+            print("\n  queue_factor=1.0 assumes you are always first in the queue. "
+                  "You are\n  not. This number is optimistic by construction.")
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="pmbot", description=__doc__)
     parser.add_argument("-v", "--verbose", action="store_true")
@@ -291,6 +378,23 @@ def build_parser() -> argparse.ArgumentParser:
     p_report = sub.add_parser("report", help="summarise a journal file")
     p_report.add_argument("journal", help="path to a .jsonl journal")
     p_report.set_defaults(func=cmd_report)
+
+    p_back = sub.add_parser(
+        "backtest", help="replay journals through a paper-trading strategy"
+    )
+    p_back.add_argument("journal", nargs="+", help="path(s) to .jsonl journals")
+    p_back.add_argument("--half-spread", type=float, default=0.02)
+    p_back.add_argument("--size", type=float, default=50.0)
+    p_back.add_argument("--min-edge", type=float, default=0.01,
+                        help="skip markets whose spread is tighter than this")
+    p_back.add_argument("--max-inventory", type=float, default=200.0)
+    p_back.add_argument("--queue-factor", type=float, default=0.5,
+                        help="haircut on every fill; 1.0 assumes perfect queue position")
+    p_back.add_argument("--fee-bps", type=float, default=0.0)
+    p_back.add_argument("--max-shares", type=float, default=500.0)
+    p_back.add_argument("--max-exposure", type=float, default=1000.0)
+    p_back.add_argument("--max-loss", type=float, default=100.0)
+    p_back.set_defaults(func=cmd_backtest)
 
     return parser
 
