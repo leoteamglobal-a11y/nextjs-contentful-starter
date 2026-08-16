@@ -412,6 +412,106 @@ def cmd_live_check(args: argparse.Namespace) -> int:
     return 1
 
 
+def cmd_approvals(args: argparse.Namespace) -> int:
+    """Grant the exchange permission to move USDC and outcome shares."""
+    from .live.approvals import (
+        ApprovalConfig,
+        ApprovalError,
+        execute,
+        plan,
+        read_state,
+    )
+    from .live.client import WalletConfig
+
+    path = Path(args.config)
+
+    if args.init:
+        try:
+            ApprovalConfig.write_template(path)
+        except ApprovalError as exc:
+            print(f"error: {exc}", file=sys.stderr)
+            return 1
+        print(f"wrote a template to {path}\n")
+        print("Fill in every address from the OFFICIAL Polymarket docs before")
+        print("running this again. An approval to a wrong address hands over")
+        print("your balance, and no amount of care later undoes it.")
+        return 0
+
+    try:
+        config = ApprovalConfig.load(path)
+    except ApprovalError as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 1
+
+    try:
+        wallet = WalletConfig.from_env()
+    except Exception as exc:  # noqa: BLE001
+        print(f"error: {exc}", file=sys.stderr)
+        return 1
+
+    try:
+        from web3 import Web3  # noqa: F401  (import check only)
+        from eth_account import Account
+
+        owner = Account.from_key(wallet.private_key).address
+    except ImportError:
+        print("error: pip install -r requirements-live.txt", file=sys.stderr)
+        return 1
+    except Exception as exc:  # noqa: BLE001
+        print(f"error: bad private key: {type(exc).__name__}", file=sys.stderr)
+        return 1
+
+    print(f"owner    {owner}")
+    print(f"rpc      {config.rpc_url}")
+    print(f"usdc     {config.usdc}")
+    print(f"ctf      {config.conditional_tokens}\n")
+
+    try:
+        state = read_state(config, owner)
+    except ApprovalError as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 1
+
+    amount = (1 << 256) - 1 if args.unlimited else int(args.amount * 10**6)
+    actions = plan(config, state, min_allowance=int(args.amount * 10**6))
+
+    if not actions:
+        print("Nothing to do — every approval is already in place.")
+        return 0
+
+    print("Pending approvals:")
+    for action in actions:
+        print(f"  - {action.render()}")
+
+    if not args.live:
+        print("\nDry run. Re-run with --live to send these transactions.")
+        return 0
+
+    print(f"\nUSDC allowance to set: "
+          f"{'UNLIMITED' if args.unlimited else f'{args.amount} USDC'}")
+    if args.unlimited:
+        print("  An unlimited allowance means the contract can move every USDC")
+        print("  this wallet will ever hold. Prefer a bounded amount unless you")
+        print("  have a reason not to.")
+    if not args.yes:
+        reply = input("\nType 'approve' to send: ").strip().lower()
+        if reply != "approve":
+            print("aborted")
+            return 1
+
+    try:
+        hashes = execute(config, actions, wallet.private_key, amount)
+    except ApprovalError as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 1
+
+    print()
+    for tx_hash in hashes:
+        print(f"  confirmed  https://polygonscan.com/tx/{tx_hash}")
+    print("\nApprovals done. Now run: pmbot live-check <slug> --live")
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="pmbot", description=__doc__)
     parser.add_argument("-v", "--verbose", action="store_true")
@@ -471,6 +571,20 @@ def build_parser() -> argparse.ArgumentParser:
     p_live.add_argument("--yes", action="store_true", help="skip the confirmation prompt")
     p_live.add_argument("--fill-test", action="store_true", help="not yet implemented")
     p_live.set_defaults(func=cmd_live_check)
+
+    p_appr = sub.add_parser(
+        "approvals",
+        help="grant the exchange permission to move your USDC and shares",
+    )
+    p_appr.add_argument("--config", default="approvals.json")
+    p_appr.add_argument("--init", action="store_true", help="write a config template")
+    p_appr.add_argument("--amount", type=float, default=100.0,
+                        help="USDC allowance to grant (default: 100)")
+    p_appr.add_argument("--unlimited", action="store_true",
+                        help="grant an unlimited allowance (not recommended)")
+    p_appr.add_argument("--live", action="store_true", help="actually send the txs")
+    p_appr.add_argument("--yes", action="store_true", help="skip the confirmation")
+    p_appr.set_defaults(func=cmd_approvals)
 
     return parser
 

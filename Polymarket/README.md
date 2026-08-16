@@ -94,7 +94,7 @@ the run — a typo'd slug is a bad reason to lose an overnight recording.
 ## Tests
 
 ```bash
-python -m pytest -q     # 123 tests, no network required
+python -m pytest -q     # 138 tests, no network required
 ```
 
 The suite runs entirely against recorded fixtures in `tests/fixtures/`. This
@@ -234,12 +234,43 @@ The rails, and why each exists:
    `.env` next to unproven code is not where savings belong.
 2. **POL (ex-MATIC) for gas**, separate from your USDC — USDC cannot pay for
    Polygon transactions.
-3. **Approvals.** The exchange contracts need permission to move your USDC
-   and conditional tokens, once per wallet. Email/Magic wallets have this
-   done already; an EOA does not. Polymarket publishes a script, and note
-   that its published examples have lagged the current Web3 version.
+3. **Approvals** — see below. Without them every order is rejected.
 4. **Check the current fee schedule.** In market making the difference
    between 0 and 20bps decides whether the strategy exists at all.
+
+### Approvals
+
+The exchange cannot settle a trade until it has permission to move your
+USDC (ERC-20 `approve`) and your outcome shares (ERC-1155
+`setApprovalForAll`). Email/Magic wallets have this done for them; a plain
+wallet does not, and every order it posts is rejected until it does.
+
+```bash
+pip install -r requirements-live.txt
+python -m pmbot.cli approvals --init          # writes approvals.json
+# fill in the addresses from the official docs, then:
+python -m pmbot.cli approvals                 # dry run: shows what is missing
+python -m pmbot.cli approvals --live --amount 100
+```
+
+**There are no default contract addresses in this repo, on purpose.** An
+approval is not a payment you can dispute — it is a standing right for a
+contract to move your tokens, and approving a wrong address is a *successful*
+transaction that hands your balance to a stranger. Every address here was
+unverifiable from the machine this was written on, so rather than ship
+plausible constants for you to trust, the config starts empty and the
+template placeholders are rejected by validation.
+
+Fill them from the official Polymarket docs. Not from a blog, not from this
+README, and not from a model's memory — including mine.
+
+What the command checks before sending anything: every address is
+well-formed, there is actual contract code deployed at each one (approving
+an address with no code is a classic way to lose funds), no two spenders
+collide, and existing approvals are skipped rather than re-sent. It prints
+each pending approval with its target address and requires you to type
+`approve`. `--amount` bounds the allowance; `--unlimited` exists but warns,
+because unlimited means every USDC the wallet will ever hold.
 
 ### On $70
 
