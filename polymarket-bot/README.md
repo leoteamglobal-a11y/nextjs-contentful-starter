@@ -6,9 +6,13 @@ over WebSocket, and journal everything to disk for later analysis.
 Phase 2 adds paper trading on top: a strategy interface, a fill simulator, a
 risk veto layer and a backtest that replays those journals.
 
-**It cannot trade.** There is no signing code, no private key handling, and
-no order endpoint in this package. That is the point — you find out whether
-you have an edge before any money is exposed to a bug.
+Phase 3a adds a live plumbing check — a capped, cancelled test order that
+proves the real path works before any strategy is pointed at it.
+
+**Phases 1 and 2 cannot trade.** They hold no signing code and read no
+private key, and the SDK that can sign is imported lazily, only by
+`live-check`. Everything up to that point is unable to lose money by
+construction.
 
 ## Why this shape
 
@@ -90,7 +94,7 @@ the run — a typo'd slug is a bad reason to lose an overnight recording.
 ## Tests
 
 ```bash
-python -m pytest -q     # 106 tests, no network required
+python -m pytest -q     # 123 tests, no network required
 ```
 
 The suite runs entirely against recorded fixtures in `tests/fixtures/`. This
@@ -103,7 +107,9 @@ reconnect, batched vs single WebSocket frames, journal recovery from a
 truncated final line, cost-basis and realised/unrealised P&L including
 flipping through zero, every risk veto and the sticky halt, maker quoting
 and inventory skew, trade-tape fills by price priority, and the absence of
-lookahead in the replay loop.
+lookahead in the replay loop, plus every safety rail on the live plumbing
+check (dry run builds no client, orders are journalled before they are sent,
+a failed cancel triggers cleanup, private keys never reach a log line).
 
 ## Status of the endpoints
 
@@ -115,8 +121,9 @@ real network access; if an endpoint has moved, it is a one-file fix.
 
 Note also that the SDK most tutorials use, `py-clob-client`, is **archived**.
 The current one is [`polymarket-client`](https://github.com/Polymarket/py-sdk)
-(`pip install polymarket-client`). Phase 1 talks to the public REST and
-WebSocket endpoints directly and needs neither.
+(`pip install polymarket-client`). Phases 1 and 2 talk to the public REST
+and WebSocket endpoints directly and need neither; only `live-check` loads
+an SDK, and it does so lazily.
 
 ## Phase 2 — paper trading
 
@@ -181,19 +188,84 @@ price band, halts on drawdown — **stickily**, because a limit you recover
 from automatically is not a limit — and reads a kill switch from a file on
 disk, so stopping the bot never requires a redeploy.
 
+## Phase 3a — the plumbing test
+
+```bash
+# Dry run: prints what it would do, reads no credentials, sends nothing.
+python -m pmbot.cli live-check <url-or-slug>
+
+# The real thing.
+pip install py-clob-client-v2
+export PMBOT_PRIVATE_KEY=0x...        # a FRESH wallet, nothing else in it
+python -m pmbot.cli live-check <url-or-slug> --live
+```
+
+This is **not the bot running**. It is a checklist that proves the live path
+works, one step at a time:
+
+```
+connect -> derive API credentials -> read tick size -> read the book
+-> post a resting order -> see it listed -> cancel it -> see it gone
+```
+
+The default run **costs nothing but gas**. The order it posts sits ~10 cents
+below the touch specifically so it cannot fill, and it is cancelled before
+the run ends.
+
+Why a checklist rather than the strategy: there is code in `live/client.py`
+that has never executed against the real venue. Finding out that
+`create_or_derive_api_key` was renamed, or that `signature_type` is wrong
+for your wallet, is cheap when one $1 order is in flight and expensive when
+a strategy is quoting. When a step fails, it names the step.
+
+The rails, and why each exists:
+
+| Rail | Reason |
+|---|---|
+| `--live` required, dry run default | posting real orders should never be the accidental path |
+| `PLUMBING_MAX_NOTIONAL` is a constant, not a flag | raising the ceiling requires a diff, which requires a thought |
+| Order journalled *before* it is sent | a process that dies mid-request still leaves a record of what was in flight |
+| `cancel_all()` in a `finally` | a crash must never leave an order resting |
+| Typed confirmation prompt | the last chance to notice you are pointed at the wrong wallet |
+
+### Before the first live run
+
+1. **A fresh wallet.** Only what you can afford to lose. A private key in a
+   `.env` next to unproven code is not where savings belong.
+2. **POL (ex-MATIC) for gas**, separate from your USDC — USDC cannot pay for
+   Polygon transactions.
+3. **Approvals.** The exchange contracts need permission to move your USDC
+   and conditional tokens, once per wallet. Email/Magic wallets have this
+   done already; an EOA does not. Polymarket publishes a script, and note
+   that its published examples have lagged the current Web3 version.
+4. **Check the current fee schedule.** In market making the difference
+   between 0 and 20bps decides whether the strategy exists at all.
+
+### On $70
+
+$70 is the right size for this and the wrong size for trading. Even a great
+10% monthly return is $7 — less than the time spent reading the logs. Treat
+it as a validation budget: it buys proof that auth, ordering, fills,
+cancellation and redemption all work, which cannot be bought any other way
+and is worth far more than $7 before scaling.
+
 ## What comes next
 
 | Phase | Adds | Money at risk |
 |---|---|---|
 | **1. Observe** ✅ | discovery, feed, book, journal | none |
 | **2. Paper trade** ✅ | strategy, fill sim, risk veto, backtest | none |
-| 3. Live, capped | `auth`, real `execution`, `redeem` | hard-capped, small |
-| 4. Scale | only if phase 3 shows a real edge over weeks | your call |
+| **3a. Plumbing test** ✅ | live auth, one order, cancel | gas + a capped ~$1 order |
+| 3b. Strategy live | `LiveBroker` behind the existing `RiskManager` | hard-capped, small |
+| 4. Scale | only if 3b shows a real edge over weeks | your call |
 
-Phase 3 reuses phases 1 and 2 whole: the same `Strategy`, the same
+Phase 3b reuses phases 1 and 2 whole: the same `Strategy`, the same
 `RiskManager`, the same intents. Only the broker changes — `PaperBroker`
 becomes one that signs and posts. That swap is the entire remaining surface
-where money can be lost, which is exactly how much of it you want to be.
+where money can be lost, which is exactly how small you want it to be.
+
+It should not be built until 3a passes and a backtest on **real** recorded
+data says there is an edge worth defending.
 
 ## A word on strategy
 

@@ -351,6 +351,67 @@ def cmd_backtest(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_live_check(args: argparse.Namespace) -> int:
+    """Plumbing test: prove the live path works, spending as close to nothing
+    as the venue allows."""
+    from .live import LiveClient, WalletConfig, run_checks
+    from .live.checks import PLUMBING_MAX_NOTIONAL
+
+    settings = Settings.from_env()
+    markets = resolve_markets([args.market], settings)
+    if not markets:
+        return 1
+    market = markets[0]
+
+    if args.live:
+        print("=" * 62)
+        print("  LIVE MODE — this will post a real order with real money.")
+        print(f"  Ceiling: {PLUMBING_MAX_NOTIONAL} USDC per order, cancelled "
+              "before exit.")
+        print("  Use a wallet holding only what you can afford to lose.")
+        print("=" * 62)
+        if not args.yes:
+            reply = input("\nType 'yes' to continue: ").strip().lower()
+            if reply != "yes":
+                print("aborted")
+                return 1
+        try:
+            config = WalletConfig.from_env()
+        except Exception as exc:  # noqa: BLE001
+            print(f"error: {exc}", file=sys.stderr)
+            return 1
+        print(f"\nwallet   {config.redacted()}\n")
+        factory = lambda: LiveClient(config)  # noqa: E731
+    else:
+        factory = None
+
+    with Journal(settings.journal_dir, "live-check") as journal:
+        run = run_checks(
+            market,
+            args.outcome,
+            journal,
+            client_factory=factory,
+            dry_run=not args.live,
+            fill_test=args.fill_test,
+        )
+
+    print(f"plumbing check — {market.slug} / {args.outcome}\n")
+    for step in run.steps:
+        print(step.render())
+
+    if run.ok:
+        print("\nAll steps passed." if args.live else
+              "\nDry run complete. Re-run with --live to exercise the real path.")
+        return 0
+
+    print("\nFAILED at:")
+    for step in run.failed:
+        print(f"  {step.name}: {step.detail}")
+    print("\nSee the ADAPTER NOTES at the top of src/pmbot/live/client.py — an\n"
+          "SDK rename or a wrong signature_type explains most failures here.")
+    return 1
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="pmbot", description=__doc__)
     parser.add_argument("-v", "--verbose", action="store_true")
@@ -395,6 +456,21 @@ def build_parser() -> argparse.ArgumentParser:
     p_back.add_argument("--max-exposure", type=float, default=1000.0)
     p_back.add_argument("--max-loss", type=float, default=100.0)
     p_back.set_defaults(func=cmd_backtest)
+
+    p_live = sub.add_parser(
+        "live-check",
+        help="plumbing test against the real venue (dry run unless --live)",
+    )
+    p_live.add_argument("market", help="Polymarket URL or slug")
+    p_live.add_argument("--outcome", default="Yes", help="outcome to test (default: Yes)")
+    p_live.add_argument(
+        "--live",
+        action="store_true",
+        help="actually connect and post a real (tiny, cancelled) order",
+    )
+    p_live.add_argument("--yes", action="store_true", help="skip the confirmation prompt")
+    p_live.add_argument("--fill-test", action="store_true", help="not yet implemented")
+    p_live.set_defaults(func=cmd_live_check)
 
     return parser
 
