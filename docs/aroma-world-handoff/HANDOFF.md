@@ -118,3 +118,34 @@ de traducción o intento previo). **NO publicar ese tema.**
    cruzadas del hero para el clon. Objetivo: inglés parejo + español parejo (sin mezclar).
 4. Verificar leyendo de vuelta el index.json del clon.
 5. Decirle al dueño que publique el clon `190394990901`.
+
+---
+
+## TAREA: fotos de difusores por color (2026-08-16)
+
+El dueño quiere una foto por CADA color de cada difusor (hoy cada producto tiene una sola
+foto y las variantes no tienen imagen). Colores por producto (de Shopify):
+- **Jet**: Black, White — faltan las 2
+- **Mist**: Black, White — faltan las 2
+- **Tower**: Black, Silver, Gold — faltan las 3
+- **Wave**: Black, White — faltan las 2
+- **Power**: solo White (ya tiene) · **Sky Tower**: color único (ya tiene)
+
+Decisión del dueño: **recolorear** desde la foto existente (no tiene fotos de cada color),
+**empezando por Tower** como prueba antes de seguir con el resto.
+
+**Referencia REAL del Tower dorado** (enviada por el dueño):
+`docs/aroma-world-handoff/product-photos/tower-GOLD-real-reference.png`
+- Es el oro CORRECTO + logo real "AROMAWORLD® — Experience the power of scent" + panel real
+  (display "02", botones mist/1H/luz/power, indicadores 1H/2H/4H), fondo blanco limpio.
+- Úsala como base: sirve TAL CUAL para la variante **Gold**, y se recolorea a **Black** y
+  **Silver** desde ella (así el logo/panel/forma quedan reales).
+- (También hay `tower-thanksgiving-lifestyle.png`, un lifestyle navideño, por si sirve para marketing.)
+
+**Pendiente (con Higgsfield + Shopify conectados):**
+1. Gold = usar la foto real directo. Black/Silver = recolorear desde la foto real
+   (nano_banana_pro, medias role:image), mismo fondo/forma/logo/panel.
+2. Subir cada imagen a Shopify (stagedUploadsCreate IMAGE → fileCreate) y **asignarla a su
+   variante** (productVariantAppendMedia / variant.image) del producto correspondiente.
+   IDs de variantes Tower: Black `45384898904373`, Silver `45384898937141`, Gold `47686166610229`.
+3. OK visual del dueño con Tower, luego repetir para Jet, Mist, Wave.
