@@ -1,4 +1,4 @@
-# pmbot — a Polymarket trading bot, built in phases
+# Polymarket — a trading bot, built in phases
 
 A market-data client for Polymarket: resolve a market, stream its order book
 over WebSocket, and journal everything to disk for later analysis.
@@ -39,7 +39,7 @@ Three specific things it does differently:
 ## Install
 
 ```bash
-cd polymarket-bot
+cd Polymarket
 python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 export PYTHONPATH=src
