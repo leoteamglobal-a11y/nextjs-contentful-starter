@@ -1,0 +1,11 @@
+# Everything needed to run the test suite from a clean checkout.
+#
+#   pip install -r requirements-dev.txt && python -m pytest -q
+#
+# pytest-asyncio is not optional: the live broker and runner tests are
+# `async def`, and without it they do not run. Leaving it undeclared means a
+# fresh clone reports failures that have nothing to do with the code.
+-r requirements.txt
+
+pytest>=8.0
+pytest-asyncio>=0.24

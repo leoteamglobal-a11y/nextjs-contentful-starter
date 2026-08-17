@@ -166,6 +166,44 @@ def cmd_market(args: argparse.Namespace) -> int:
     return 0
 
 
+class TopOfBookFilter:
+    """Decides whether a book update is worth printing.
+
+    The venue republishes a book on every depth change, so a market whose
+    touch has not moved emits the same top-of-book line hundreds of times.
+    Printed verbatim that buries the updates that do matter, and makes a
+    quiet market look like a stuck program.
+
+    The journal still records every message — depth below the touch is real
+    information a backtest may want. This only filters the console.
+    """
+
+    def __init__(self) -> None:
+        self._last: dict[str, tuple[object, object]] = {}
+        self.updates = 0
+        self.changes: dict[str, int] = {}
+
+    def should_show(self, label: str, summary: dict) -> bool:
+        self.updates += 1
+        # Spread and mid are derived from bid and ask, so those two alone
+        # decide whether the displayed line would differ.
+        key = (summary.get("best_bid"), summary.get("best_ask"))
+        if self._last.get(label) == key:
+            return False
+        self._last[label] = key
+        self.changes[label] = self.changes.get(label, 0) + 1
+        return True
+
+    def summary_lines(self) -> list[str]:
+        lines = [f"{self.updates} book update(s) received"]
+        if not self.changes:
+            lines.append("  no top-of-book moved — the market was quiet, not broken")
+            return lines
+        for label in sorted(self.changes, key=lambda k: -self.changes[k]):
+            lines.append(f"  {label}: {self.changes[label]} price change(s)")
+        return lines
+
+
 def _print_plan(plan: WatchPlan) -> None:
     for market in plan.markets:
         flag = "" if market.tradable else "  [NOT TRADABLE]"
@@ -199,6 +237,7 @@ async def _watch(
     books = BookSet(plan.slugs)
     feed = MarketFeed(list(plan.slugs), settings=settings, credentials=credentials)
     width = label_width(plan.labels.values())
+    changes = TopOfBookFilter()
 
     with Journal(settings.journal_dir, stream_name) as journal:
         # One record per market, so `report` and `backtest` can label
@@ -257,6 +296,11 @@ async def _watch(
                         "anomaly", {"reason": "crossed", "label": label, **summary}
                     )
 
+                # A crossed book is an anomaly worth seeing every time, even
+                # if the touch is unchanged from the last one.
+                if not changes.should_show(label, summary) and not summary["crossed"]:
+                    continue
+
                 def show(value: object) -> str:
                     return "-" if value is None else str(value)
 
@@ -283,6 +327,9 @@ async def _watch(
             with contextlib.suppress(asyncio.CancelledError, Exception):
                 await task
 
+    print()
+    for line in changes.summary_lines():
+        print(line)
     print(f"\njournal written to {settings.journal_dir}/")
     return 0
 
