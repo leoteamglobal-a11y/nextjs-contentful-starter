@@ -1,0 +1,53 @@
+===================================================================
+ POLYMARKET BOT - accesos directos para Windows
+===================================================================
+
+ PRIMERA VEZ (una sola vez)
+ --------------------------
+
+ 1. Doble clic en:  instalar.bat
+    Tarda uno o dos minutos.
+
+ 2. Copia el archivo  clave.ejemplo.bat
+    Renombra la copia a:  clave.bat
+    Abrela con el Bloc de notas y pon tu key_id y tu secret.
+
+ Ya esta. No hay que repetirlo.
+
+
+ USO NORMAL
+ ----------
+
+ grabar.bat    Empieza a grabar mercados.
+               Para pararlo: Ctrl + C
+               Los datos van a la carpeta journal\
+
+ consola.bat   Abre una ventana preparada para escribir comandos:
+               buscar mercados, ver informes, lanzar backtests.
+
+
+ SOBRE TU CLAVE
+ --------------
+
+ clave.bat vive solo en tu ordenador y esta en .gitignore, asi que
+ no se sube a GitHub. Aun asi:
+
+   - No lo compartas con nadie.
+   - No lo subas a Drive, Dropbox ni similares.
+   - No mandes capturas donde se vea abierto.
+
+ Si crees que se ha filtrado: entra en polymarket.us/developer,
+ borra esa clave y crea otra. Se tarda un minuto, y por eso una
+ clave de API es mucho menos peligrosa que otras alternativas.
+
+
+ SI ALGO FALLA
+ -------------
+
+ Los .bat te dicen que falta y como arreglarlo. Si sale un error
+ que no entiendes, copia el texto de la ventana y pasaselo a Claude.
+
+ Los dos fallos mas comunes:
+
+   "Falta la instalacion"  -> ejecuta instalar.bat
+   "Falta tu clave"        -> te falta crear clave.bat (paso 2)

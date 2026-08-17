@@ -5,3 +5,7 @@ journal/
 __pycache__/
 *.py[cod]
 .pytest_cache/
+
+# Holds a real API key. The template (clave.ejemplo.bat) is tracked; the
+# filled-in copy never is.
+windows/clave.bat

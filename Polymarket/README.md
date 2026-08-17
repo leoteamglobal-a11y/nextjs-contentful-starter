@@ -164,6 +164,30 @@ Three things it does differently:
 - **Journals the message before parsing it.** A parser bug should cost you a
   re-run, not the data.
 
+## Windows: one-click launchers
+
+`windows/` holds `.bat` launchers so the tool can be used without a
+terminal. They exist because the alternative — pasting five lines including
+a secret into a fresh PowerShell every time — is both tedious and the most
+likely way for that secret to end up somewhere it should not be.
+
+| File | What it does |
+|---|---|
+| `instalar.bat` | Creates the virtualenv and installs dependencies. Run once. |
+| `clave.ejemplo.bat` | Template. Copy to `clave.bat` and fill in your key. |
+| `grabar.bat` | Starts a recording. Edit the `MERCADOS` line to change markets. |
+| `consola.bat` | Opens a console with everything set, for `pmbot ...` commands. |
+
+`windows/clave.bat` is gitignored; the template is not. Each launcher checks
+its preconditions in order and stops at the first missing one with an
+instruction — a launcher that fails with a Python traceback is no use to
+someone who does not program.
+
+`pmbot.bat` in the project root makes `pmbot doctor` work in any console
+opened there: cmd searches the current directory before the PATH, and the
+wrapper sets `PYTHONPATH` itself so it does not depend on the window being
+prepared first.
+
 ## Install
 
 ```bash
