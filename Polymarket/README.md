@@ -30,7 +30,6 @@ with one adjustment, described below.
 |---|---|---|
 | `portfolio.py` | positions, cash, weighted-average cost basis, realised/unrealised P&L | arithmetic on fills. No venue in it. |
 | `risk.py` | the veto layer: order size, position, exposure, price band, sticky halt, kill-switch file | operates on intents and a portfolio, both venue-neutral |
-| `sim.py` | paper broker and the fill model (trade-tape priority, queue haircut) | consumes canonical book/trade events |
 | `strategy/` | the `Strategy` protocol, `Context`, and the maker | sees books and returns intents; never touches a client |
 | `replay.py` | the backtest loop and its ordering guarantee | drives the above over journal records |
 | `intents.py` | `PlaceQuote` / `CancelQuote` / `CancelAll` | a price, a size and a side mean the same thing everywhere |
@@ -40,19 +39,40 @@ with one adjustment, described below.
 Old journals still replay. Old backtests still run. Every one of the
 original tests in these modules still passes, unmodified.
 
+### Reused with one additive change
+
+`sim.py` — the paper broker and its fill model — kept all of its logic and
+gained an optional `fee_model` hook, defaulting to the previous `fee_bps`
+behaviour so nothing that existed before changed.
+
+It needed one because Polymarket US does not charge a rate on notional. Its
+fee is `Θ × contracts × p × (1 - p)`, which is a different *shape*, not a
+different number: no value of `fee_bps` matches it at more than one price.
+See [Fees](#fees--the-exact-schedule).
+
 ### Rebuilt
 
 | Module | Before | After |
 |---|---|---|
 | `endpoints.py` | `gamma-api` + `clob.polymarket.com` + a Polygonscan link | `gateway.polymarket.us` (public) + `api.polymarket.us` (auth), paths kept separate from URLs for signing |
-| `auth.py` | *did not exist* — phase 1 deliberately held no credentials | **new.** Ed25519 signing of `timestamp + METHOD + path` |
 | `config.py` | refused to read a private key | reads an API key pair; still cannot enable trading from the environment |
 | `discovery.py` | slug → `conditionId` → one CLOB token id per outcome, paired by label | slug **is** the instrument; sides are directions, not assets |
 | `plan.py` | N markets → 2N token ids | N markets → N slugs, chunked at the venue's 100-per-subscription cap |
 | `feed.py` | public `market` channel, no auth, snapshot + increments | authenticated handshake, full snapshots, and **normalisation** (below) |
 | `live/client.py` | `py-clob-client`, wallet, `signature_type`, funder, L1→L2 key derivation | the official `polymarket_us` SDK and four order intents |
 | `live/checks.py` | connect → derive credentials → post → cancel | adds a free `preview` step before the first real order |
-| `cli.py` | `doctor`, `market`, `watch`, `report`, `backtest`, `live-check`, `approvals` | same, minus `approvals`, plus `search` |
+| `cli.py` | `doctor`, `market`, `watch`, `report`, `backtest`, `live-check`, `approvals` | same, minus `approvals`, plus `search` and `run` |
+
+### Added
+
+| Module | What it is |
+|---|---|
+| `auth.py` | Ed25519 request signing — phase 1 deliberately held no credentials before |
+| `fees.py` | the venue fee schedule, exactly, pinned to the published table |
+| `live/private.py` | the private stream: real orders, fills, positions, balance |
+| `live/broker.py` | `LiveBroker` — `PaperBroker`'s interface, real money behind it |
+| `live/collateral.py` | this venue's fully-collateralised buying-power rules |
+| `live/runner.py` | the live loop: `replay.run_replay` with the simulator removed |
 
 ### Deleted outright
 
@@ -218,7 +238,7 @@ alive in the logs while recording nothing.
 ## Tests
 
 ```bash
-python -m pytest -q     # 176 tests, no network required
+python -m pytest -q     # 304 tests, no network required
 ```
 
 Every test runs offline against fixtures and hand-built payloads: an
@@ -233,6 +253,16 @@ replay engines unchanged, that BBO is never passed off as a book snapshot,
 subscription chunking at the venue's 100-market cap, halted-vs-empty market
 distinction, order intent mapping, decimal-string price encoding, tick
 snapping, and that auth rejections stop rather than retry.
+
+For phase 3b: every row of the published fee table and all five worked
+examples, that a flat bps rate provably cannot represent the schedule, that
+the maker rebate increases cash, collateral arithmetic against the venue's
+own margin example, every broker guard (buying power, no accidental shorts,
+notional caps, rate limiting, round-down sizing), that a failed cancel keeps
+the order locally rather than losing track of it, that a venue snapshot
+replaces local state rather than merging, that a trade print is not mistaken
+for one of our fills, that quoting stops the moment either socket drops, and
+that orders are cancelled on halt, blindness and exit alike.
 
 ## Endpoint verification
 
@@ -288,9 +318,105 @@ Everything still unmodelled points the same way — optimistic:
 | Queue position | `queue_factor` haircuts fills; 1.0 assumes you are always first |
 | Cancel races | here a cancel always wins; live it can lose to a fill |
 | Sub-snapshot moves | trades that happen and revert between snapshots |
-| Fees | `--fee-bps` defaults to 0; the venue's real schedule is not 0 |
 
 **Treat a marginally profitable backtest as a losing one.**
+
+## Fees — the exact schedule
+
+Effective exchange-wide from 12 AM ET, Wednesday 1 July 2026. Source:
+[docs.polymarket.us/fees](https://docs.polymarket.us/fees). Implemented in
+`fees.py` and pinned to the published table by `tests/test_fees.py`.
+
+```
+Fee = Θ × C × p × (1 - p)
+```
+
+| | Θ (theta) | Max, at p = $0.50, per 100 contracts |
+|---|---|---|
+| **Taker** | `+0.06` | pays **$1.50** |
+| **Maker** | `-0.0125` | receives **$0.31** |
+
+`C` is contracts and `p` the decimal price. Both sides are charged off the
+same `p(1-p)` factor, so fees are symmetric around $0.50 and collapse
+towards the extremes.
+
+### The three things that actually matter
+
+**1. This is not a rate on notional, and no `fee_bps` can express it.**
+
+A conventional fee model charges `notional × rate` — proportional to
+`p × C`. This venue charges proportional to `p × (1 - p) × C`. Divide one
+by the other and the implied bps rate is `Θ × (1 - p)`: a function of
+price, not a constant.
+
+| Price | Implied maker rate | Off by |
+|---|---|---|
+| $0.50 | −62.5 bps | — |
+| $0.75 | −31.2 bps | 2× |
+| $0.90 | −12.5 bps | 5× |
+
+Anchor a flat rate at the midpoint and it is five times too large at
+$0.90 — which is exactly where a sports maker spends its time. So
+`PaperBroker` grew an optional `fee_model` hook and the backtest uses the
+real formula by default. `--fee-bps` still exists, for reproducing older
+results, and prints a warning saying it is not how the venue charges.
+
+**2. The maker rebate is income, not a cost.** Θ is negative for makers.
+A resting quote that gets taken is *paid* ~$0.31 per 100 contracts at the
+midpoint, credited at the moment of the fill. For a strategy whose entire
+edge is a cent or two of spread, that is not a rounding detail — in the
+synthetic run above it is a sixth of the total P&L. `backtest` prints it on
+its own line as `maker rebate +X (earned, not paid)` so it cannot be misread
+as a loss.
+
+**3. Fees are cheapest at the extremes.** `p(1-p)` peaks at $0.50 and
+collapses at both ends: a taker pays $1.50 per 100 contracts at the
+midpoint and $0.06 at $0.01 — a 25× difference. That inverts the flat-bps
+intuition. Quoting long-shot and near-certain markets is cheap; coin flips
+are where the fee eats the spread.
+
+### Rounding
+
+Fees round to the cent with **banker's rounding** (half to even), per fill.
+This has to be done in exact decimal arithmetic, not floats. At $0.05 the
+exact taker fee on 100 contracts is $0.2850, which banker's-rounds down to
+the $0.28 the venue's table lists; in binary floating point the same
+expression is `0.28500000000000003` and rounds up to $0.29. One cent on one
+fill is nothing; the same half-cent bias in the same direction across every
+fill of a backtest is not.
+
+When an aggressive order sweeps several resting orders, the venue caps the
+total commission at the banker's rounding of the cumulative exact fee, and
+the adjustment can only ever reduce a fill's charge. Maker rebates are
+computed per fill, independently. `fees.py` models the per-fill case, which
+is the one a maker meets; the sweep adjustment only makes takers cheaper.
+
+### Are any categories fee-free?
+
+**No.** The published schedule has no category exemptions — no fee-free
+sports, crypto or politics tier. The only ways a fee reaches zero are:
+
+- **The order never trades.** Cancelled, expired or rejected orders are
+  never charged. Fees attach to executions, not to orders.
+- **It rounds to zero.** On a small enough trade, or at a price close
+  enough to $0.00 or $1.00, the rounded fee is $0.00. One contract at
+  $0.50 is charged nothing on either side.
+
+### Taker rebate tiers
+
+Volume rebates apply to **taker** fees only, paid weekly, tiered on the
+prior calendar month's notional taker volume:
+
+| Prior month taker volume | Taker fee rebated |
+|---|---|
+| $250,000 – $999,999 | 10% |
+| $1,000,000 – $9,999,999 | 25% |
+| $10,000,000+ | 50% |
+
+Polymarket will also place you by verifiable trailing-30-day volume on
+another prediction market. None of this is reachable on a $70 account —
+`fees.taker_rebate_rate()` encodes it so the number is not mistaken for
+zero at scale.
 
 And note what `tools/synth_journal.py` is not: a random walk with a constant
 spread and direction-less trades is precisely the world where naive market
@@ -346,17 +472,130 @@ The rails, and why each exists:
 
 ### Before the first live run
 
-1. **Check the fee schedule.** In market making the difference between 0 and
-   20bps decides whether the strategy exists at all —
-   [docs.polymarket.us/fees](https://docs.polymarket.us/fees).
-2. **Check the tick.** `market <slug>` prints it. Often 0.001.
-3. **Check trading hours.** Unlike a 24/7 crypto venue, this one has
+1. **Check the tick.** `market <slug>` prints it. Often 0.001.
+2. **Check trading hours.** Unlike a 24/7 crypto venue, this one has
    scheduled maintenance and per-market hours.
-4. **Check your clock.** Timestamps more than 30 seconds out of sync are
+3. **Check your clock.** Timestamps more than 30 seconds out of sync are
    rejected exactly like a bad key, with an error that says nothing useful.
 
 No wallet funding, no gas token, and no approvals: your KYC'd USD balance is
 the whole story.
+
+## Phase 3b — the strategy, live
+
+```bash
+pip install -r requirements-live.txt
+
+pmbot run <slug> --live --seconds 300 --max-fills 2 \
+    --size 1 --max-inventory 5 --max-loss 5 \
+    --kill-switch /tmp/stop
+```
+
+There is **no dry run**. A dry run of a live strategy is exactly what
+`backtest` already is, and offering one here would give a false sense of
+having tested this path. `run` without `--live` prints the three steps that
+should come first and exits.
+
+### What is shared with phase 2, and what is not
+
+`LiveBroker` presents the same surface as `PaperBroker` — `portfolio`,
+`resting`, `apply()`, `cancel_all()`, `resting_notional_by_token()`,
+`orders_for()`. The strategy and the risk layer are not modified, not
+subclassed and not configured differently; they cannot tell which broker
+they have. `tests/test_live_runner.py` asserts exactly that by driving one
+strategy object through both.
+
+```
+backtest:  book update -> match resting -> strategy -> risk -> broker
+live:      book update ->                  strategy -> risk -> broker
+                              ^
+                 fills arrive here instead, from the venue
+```
+
+The one structural difference is the fill model, and live there isn't one.
+`sim.py`'s inference — trade-tape priority, queue haircut, and a page of
+caveats about how every remaining error is optimistic — is switched off
+entirely. The exchange reports what filled, on `/v1/ws/private`, and
+`LiveBroker.on_private` applies it. No model, no queue factor, no optimism.
+
+### Three guards that exist only live
+
+The agnostic `RiskManager` runs first and is unchanged. These sit after it,
+because each encodes something a venue-neutral risk layer cannot know:
+
+| Guard | Why the agnostic layer can't do it |
+|---|---|
+| **Buying power** | `risk.py` measures exposure as `\|shares\| × mark`. Fully-collateralised shorts break that: a short at $0.40 locks $1.00 of margin, consuming **$0.60** of buying power, not $0.40 — 1.5× what the agnostic figure says. See `collateral.py`. Buying power is read from the venue, never computed. |
+| **No accidental shorts** | Sells are clamped to the position actually held (below). |
+| **Rate** | 20 req/s per key, shared with everything. A maker requoting on every book update will exceed that in a fast market. |
+
+Each refusal is counted and reported alongside the risk vetoes.
+
+### Long-side only, and why
+
+Phase 3b sends `BUY_LONG` and `SELL_LONG` only, and clamps a sell to the
+contracts actually held. It never opens a short.
+
+The API exposes `BUY_SHORT` / `SELL_SHORT`, and market data carries a
+`shortQuote` that is the complement of the long quote — on a live market
+`longPx` was $0.0010 against `shortPx` $0.999, summing to 1. Whether a short
+order's `price` field is quoted in long or short terms could not be
+established from the documentation, and the two readings differ by `1 - p`.
+That mistake does not fail loudly; it fills at a wildly wrong price.
+
+So the bot stays on the side where the convention is unambiguous. This is
+not a limitation of the strategy — a maker accumulates inventory on the bid
+and works it off on the ask, which is entirely expressible long-only. The
+restriction lifts in `LiveBroker.intent_for()` once one small `live-check`
+order has confirmed the convention.
+
+### Going blind
+
+The failure this is built around is not a crash — it is a socket dropping
+while orders are resting.
+
+A backtest models a reconnect as "forget the book, forget your orders",
+which is safe when the orders are imaginary. Live, orders you have forgotten
+are still working at the exchange, quoting a price you chose against a book
+you can no longer see. That is precisely what gets picked off.
+
+So on **any** disconnect, market or private, the runner cancels everything
+and stops quoting until both streams are back and it has reconciled against
+the venue over REST. It keeps tracking the book while blind; it just does
+not act on it. Quoting less is always available, quoting blind is not.
+
+The safety-path cancels are forced — they go to the venue even when local
+state says nothing is resting, because "I think I have no orders" is exactly
+the belief worth not trusting when halting or exiting.
+
+### The rails
+
+| Rail | Reason |
+|---|---|
+| `--live` required, no dry run | `backtest` is the dry run |
+| `LIVE_MAX_ORDER_NOTIONAL` / `LIVE_MAX_RESTING_NOTIONAL` are constants | raising a ceiling requires a diff |
+| Orders journalled before they are sent | a process that dies mid-request still leaves a record of what was in flight |
+| `--max-fills` | the cheapest way to bound a first live run |
+| `--seconds` | walk away without leaving it running |
+| `--kill-switch <file>` | stopping must never require a redeploy |
+| Sticky loss halt | a limit you recover from automatically is not a limit |
+| Forced `cancel_all` on halt, blindness and exit | a crash must never leave an order resting |
+| Reconcile on start and every reconnect | accumulated state across a gap is a guess |
+| Startup cancels pre-existing orders | it will not quote alongside orders it did not place |
+
+Note what the runner does *not* do on exit: it cancels orders but does not
+flatten positions. Closing a position costs money and crosses a spread, and
+that decision is yours. If the run ends holding inventory it says so, loudly,
+with the slug and the size.
+
+### P&L is gross of fees
+
+`LiveBroker` applies venue-reported fills to the portfolio with a zero fee,
+because executions do not carry one — taker fees and maker rebates land in
+the balance ledger instead. So `realized`/`unrealized` in `run` output are
+gross, and the authoritative number is `buying power` and the app. That is
+the honest split: modelling the fee locally would mean two sources of truth
+for cash, and the venue's is the one that counts.
 
 ### On $70
 
@@ -373,22 +612,21 @@ and is worth far more than $7 before scaling.
 | **1. Observe** ✅ | discovery, feed, book, journal | none |
 | **2. Paper trade** ✅ | strategy, fill sim, risk veto, backtest | none |
 | **3a. Plumbing test** ✅ | live auth, one order, cancel | a capped, cancelled order |
-| 3b. Strategy live | `LiveBroker` behind the existing `RiskManager` | hard-capped, small |
+| **3b. Strategy live** ✅ | `LiveBroker`, private stream, collateral guards | hard-capped, small |
 | 4. Scale | only if 3b shows a real edge over weeks | your call |
 
-Phase 3b reuses phases 1 and 2 whole: the same `Strategy`, the same
-`RiskManager`, the same intents. Only the broker changes — `PaperBroker`
-becomes one that posts through `LiveClient`. That swap is the entire
-remaining surface where money can be lost, which is exactly how small you
-want it to be.
+Phase 3b reused phases 1 and 2 whole: the same `Strategy`, the same
+`RiskManager`, the same intents, the same ordering. Only the broker changed.
 
-The private WebSocket (`/v1/ws/private`) is the natural companion: order,
-position and balance updates pushed rather than polled, which is both
-correct and how you stay inside 20 req/s. `endpoints.py` has the URL;
-nothing consumes it yet.
+Do not run it until 3a passes and a backtest on **real** recorded data —
+not the synthetic journal — says there is an edge worth defending. The
+order of operations is `live-check --live`, then `watch` for long enough to
+have real data, then `backtest`, then `run --live --seconds 300
+--max-fills 2`.
 
-It should not be built until 3a passes and a backtest on **real** recorded
-data says there is an edge worth defending.
+What is deliberately still missing: nothing consumes `SUBSCRIPTION_TYPE_RFQ`,
+combos are unimplemented, and `run` handles a single strategy across all its
+markets rather than one per market.
 
 ## A word on strategy
 

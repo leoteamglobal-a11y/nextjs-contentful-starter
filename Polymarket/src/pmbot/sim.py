@@ -42,6 +42,7 @@ from __future__ import annotations
 
 import itertools
 from dataclasses import dataclass, field
+from typing import Callable
 
 from .book import OrderBook
 from .intents import CancelAll, CancelQuote, Intent, PlaceQuote
@@ -80,7 +81,24 @@ class PaperBroker:
     queue_factor: float = 0.5
     resting: dict[str, RestingOrder] = field(default_factory=dict)
     fills: list[Fill] = field(default_factory=list)
+
+    #: Optional `(side, price, size) -> fee` override. Positive is a cost,
+    #: negative is a rebate. `fee_bps` is used when this is None, so the
+    #: default behaviour is unchanged.
+    #:
+    #: This hook exists because Polymarket US does not charge a rate on
+    #: notional: its fee is `Θ × contracts × p × (1 - p)`, which is a
+    #: different *shape*, not a different number — no value of `fee_bps`
+    #: can express it at more than one price. See `pmbot.fees`.
+    fee_model: Callable[[str, float, float], float] | None = None
+
     _ids: itertools.count = field(default_factory=lambda: itertools.count(1))
+
+    def _fee(self, side: str, price: float, size: float) -> float:
+        """Fee for one fill. Positive is a cost, negative is income."""
+        if self.fee_model is not None:
+            return self.fee_model(side, price, size)
+        return price * size * (self.fee_bps / 10_000.0)
 
     # -- order management ----------------------------------------------
 
@@ -151,7 +169,7 @@ class PaperBroker:
             if size <= 1e-9:
                 continue
 
-            fee = order.price * size * (self.fee_bps / 10_000.0)
+            fee = self._fee(order.side, order.price, size)
             realized = self.portfolio.apply_fill(
                 order.token_id, order.side, order.price, size, fee
             )
@@ -212,7 +230,7 @@ class PaperBroker:
                 continue
             budget -= fill_size
 
-            fee = order.price * fill_size * (self.fee_bps / 10_000.0)
+            fee = self._fee(order.side, order.price, fill_size)
             realized = self.portfolio.apply_fill(
                 order.token_id, order.side, order.price, fill_size, fee
             )

@@ -240,61 +240,44 @@ def decode(raw: str | bytes) -> list[dict[str, Any]]:
     return normalize(payload)
 
 
-class MarketFeed:
-    """One socket, many markets, canonical messages out."""
+class AuthedSocket:
+    """The connection half of an authenticated venue stream.
+
+    Both sockets — market data and private — share the same handshake, the
+    same backoff, and the same "a rejected key is not retryable" rule. Only
+    what they subscribe to and how they decode differs, so those are the two
+    hooks subclasses override.
+    """
+
+    #: Subclasses set these.
+    url: str = endpoints.WS_MARKETS
+    path: str = endpoints.WS_MARKETS_PATH
+    label: str = "feed"
 
     def __init__(
         self,
-        slugs: Sequence[str],
         settings: Settings | None = None,
         credentials: Credentials | None = None,
-        url: str = endpoints.WS_MARKETS,
-        path: str = endpoints.WS_MARKETS_PATH,
     ) -> None:
-        if not slugs:
-            raise ValueError("MarketFeed needs at least one market slug")
-        self.slugs = list(dict.fromkeys(str(s) for s in slugs))
         self.settings = settings or Settings()
         self.credentials = credentials or self.settings.credentials
         if self.credentials is None:
             raise ValueError(
-                "MarketFeed needs API credentials: the Polymarket US market "
-                "data socket is authenticated. Set POLYMARKET_KEY_ID and "
-                "POLYMARKET_SECRET_KEY."
+                f"{type(self).__name__} needs API credentials: every "
+                "Polymarket US socket is authenticated. Set "
+                "POLYMARKET_KEY_ID and POLYMARKET_SECRET_KEY."
             )
-        self.url = url
-        self.path = path
         self.reconnects = 0
 
-    # -- subscriptions -------------------------------------------------
-
-    def _chunks(self) -> list[list[str]]:
-        size = endpoints.MAX_MARKETS_PER_SUBSCRIPTION
-        return [self.slugs[i : i + size] for i in range(0, len(self.slugs), size)]
+    # -- hooks ---------------------------------------------------------
 
     def subscribe_requests(self) -> list[dict[str, Any]]:
-        """Every subscribe frame to send after connecting.
+        raise NotImplementedError
 
-        The book and the tape are separate subscriptions on the same socket.
-        Both are worth having: the book is what a strategy quotes against,
-        and the tape is what actually fills a resting quote — a book-only
-        recording almost never fills a maker, because a maker gets filled
-        when a taker crosses to it, and that shows up as a print.
-        """
-        types = [MARKET_DATA] + ([TRADE] if self.settings.subscribe_trades else [])
-        requests: list[dict[str, Any]] = []
-        for index, chunk in enumerate(self._chunks()):
-            for kind in types:
-                requests.append(
-                    {
-                        "subscribe": {
-                            "requestId": f"{kind.lower()}-{index}",
-                            "subscriptionType": kind,
-                            "marketSlugs": chunk,
-                        }
-                    }
-                )
-        return requests
+    def decode_frame(self, raw: str | bytes) -> list[dict[str, Any]]:
+        raise NotImplementedError
+
+    # -- connection ----------------------------------------------------
 
     def _headers(self) -> dict[str, str]:
         assert self.credentials is not None
@@ -349,26 +332,23 @@ class MarketFeed:
         """Yield canonical messages forever, reconnecting as needed.
 
         A synthetic `{"event_type": "_reconnected"}` message is yielded after
-        every successful (re)connect so the consumer knows its book state is
-        about to be replaced and must not trust it until the next snapshot.
+        every successful (re)connect so the consumer knows its state is about
+        to be replaced and must not be trusted until the next snapshot.
         """
         backoff = self.settings.ws_reconnect_base_s
         while True:
             try:
                 socket = await self._connect()
                 async with socket:
-                    for request in self.subscribe_requests():
+                    requests = self.subscribe_requests()
+                    for request in requests:
                         await socket.send(json.dumps(request))
-                    log.info(
-                        "subscribed to %d market(s) over %d subscription(s)",
-                        len(self.slugs),
-                        len(self.subscribe_requests()),
-                    )
+                    log.info("%s: sent %d subscription(s)", self.label, len(requests))
                     backoff = self.settings.ws_reconnect_base_s
                     yield {"event_type": "_reconnected", "reconnects": self.reconnects}
 
                     async for raw in socket:
-                        for message in decode(raw):
+                        for message in self.decode_frame(raw):
                             yield message
 
             except asyncio.CancelledError:
@@ -390,7 +370,8 @@ class MarketFeed:
                 delay = min(backoff, self.settings.ws_reconnect_max_s)
                 delay *= 0.5 + random.random()
                 log.warning(
-                    "feed dropped (%s: %s); reconnecting in %.1fs",
+                    "%s dropped (%s: %s); reconnecting in %.1fs",
+                    self.label,
                     type(exc).__name__,
                     exc,
                     delay,
@@ -398,6 +379,58 @@ class MarketFeed:
                 yield {"event_type": "_disconnected", "error": str(exc)}
                 await asyncio.sleep(delay)
                 backoff = min(backoff * 2, self.settings.ws_reconnect_max_s)
+
+
+class MarketFeed(AuthedSocket):
+    """One socket, many markets, canonical messages out."""
+
+    label = "market feed"
+
+    def __init__(
+        self,
+        slugs: Sequence[str],
+        settings: Settings | None = None,
+        credentials: Credentials | None = None,
+        url: str = endpoints.WS_MARKETS,
+        path: str = endpoints.WS_MARKETS_PATH,
+    ) -> None:
+        if not slugs:
+            raise ValueError("MarketFeed needs at least one market slug")
+        self.slugs = list(dict.fromkeys(str(s) for s in slugs))
+        super().__init__(settings=settings, credentials=credentials)
+        self.url = url
+        self.path = path
+
+    def _chunks(self) -> list[list[str]]:
+        size = endpoints.MAX_MARKETS_PER_SUBSCRIPTION
+        return [self.slugs[i : i + size] for i in range(0, len(self.slugs), size)]
+
+    def subscribe_requests(self) -> list[dict[str, Any]]:
+        """Every subscribe frame to send after connecting.
+
+        The book and the tape are separate subscriptions on the same socket.
+        Both are worth having: the book is what a strategy quotes against,
+        and the tape is what actually fills a resting quote — a book-only
+        recording almost never fills a maker, because a maker gets filled
+        when a taker crosses to it, and that shows up as a print.
+        """
+        types = [MARKET_DATA] + ([TRADE] if self.settings.subscribe_trades else [])
+        requests: list[dict[str, Any]] = []
+        for index, chunk in enumerate(self._chunks()):
+            for kind in types:
+                requests.append(
+                    {
+                        "subscribe": {
+                            "requestId": f"{kind.lower()}-{index}",
+                            "subscriptionType": kind,
+                            "marketSlugs": chunk,
+                        }
+                    }
+                )
+        return requests
+
+    def decode_frame(self, raw: str | bytes) -> list[dict[str, Any]]:
+        return decode(raw)
 
 
 def iter_normalized(payloads: Iterable[dict[str, Any]]) -> list[dict[str, Any]]:

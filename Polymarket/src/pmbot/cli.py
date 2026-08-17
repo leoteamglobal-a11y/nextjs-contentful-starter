@@ -26,7 +26,7 @@ from pathlib import Path
 
 import httpx
 
-from . import endpoints
+from . import endpoints, fees
 from .auth import AuthError, Credentials
 from .book import BookSet
 from .config import Settings
@@ -383,14 +383,21 @@ def cmd_backtest(args: argparse.Namespace) -> int:
             max_order_size=max(args.size, 1.0),
         )
     )
-    broker = PaperBroker(fee_bps=args.fee_bps, queue_factor=args.queue_factor)
+    if args.fee_bps is not None:
+        broker = PaperBroker(fee_bps=args.fee_bps, queue_factor=args.queue_factor)
+        fee_description = f"flat {args.fee_bps} bps of notional"
+    else:
+        broker = PaperBroker(
+            fee_model=fees.fee_model(args.fee_role), queue_factor=args.queue_factor
+        )
+        fee_description = f"venue schedule, {args.fee_role} side"
 
     result = run_replay(paths, strategy, risk=risk, broker=broker)
 
     print(f"strategy      {strategy.name} "
           f"(half_spread={args.half_spread}, size={args.size}, "
           f"min_edge={args.min_edge}, tick={args.tick})")
-    print(f"fill model    queue_factor={args.queue_factor}, fee_bps={args.fee_bps}")
+    print(f"fill model    queue_factor={args.queue_factor}, fees: {fee_description}")
     print(f"\nmessages      {result.messages}")
     print(f"book updates  {result.updates}")
     print(f"trade prints  {result.trades}")
@@ -400,7 +407,12 @@ def cmd_backtest(args: argparse.Namespace) -> int:
     pf = result.portfolio
     print(f"\nfills         {pf.fills}")
     print(f"volume        {pf.volume:,.2f} USD")
-    print(f"fees          {pf.fees_paid:,.4f} USD")
+    if pf.fees_paid < 0:
+        # A negative fee is the maker rebate. Printing it as a cost of
+        # "-0.42 USD" invites reading it as a loss; it is income.
+        print(f"maker rebate  +{-pf.fees_paid:,.4f} USD  (earned, not paid)")
+    else:
+        print(f"fees          {pf.fees_paid:,.4f} USD")
     print(f"\nrealized      {result.realized:+,.4f} USD")
     print(f"unrealized    {result.unrealized:+,.4f} USD")
     print(f"total         {result.total_pnl:+,.4f} USD")
@@ -436,9 +448,16 @@ def cmd_backtest(args: argparse.Namespace) -> int:
         print("\n  Fills are inferred, not observed. Latency, queue position and "
               "\n  cancel races are all unmodelled, and every one of them costs "
               "money\n  live. Treat a marginally profitable result as a losing one.")
-        print("  Fees here are whatever you passed in --fee-bps. Polymarket US "
-              "charges\n  real trading fees; check docs.polymarket.us/fees and put "
-              "the actual\n  number in before believing a thin edge.")
+        if args.fee_bps is not None:
+            print("\n  --fee-bps applies a flat rate to notional. The venue does "
+                  "not:\n  its fee is theta x contracts x p x (1-p), which no single "
+                  "bps value\n  matches at more than one price. Drop the flag to use "
+                  "the real one.")
+        elif args.fee_role == "maker" and pf.fees_paid < 0:
+            share = abs(pf.fees_paid) / abs(result.total_pnl) if result.total_pnl else 0
+            print(f"\n  The maker rebate is {share:.0%} of the total P&L here. It is "
+                  "real income,\n  but it is only earned on fills you did not have to "
+                  "cross for — if the\n  fill model is optimistic, so is the rebate.")
         if args.queue_factor >= 1.0:
             print("\n  queue_factor=1.0 assumes you are always first in the queue. "
                   "You are\n  not. This number is optimistic by construction.")
@@ -506,6 +525,169 @@ def cmd_live_check(args: argparse.Namespace) -> int:
     return 1
 
 
+async def _run_strategy(args: argparse.Namespace, settings: Settings) -> int:
+    from .live import LiveBroker, ClientConfig, LiveClient, PrivateFeed, run_live
+    from .live.broker import LIVE_MAX_ORDER_NOTIONAL, LIVE_MAX_RESTING_NOTIONAL
+
+    credentials = settings.require_credentials()
+
+    markets = resolve_markets(args.market, settings)
+    if not markets:
+        print("error: no markets could be resolved", file=sys.stderr)
+        return 1
+
+    tradable = [m for m in markets if m.tradable]
+    if not tradable:
+        print("error: none of those markets are tradable right now", file=sys.stderr)
+        return 1
+
+    plan = build_plan(tradable)
+    _print_plan(plan)
+
+    # Quote on the venue's own grid. Quoting a 0.01 grid on a 0.001-tick
+    # market throws away nine ticks of queue position per quote.
+    tick = args.tick if args.tick else min(m.tick_size for m in tradable)
+
+    strategy = MakerStrategy(
+        half_spread=args.half_spread,
+        size=args.size,
+        min_edge=args.min_edge,
+        max_inventory=args.max_inventory,
+        tick=tick,
+    )
+    risk = RiskManager(
+        RiskLimits(
+            max_shares_per_token=args.max_shares,
+            max_exposure=args.max_exposure,
+            max_loss=args.max_loss,
+            max_order_size=max(args.size, 1.0),
+            kill_switch_file=Path(args.kill_switch) if args.kill_switch else None,
+        )
+    )
+
+    print("=" * 62)
+    print("  LIVE STRATEGY — this places real orders with real money.")
+    print(f"  Per-order cap    {LIVE_MAX_ORDER_NOTIONAL} USD of buying power")
+    print(f"  Resting cap      {LIVE_MAX_RESTING_NOTIONAL} USD across all orders")
+    print(f"  Loss halt        {args.max_loss} USD (sticky — no auto-restart)")
+    print(f"  Quoting tick     {tick}")
+    if args.kill_switch:
+        print(f"  Kill switch      touch {args.kill_switch} to stop and flatten")
+    if args.seconds:
+        print(f"  Time limit       {args.seconds}s")
+    print("  Everything resting is cancelled on exit, halt or crash.")
+    print("=" * 62)
+    if not args.yes:
+        reply = input("\nType 'trade' to start: ").strip().lower()
+        if reply != "trade":
+            print("aborted")
+            return 1
+
+    config = ClientConfig.from_env()
+    print(f"\ncredentials   {config.redacted()}\n")
+
+    client = LiveClient(config)
+    who = client.connect()
+    print(f"connected     {who}\n")
+
+    with Journal(settings.journal_dir, args.name) as journal:
+        broker = LiveBroker(client=client, journal=journal)
+        broker.reconcile()
+        if broker.resting:
+            print(f"warning: {len(broker.resting)} order(s) already resting at the "
+                  "venue; they will be cancelled", file=sys.stderr)
+            await broker.cancel_all()
+
+        market_feed = MarketFeed(
+            list(plan.slugs), settings=settings, credentials=credentials
+        )
+        private_feed = PrivateFeed(
+            list(plan.slugs), settings=settings, credentials=credentials
+        )
+
+        result = await run_live(
+            plan,
+            strategy,
+            risk,
+            broker,
+            market_feed.stream(),
+            private_feed.stream(),
+            journal,
+            max_seconds=args.seconds,
+            max_fills=args.max_fills,
+        )
+
+    print(f"\nstopped       {result.stopped_because or 'end of stream'}")
+    print(f"book updates  {result.updates}")
+    print(f"executions    {result.executions}")
+    if result.blind_periods:
+        print(f"blind periods {result.blind_periods}  (orders cancelled each time)")
+
+    summary = broker.summary()
+    print(f"\norders sent   {summary['orders_sent']}")
+    print(f"cancelled     {summary['orders_cancelled']}")
+    print(f"fills         {summary['fills']}")
+    print(f"buying power  {summary['buying_power']}")
+
+    print(f"\nrealized      {result.realized:+,.4f} USD")
+    print(f"unrealized    {result.unrealized:+,.4f} USD  (marked at mid)")
+    print(f"total         {result.total_pnl:+,.4f} USD")
+    print("\n  P&L above is gross of fees. The venue's maker rebate and taker")
+    print("  fees land in the balance ledger — trust `buying power` and the")
+    print("  app, not this number, for what actually happened to the cash.")
+
+    for pos in result.portfolio.open_positions():
+        mark = result.marks.get(pos.token_id)
+        mark_s = f"{mark:.4f}" if mark is not None else "-"
+        print(f"\n  OPEN POSITION {pos.token_id} shares={pos.shares:+.2f} "
+              f"avg={pos.avg_cost:.4f} mark={mark_s}")
+        print("  Orders are cancelled but the position is not closed. Flatten it")
+        print("  in the app, or with: pmbot live-check <slug> --live")
+
+    if summary["total_refused"]:
+        print("\nbroker refusals")
+        for reason, count in summary["refusals"].items():
+            print(f"  {reason:<24} {count}")
+
+    risk_summary = risk.summary()
+    if risk_summary["total_vetoed"]:
+        print("\nrisk vetoes")
+        for reason, count in risk_summary["vetoes"].items():  # type: ignore[union-attr]
+            print(f"  {reason:<24} {count}")
+    if risk.halted:
+        print(f"\n  HALTED: {risk.halt_reason}")
+        return 1
+    return 0
+
+
+def cmd_run(args: argparse.Namespace) -> int:
+    """Phase 3b: the strategy, live, behind the same risk layer."""
+    from .feed import FeedAuthError
+    from .live.client import LiveClientError
+
+    settings = Settings.from_env()
+    if not args.live:
+        print("Refusing to run without --live.\n")
+        print("This command places real orders. There is no dry run: a dry run")
+        print("of a live strategy is exactly what `backtest` already is, and")
+        print("pretending otherwise would give you a false sense of having")
+        print("tested this path.\n")
+        print("Before the first --live run:")
+        print("  1. pmbot live-check <slug> --live     prove the plumbing works")
+        print("  2. pmbot backtest <journal>           prove there is an edge")
+        print("  3. pmbot run <slug> --live --seconds 300 --max-fills 2")
+        return 1
+
+    try:
+        return asyncio.run(_run_strategy(args, settings))
+    except (AuthError, FeedAuthError, LiveClientError) as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 1
+    except KeyboardInterrupt:
+        print("\ninterrupted — orders cancelled", file=sys.stderr)
+        return 130
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="pmbot", description=__doc__)
     parser.add_argument("-v", "--verbose", action="store_true")
@@ -553,7 +735,15 @@ def build_parser() -> argparse.ArgumentParser:
                              "venue's tick (often 0.001)")
     p_back.add_argument("--queue-factor", type=float, default=0.5,
                         help="haircut on every fill; 1.0 assumes perfect queue position")
-    p_back.add_argument("--fee-bps", type=float, default=0.0)
+    p_back.add_argument("--fee-role", choices=("maker", "taker", "none"),
+                        default="maker",
+                        help="which side of the venue fee schedule to apply. "
+                             "A resting quote is the passive side, so a maker "
+                             "strategy earns the rebate (default: maker)")
+    p_back.add_argument("--fee-bps", type=float, default=None,
+                        help="override the venue schedule with a flat bps rate "
+                             "on notional. The venue does not charge this way; "
+                             "for comparison against older results only")
     p_back.add_argument("--max-shares", type=float, default=500.0)
     p_back.add_argument("--max-exposure", type=float, default=1000.0)
     p_back.add_argument("--max-loss", type=float, default=100.0)
@@ -575,6 +765,36 @@ def build_parser() -> argparse.ArgumentParser:
     p_live.add_argument("--yes", action="store_true", help="skip the confirmation prompt")
     p_live.add_argument("--fill-test", action="store_true", help="not yet implemented")
     p_live.set_defaults(func=cmd_live_check)
+
+    p_run = sub.add_parser(
+        "run",
+        help="run the strategy against the live venue (phase 3b) — REAL MONEY",
+    )
+    p_run.add_argument("market", nargs="+", help="Polymarket US URL(s) or slug(s)")
+    p_run.add_argument("--live", action="store_true",
+                       help="required. There is no dry run; use `backtest`")
+    p_run.add_argument("--yes", action="store_true", help="skip the confirmation")
+    p_run.add_argument("--seconds", type=float, default=None,
+                       help="stop after N seconds. Strongly recommended")
+    p_run.add_argument("--max-fills", type=int, default=None,
+                       help="stop after N fills. The cheapest way to bound a "
+                            "first live run")
+    p_run.add_argument("--name", default="live", help="journal stream name")
+    p_run.add_argument("--kill-switch", default=None,
+                       help="path to a file that, once it exists, halts and "
+                            "flattens — stopping must not need a redeploy")
+    p_run.add_argument("--half-spread", type=float, default=0.02)
+    p_run.add_argument("--size", type=float, default=1.0,
+                       help="contracts per quote (default: 1)")
+    p_run.add_argument("--min-edge", type=float, default=0.01)
+    p_run.add_argument("--max-inventory", type=float, default=5.0)
+    p_run.add_argument("--tick", type=float, default=None,
+                       help="quoting tick; defaults to the market's own")
+    p_run.add_argument("--max-shares", type=float, default=10.0)
+    p_run.add_argument("--max-exposure", type=float, default=20.0)
+    p_run.add_argument("--max-loss", type=float, default=5.0,
+                       help="sticky halt on drawdown (default: 5 USD)")
+    p_run.set_defaults(func=cmd_run)
 
     return parser
 
