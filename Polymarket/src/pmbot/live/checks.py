@@ -82,18 +82,25 @@ def resting_price(best_bid: float | None, tick: float) -> float:
     return max(price, tick if tick > 0 else 0.01)
 
 
-def size_for(price: float) -> float:
+def size_for(price: float, min_shares: float = 1.0) -> float:
     """Smallest share count that clears the venue minimum without exceeding
-    the plumbing ceiling."""
+    the plumbing ceiling.
+
+    There are two independent minimums and an order has to clear both: a
+    notional floor, and the market's own `min_order_size` in shares, which
+    the live venue reports as 5 on every market checked. Guessing either
+    one wrong means an order rejected for a reason the error does not name.
+    """
     if price <= 0:
         raise ValueError("price must be positive")
-    shares = PLUMBING_MIN_NOTIONAL / price
+    shares = max(PLUMBING_MIN_NOTIONAL / price, min_shares)
     shares = max(1.0, round(shares + 0.5))
     if shares * price > PLUMBING_MAX_NOTIONAL:
         raise LiveClientError(
-            f"minimum viable order at price {price:.4f} would cost "
-            f"{shares * price:.2f} USDC, over the {PLUMBING_MAX_NOTIONAL} cap. "
-            "Pick a market whose prices are not this extreme."
+            f"minimum viable order at price {price:.4f} is {shares:g} shares "
+            f"(venue minimum {min_shares:g}), costing {shares * price:.2f} "
+            f"USDC — over the {PLUMBING_MAX_NOTIONAL} cap. Pick a market whose "
+            "prices are not this extreme."
         )
     return float(shares)
 
@@ -145,10 +152,22 @@ def run_checks(
             return run
         run.add(Step("venue reachable", True))
 
-        tick = client.tick_size(token.token_id)
-        run.add(Step("read tick size", True, f"tick={tick}"))
-
+        # One call, three answers: the book, the tick size and the minimum
+        # order size all arrive together. The SDK has no separate tick-size
+        # read, and inventing a default for either minimum is how you get an
+        # order rejected for a reason the venue does not spell out.
         book = client.order_book(token.token_id)
+        tick = _as_float(getattr(book, "tick_size", None)) or 0.01
+        min_shares = _as_float(getattr(book, "min_order_size", None)) or 1.0
+        run.add(
+            Step(
+                "read market parameters",
+                True,
+                f"tick={tick} min_order_size={min_shares:g}",
+                {"tick_size": tick, "min_order_size": min_shares},
+            )
+        )
+
         best_bid = _best(book, "bids", max)
         best_ask = _best(book, "asks", min)
         if best_bid is None and best_ask is None:
@@ -157,7 +176,7 @@ def run_checks(
         run.add(Step("read order book", True, f"bid={best_bid} ask={best_ask}"))
 
         price = resting_price(best_bid, tick)
-        size = size_for(price)
+        size = size_for(price, min_shares)
         notional = price * size
 
         if best_ask is not None and price >= best_ask:
@@ -189,11 +208,11 @@ def run_checks(
             },
         )
 
-        response = client.place_limit(token.token_id, "BUY", price, size, tick)
+        response = client.place_limit(token.token_id, "BUY", price, size)
         placed_order_id = _order_id(response)
         journal.write("live_order_ack", {"order_id": placed_order_id, "raw": str(response)[:500]})
         if not placed_order_id:
-            run.add(Step("post resting order", False, f"no order id in {response!r}"))
+            run.add(Step("post resting order", False, _rejection(response)))
             return run
         run.add(Step("post resting order", True, f"id={placed_order_id}"))
 
@@ -262,13 +281,34 @@ def _best(book: Any, side: str, pick) -> float | None:
     return pick(prices) if prices else None
 
 
+def _as_float(value: Any) -> float | None:
+    """SDK models return Decimal; the venue's JSON returns strings."""
+    try:
+        return float(value)  # type: ignore[arg-type]
+    except (TypeError, ValueError):
+        return None
+
+
 def _order_id(response: Any) -> str | None:
     if response is None:
         return None
-    for key in ("orderID", "order_id", "orderId", "id"):
+    for key in ("order_id", "orderID", "orderId", "id"):
         value = getattr(response, key, None)
         if value is None and isinstance(response, dict):
             value = response.get(key)
         if value:
             return str(value)
     return None
+
+
+def _rejection(response: Any) -> str:
+    """Why an order carries no id. A rejected order says so in its own
+    fields, and repeating them beats printing the whole object."""
+    code = getattr(response, "code", None)
+    message = getattr(response, "message", None)
+    if isinstance(response, dict):
+        code = code or response.get("code")
+        message = message or response.get("message")
+    if code or message:
+        return f"rejected: {code or '?'}: {message or ''}".strip()
+    return f"no order id in {response!r}"

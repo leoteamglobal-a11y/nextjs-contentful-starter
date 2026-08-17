@@ -101,12 +101,77 @@ def test_bookset_routes_by_asset_id():
     snapshot = load("book_snapshot.json") | {"asset_id": "t2", "event_type": "book"}
     touched = books.handle(snapshot)
 
-    assert touched is books.get("t2")
+    assert touched == [books.get("t2")]
     assert books.get("t2").mid == pytest.approx(0.62)
     assert books.get("t1").mid is None
 
 
 def test_bookset_ignores_messages_without_book_state():
     books = BookSet(["t1"])
-    assert books.handle({"event_type": "tick_size_change", "asset_id": "t1"}) is None
-    assert books.handle({"event_type": "book"}) is None
+    assert books.handle({"event_type": "tick_size_change", "asset_id": "t1"}) == []
+    assert books.handle({"event_type": "book"}) == []
+
+
+def test_price_change_frame_updates_every_token_it_names():
+    """The live venue scopes a `price_change` to a market, not a token: one
+    frame carries changes for both sides, each entry naming its own asset
+    id. Routing on a top-level asset id — which these frames do not have —
+    silently dropped every incremental update the venue sent.
+    """
+    books = BookSet(["t1", "t2"])
+    books.get("t1").apply_snapshot(
+        {"bids": [{"price": "0.40", "size": "10"}], "asks": [{"price": "0.60", "size": "10"}]}
+    )
+    books.get("t2").apply_snapshot(
+        {"bids": [{"price": "0.30", "size": "10"}], "asks": [{"price": "0.70", "size": "10"}]}
+    )
+
+    touched = books.handle(
+        {
+            "event_type": "price_change",
+            "market": "0xcondition",
+            "timestamp": "1786933026174",
+            "price_changes": [
+                {"asset_id": "t1", "price": "0.41", "size": "25", "side": "BUY"},
+                {"asset_id": "t2", "price": "0.69", "size": "30", "side": "SELL"},
+            ],
+        }
+    )
+
+    assert {b.token_id for b in touched} == {"t1", "t2"}
+    assert books.get("t1").best_bid.price == pytest.approx(0.41)
+    assert books.get("t2").best_ask.price == pytest.approx(0.69)
+
+
+def test_price_change_does_not_leak_across_tokens():
+    """Each entry applies only to the token it names. Applying a whole
+    frame to every book would write the other outcome's prices into it."""
+    books = BookSet(["t1", "t2"])
+    books.handle(
+        {
+            "event_type": "price_change",
+            "price_changes": [
+                {"asset_id": "t1", "price": "0.41", "size": "25", "side": "BUY"},
+            ],
+        }
+    )
+
+    assert books.get("t1").best_bid.price == pytest.approx(0.41)
+    assert books.get("t2").best_bid is None
+
+
+def test_legacy_flat_price_change_still_replays():
+    """Journals recorded before the batched shape was understood carry a
+    flat `changes` list with the asset id at the top level. They have to
+    keep replaying — a recording is not re-recordable."""
+    books = BookSet(["t1"])
+    touched = books.handle(
+        {
+            "event_type": "price_change",
+            "asset_id": "t1",
+            "changes": [{"price": "0.42", "size": "12", "side": "BUY"}],
+        }
+    )
+
+    assert touched == [books.get("t1")]
+    assert books.get("t1").best_bid.price == pytest.approx(0.42)

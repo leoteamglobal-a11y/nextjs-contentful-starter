@@ -1,28 +1,77 @@
 """Thin adapter over the Polymarket SDK.
 
 Everything that knows an SDK's method names lives in this one file, so when
-the SDK changes — and it has, twice: `py-clob-client` is archived,
-`py-clob-client-v2` points at a newer unified SDK — there is exactly one
-file to fix rather than a rewrite.
+the SDK changes — and it has, twice — there is exactly one file to fix
+rather than a rewrite. That bet paid off: this file was rewritten against
+the real SDK without a line changing anywhere else.
 
-⚠️ ADAPTER NOTES — UNVERIFIED SURFACE ⚠️
+VERIFIED 2026-08-17 against `polymarket-client` 0.6.0, the official unified
+Python SDK (https://github.com/Polymarket/py-sdk). Every read below was run
+live. Every *write* — placing, cancelling — is still unexercised, because
+exercising it costs money; that is what `live-check --live` is for.
 
-None of the calls below have been run against the real venue: the machine
-this was written on had `*.polymarket.com` blocked by network policy. The
-shapes come from the published SDK README. Before trusting any of it, run
+## What the previous version of this file got wrong
 
-    python -m pmbot.cli live-check <market>
+It targeted `py_clob_client_v2`, guessed from a README. Almost none of it
+survived contact with the real package:
 
-which exercises each call in order and tells you which one broke. The list
-of things most likely to be wrong, in order:
+| assumed                            | actual (`polymarket-client` 0.6.0)         |
+| ---------------------------------- | ------------------------------------------ |
+| `import py_clob_client_v2`         | `from polymarket import SecureClient`      |
+| `ClobClient(host=, chain_id=, key=)` | `SecureClient.create(private_key=, wallet=)` |
+| `create_or_derive_api_key()`       | done inside `create()`; read `.credentials` |
+| `set_api_creds(creds)`             | gone — `create()` installs them            |
+| `signature_type=` parameter        | derived from the wallet; see below         |
+| `get_ok()`                         | no such method (plain REST `/ok`)          |
+| `get_tick_size(token)`             | `get_order_book().tick_size`               |
+| `get_orders()`                     | `list_open_orders()` -> paginator          |
+| `create_and_post_order(OrderArgs)` | `place_limit_order(token_id=, price=, ...)` |
+| `cancel(order_id)`                 | `cancel_order(order_id=)`                  |
+| `get_address()`                    | `.wallet` / `.signer` properties           |
 
-1. `create_or_derive_api_key()` vs `create_api_key()` / `derive_api_key()`.
-2. Whether `signature_type` must be set: 0 for a plain EOA wallet, 1 for an
-   email/Magic proxy, 2 for a browser proxy. Getting this wrong signs
-   orders for the wrong address and every order is rejected.
-3. Whether `funder` (the address holding the USDC) must be passed
-   separately from the signing key.
-4. The tick size of the specific market, which limits price precision.
+`cancel_all()` was the only call that was already right.
+
+## ⚠️ This adapter targets INTERNATIONAL Polymarket, not Polymarket US ⚠️
+
+Everything here — this SDK, the Polygon signing it does, wallets, contract
+approvals, `signature_type` — belongs to the international, self-custody
+venue. **The account this bot is meant to trade is on Polymarket US**, the
+CFTC-regulated, KYC'd entity, where positions are held in a brokerage
+account rather than a wallet you sign for.
+
+None of the live path below has been checked against Polymarket US, and
+there is no reason to assume it transfers: a regulated US venue does not
+generally expose the same order API as an on-chain exchange. Phase 3a is
+therefore **blocked on establishing what Polymarket US's API actually is**,
+which is a question about that venue, not about this file.
+
+What follows is still correct for the international venue, and is kept
+because the surface it documents was verified there. Do not run
+`live-check --live` against a US account on the strength of it.
+
+## Signature type is derived, not configured
+
+There is no `signature_type` argument any more, and setting one was the
+single most dangerous guess in the old adapter. The SDK infers it by
+deriving each known wallet layout from the signing key and seeing which one
+matches the `wallet` address you pass (`polymarket._internal.wallet.
+classify_wallet_type`):
+
+| wallet                              | type            | signature_type |
+| ----------------------------------- | --------------- | -------------- |
+| the signing key's own address       | `EOA`           | 0              |
+| email / Magic proxy                 | `POLY_PROXY`    | 1              |
+| browser wallet proxy (Gnosis Safe)  | `GNOSIS_SAFE`   | 2              |
+| deposit wallet                      | `DEPOSIT_WALLET`| 3              |
+
+This is strictly better than a configured integer: a wrong `funder` cannot
+silently sign for the wrong address, because a wallet that derives from no
+known layout is rejected up front with `UserInputError` instead of
+producing orders the venue rejects for reasons it will not explain.
+
+`PMBOT_FUNDER` sets the `wallet` the key acts for. Leave it unset only for
+a plain EOA that funds itself; for any proxy wallet it is the address shown
+in the venue's UI, and omitting it silently signs for a different account.
 """
 
 from __future__ import annotations
@@ -30,6 +79,10 @@ from __future__ import annotations
 import os
 from dataclasses import dataclass
 from typing import Any
+
+import httpx
+
+from .. import endpoints
 
 
 class LiveClientError(RuntimeError):
@@ -43,27 +96,30 @@ def _require_sdk() -> Any:
     that can sign an order should be a dependency of code that only reads.
     """
     try:
-        import py_clob_client_v2 as sdk  # type: ignore
-    except ImportError:  # pragma: no cover - exercised only with the SDK absent
-        try:
-            import py_clob_client as sdk  # type: ignore
-        except ImportError as exc:
-            raise LiveClientError(
-                "No Polymarket SDK installed. For live use:\n"
-                "    pip install py-clob-client-v2\n"
-                "See https://github.com/Polymarket/py-sdk for the newer "
-                "unified SDK if this adapter needs updating."
-            ) from exc
+        import polymarket as sdk  # type: ignore
+    except ImportError as exc:  # pragma: no cover - exercised only without the SDK
+        raise LiveClientError(
+            "The Polymarket SDK is not installed. For live use:\n"
+            "    pip install polymarket-client\n"
+            "Note the package name: `polymarket-client` on PyPI, imported as\n"
+            "`polymarket`. The older `py-clob-client` and `py-clob-client-v2`\n"
+            "packages are superseded and this adapter no longer targets them."
+        ) from exc
     return sdk
 
 
 @dataclass
 class WalletConfig:
+    """The two things needed to sign: a key, and the wallet it acts for.
+
+    `funder` is the address that holds the money. For a plain EOA it is the
+    signing key's own address and may be omitted; for any proxy wallet it
+    is a *different* address, and orders signed without it are signed for
+    an empty wallet.
+    """
+
     private_key: str
     funder: str | None = None
-    chain_id: int = 137  # Polygon
-    signature_type: int = 0  # 0 = EOA, 1 = email/Magic proxy, 2 = browser proxy
-    host: str = "https://clob.polymarket.com"
 
     @classmethod
     def from_env(cls) -> "WalletConfig":
@@ -75,15 +131,12 @@ class WalletConfig:
             )
         return cls(
             private_key=key,
-            funder=os.getenv("PMBOT_FUNDER") or None,
-            chain_id=int(os.getenv("PMBOT_CHAIN_ID", "137")),
-            signature_type=int(os.getenv("PMBOT_SIGNATURE_TYPE", "0")),
-            host=os.getenv("PMBOT_CLOB_HOST", "https://clob.polymarket.com"),
+            funder=os.getenv("PMBOT_FUNDER") or os.getenv("PMBOT_WALLET") or None,
         )
 
     def redacted(self) -> str:
         tail = self.private_key[-4:] if len(self.private_key) > 4 else "????"
-        return f"key=...{tail} chain={self.chain_id} sig_type={self.signature_type}"
+        return f"key=...{tail} funder={self.funder}"
 
 
 class LiveClient:
@@ -93,114 +146,96 @@ class LiveClient:
         self.config = config
         self._sdk = _require_sdk()
         self._client: Any = None
+        #: How the SDK classified the key/funder pair — EOA, POLY_PROXY,
+        #: GNOSIS_SAFE or DEPOSIT_WALLET. Worth printing: it is the one
+        #: thing that says which account orders will actually be signed for.
+        self.wallet_type: str | None = None
 
     # -- setup ---------------------------------------------------------
 
     def connect(self) -> str:
-        """Build the client and derive L2 credentials. Returns the address."""
+        """Build the client and derive L2 credentials. Returns the address.
+
+        One call does what used to take three: `create()` signs the L1
+        challenge, creates or derives the L2 API key, installs it, and
+        classifies the wallet.
+        """
         sdk = self._sdk
         try:
-            kwargs: dict[str, Any] = {
-                "host": self.config.host,
-                "chain_id": self.config.chain_id,
-                "key": self.config.private_key,
-            }
-            if self.config.signature_type:
-                kwargs["signature_type"] = self.config.signature_type
-            if self.config.funder:
-                kwargs["funder"] = self.config.funder
-
-            self._client = sdk.ClobClient(**kwargs)  # type: ignore[attr-defined]
-
-            # L1 wallet signature -> L2 HMAC credentials.
-            creds = self._call_first(
-                self._client,
-                ["create_or_derive_api_key", "derive_api_key", "create_api_key"],
+            self._client = sdk.SecureClient.create(
+                private_key=self.config.private_key,
+                wallet=self.config.funder,
             )
-            if creds is not None and hasattr(self._client, "set_api_creds"):
-                self._client.set_api_creds(creds)
-        except LiveClientError:
-            raise
         except Exception as exc:  # noqa: BLE001
-            raise LiveClientError(f"connect failed: {type(exc).__name__}: {exc}") from exc
+            raise LiveClientError(
+                f"connect failed: {type(exc).__name__}: {exc}\n"
+                "A 'does not match the signer' error here means PMBOT_FUNDER is\n"
+                "not a wallet this key controls — check it against the address\n"
+                "in the Polymarket UI."
+            ) from exc
 
+        self.wallet_type = str(getattr(self._client, "wallet_type", "") or "")
         return self.address()
 
-    def _call_first(self, obj: Any, names: list[str]) -> Any:
-        """Call the first method that exists, so an SDK rename is survivable."""
-        for name in names:
-            method = getattr(obj, name, None)
-            if callable(method):
-                return method()
-        raise LiveClientError(
-            f"SDK exposes none of {names}. The adapter needs updating for this "
-            "SDK version — see the ADAPTER NOTES at the top of this file."
-        )
-
     def address(self) -> str:
-        for name in ("get_address", "get_wallet_address"):
-            method = getattr(self._client, name, None)
-            if callable(method):
-                return str(method())
-        return str(getattr(self._client, "address", "<unknown>"))
+        return str(getattr(self._client, "wallet", "<unknown>"))
+
+    def signer_address(self) -> str:
+        signer = getattr(self._client, "signer", None)
+        return str(getattr(signer, "address", signer or "<unknown>"))
 
     # -- reads ---------------------------------------------------------
 
     def ok(self) -> bool:
+        """Venue liveness. Public REST — the SDK exposes no equivalent."""
         try:
-            return bool(self._client.get_ok())
+            response = httpx.get(f"{endpoints.CLOB_BASE}/ok", timeout=10.0)
+            return response.status_code == 200
         except Exception:  # noqa: BLE001
             return False
 
-    def tick_size(self, token_id: str) -> float:
-        try:
-            return float(self._client.get_tick_size(token_id))
-        except Exception:  # noqa: BLE001
-            return 0.01
-
     def order_book(self, token_id: str) -> Any:
-        return self._client.get_order_book(token_id)
-
-    def open_orders(self) -> list[dict[str, Any]]:
+        """The book, which also carries this market's trading parameters."""
         try:
-            orders = self._client.get_orders()
+            return self._client.get_order_book(token_id=token_id)
         except Exception as exc:  # noqa: BLE001
-            raise LiveClientError(f"get_orders failed: {exc}") from exc
-        return list(orders or [])
+            raise LiveClientError(f"get_order_book failed: {exc}") from exc
+
+    def open_orders(self) -> list[Any]:
+        """Every resting order. The SDK paginates; the plumbing check does
+        not care about pages, and one page of open orders is all a capped
+        test run can produce."""
+        try:
+            return list(self._client.list_open_orders().iter_items())
+        except Exception as exc:  # noqa: BLE001
+            raise LiveClientError(f"list_open_orders failed: {exc}") from exc
 
     # -- writes --------------------------------------------------------
 
     def place_limit(
-        self, token_id: str, side: str, price: float, size: float, tick_size: float
-    ) -> dict[str, Any]:
-        """Post a GTC limit order. This spends real money."""
-        sdk = self._sdk
+        self, token_id: str, side: str, price: float, size: float
+    ) -> Any:
+        """Post a GTC limit order. This spends real money.
+
+        `post_only` is set: a plumbing-check order that crosses the spread
+        would be a taker fill, which is exactly what this run is built not
+        to do. If the price is wrong, the venue rejects the order rather
+        than filling it.
+        """
         try:
-            order_args = sdk.clob_types.OrderArgs(  # type: ignore[attr-defined]
+            return self._client.place_limit_order(
                 token_id=token_id,
                 price=price,
                 size=size,
-                side=sdk.order_builder.constants.BUY  # type: ignore[attr-defined]
-                if side == "BUY"
-                else sdk.order_builder.constants.SELL,  # type: ignore[attr-defined]
+                side=side,
+                post_only=True,
             )
-            return self._client.create_and_post_order(order_args)
-        except AttributeError:
-            # Newer SDKs expose the enums differently; try the simple path.
-            try:
-                return self._client.create_and_post_order(
-                    {"token_id": token_id, "price": price, "size": size, "side": side}
-                )
-            except Exception as exc:  # noqa: BLE001
-                raise LiveClientError(
-                    f"place_limit failed: {exc}. See ADAPTER NOTES."
-                ) from exc
         except Exception as exc:  # noqa: BLE001
             raise LiveClientError(f"place_limit failed: {exc}") from exc
 
     def cancel(self, order_id: str) -> Any:
         try:
-            return self._client.cancel(order_id)
+            return self._client.cancel_order(order_id=order_id)
         except Exception as exc:  # noqa: BLE001
             raise LiveClientError(f"cancel failed: {exc}") from exc
 
@@ -209,3 +244,8 @@ class LiveClient:
             return self._client.cancel_all()
         except Exception as exc:  # noqa: BLE001
             raise LiveClientError(f"cancel_all failed: {exc}") from exc
+
+    def close(self) -> None:
+        closer = getattr(self._client, "close", None)
+        if callable(closer):
+            closer()

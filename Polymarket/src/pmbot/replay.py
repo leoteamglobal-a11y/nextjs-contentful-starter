@@ -133,25 +133,30 @@ def run_replay(
             result.fills.extend(broker.match_trade(token_id, price, size))
             continue
 
-        book = books.handle(message)
-        if book is None:
+        touched = books.handle(message)
+        if not touched:
             continue
         result.updates += 1
 
-        # 1. Fills happen against the book as it arrived.
-        result.fills.extend(broker.match(book))
+        # One frame can move both sides of a market. Match every book it
+        # touched before the strategy sees any of them: matching a token,
+        # letting the strategy requote, then matching the next token would
+        # fill the second one against a quote placed after its update.
+        for book in touched:
+            result.fills.extend(broker.match(book))
 
         # 2. Marks refresh before risk reads them.
         for tracked in books.all():
             result.marks[tracked.token_id] = tracked.mid
 
         # 3. Strategy reacts.
+        last = touched[-1]
         ctx = Context(
             books=books,
             portfolio=broker.portfolio,
             resting=list(broker.resting.values()),
-            updated_token=book.token_id,
-            timestamp=book.last_timestamp,
+            updated_token=last.token_id,
+            timestamp=last.last_timestamp,
         )
         intents = strategy.on_update(ctx)
 

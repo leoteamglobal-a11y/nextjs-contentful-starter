@@ -24,7 +24,7 @@ import httpx
 from . import endpoints
 from .book import BookSet
 from .config import Settings
-from .discovery import DiscoveryError, Market, fetch_market
+from .discovery import DiscoveryError, Market, fetch_market, market_from_gamma
 from .feed import MarketFeed
 from .journal import Journal, replay
 from .plan import WatchPlan, build_plan, label_width
@@ -56,26 +56,149 @@ def resolve_markets(refs: list[str], settings: Settings) -> list[Market]:
     return markets
 
 
+async def _probe_ws(token_ids: list[str], settings: Settings) -> tuple[bool, str]:
+    """Connect, subscribe, and wait for one real frame.
+
+    A TCP handshake proves nothing here: the interesting failures are a
+    renamed channel path and a subscribe payload the venue accepts and then
+    ignores. Both look like a healthy connection that never sends data, so
+    the probe is not satisfied until a frame arrives.
+    """
+    import json
+
+    import websockets
+
+    try:
+        async with websockets.connect(
+            endpoints.CLOB_WS, open_timeout=settings.http_timeout_s
+        ) as socket:
+            await socket.send(json.dumps({"assets_ids": token_ids, "type": "market"}))
+            raw = await asyncio.wait_for(
+                socket.recv(), timeout=settings.http_timeout_s * 2
+            )
+    except Exception as exc:  # noqa: BLE001
+        return False, f"{type(exc).__name__}: {exc}"
+
+    messages = [m for m in _decode_ws(raw) if isinstance(m, dict)]
+    if not messages:
+        return False, "connected and subscribed, but the first frame was empty"
+    kinds = sorted({str(m.get("event_type", "?")) for m in messages})
+    return True, f"subscribed, first frame: {', '.join(kinds)}"
+
+
+def _decode_ws(raw: object) -> list[object]:
+    import json
+
+    if isinstance(raw, bytes):
+        raw = raw.decode("utf-8", errors="replace")
+    try:
+        payload = json.loads(str(raw))
+    except ValueError:
+        return []
+    return payload if isinstance(payload, list) else [payload]
+
+
 def cmd_doctor(args: argparse.Namespace) -> int:
-    """Check that this machine can actually reach the venue."""
+    """Check that this machine can actually reach the venue.
+
+    Every endpoint the bot uses on its read path is probed with the same
+    call the bot itself makes, against a real live market rather than a
+    hardcoded id — a market that closed months ago is indistinguishable
+    from a broken endpoint, and that ambiguity is the whole thing this
+    command exists to remove.
+    """
     settings = Settings.from_env()
-    checks = [
-        ("gamma", endpoints.gamma_markets_by_slug("will-it-rain")),
-        ("clob", f"{endpoints.CLOB_BASE}/ok"),
-    ]
-    failed = False
-    for name, url in checks:
+    results: list[tuple[str, bool, str]] = []
+
+    def probe(name: str, url: str) -> object | None:
         try:
             response = httpx.get(url, timeout=settings.http_timeout_s)
-            print(f"  {name:<8} {response.status_code}  {url}")
+            ok = response.status_code == 200
+            results.append((name, ok, f"{response.status_code}  {url}"))
+            return response.json() if ok else None
         except Exception as exc:  # noqa: BLE001
-            failed = True
-            print(f"  {name:<8} FAIL  {type(exc).__name__}: {exc}")
-    print(f"  {'ws':<8} (not probed) {endpoints.CLOB_WS}")
+            results.append((name, False, f"{type(exc).__name__}: {exc}"))
+            return None
+
+    # 1. Gamma: discovery. Also supplies the ids the later probes need.
+    listing = probe("gamma", endpoints.gamma_active_markets())
+    market: Market | None = None
+    if isinstance(listing, list) and listing:
+        try:
+            market = market_from_gamma(listing[0])
+        except DiscoveryError as exc:
+            results.append(("gamma parse", False, str(exc)))
+    elif listing is not None:
+        results.append(("gamma parse", False, "no open markets in the response"))
+
+    if market is not None:
+        results.append(
+            ("gamma parse", True, f"{market.slug} ({len(market.tokens)} token(s))")
+        )
+
+    # 2. CLOB: liveness, then the two reads the bot actually performs.
+    probe("clob", f"{endpoints.CLOB_BASE}/ok")
+    if market is not None:
+        probe("clob market", endpoints.clob_market(market.condition_id))
+        token_id = market.token_ids[0]
+        probe("clob book", endpoints.clob_book(token_id))
+        probe("clob tick", endpoints.clob_tick_size(token_id))
+
+        ok, detail = asyncio.run(_probe_ws(list(market.token_ids), settings))
+        results.append(("clob ws", ok, detail))
+    else:
+        results.append(
+            ("clob market", False, "skipped: no live market to probe with")
+        )
+        results.append(("clob book", False, "skipped: no live market to probe with"))
+        results.append(("clob tick", False, "skipped: no live market to probe with"))
+        results.append(("clob ws", False, "skipped: no live market to probe with"))
+
+    # 3. Polygon RPC. Only `approvals` needs it, so a failure here is a
+    #    warning, not an error — the whole read path works without it.
+    rpc_ok, rpc_detail = _probe_rpc(settings)
+    results.append(("polygon rpc", rpc_ok, rpc_detail))
+
+    for name, ok, detail in results:
+        print(f"  {name:<12} {'ok  ' if ok else 'FAIL'}  {detail}")
+
+    failed = [name for name, ok, _ in results if not ok and name != "polygon rpc"]
+    if not rpc_ok:
+        print(
+            f"\n  note: {endpoints.POLYGON_RPC} is unreachable. Only `approvals` "
+            "uses it;\n  every read path above is unaffected. Set PMBOT_POLYGON_RPC "
+            "to another\n  Polygon node before running approvals."
+        )
     if failed:
-        print("\nAt least one endpoint is unreachable. Check egress/DNS before")
-        print("assuming the bot is broken.")
-    return 1 if failed else 0
+        print(f"\n{len(failed)} endpoint(s) unreachable: {', '.join(failed)}.")
+        print("Check egress/DNS first — a blocked host and a moved endpoint look")
+        print("identical from here. If the host resolves but the path 404s, the")
+        print("endpoint moved: src/pmbot/endpoints.py is the one file to fix.")
+        return 1
+    print("\nEvery endpoint on the read path answered.")
+    return 0
+
+
+def _probe_rpc(settings: Settings) -> tuple[bool, str]:
+    url = endpoints.POLYGON_RPC
+    import os
+
+    url = os.getenv("PMBOT_POLYGON_RPC", url)
+    try:
+        response = httpx.post(
+            url,
+            json={"jsonrpc": "2.0", "id": 1, "method": "eth_chainId", "params": []},
+            timeout=settings.http_timeout_s,
+        )
+    except Exception as exc:  # noqa: BLE001
+        return False, f"{type(exc).__name__}: {exc}  {url}"
+
+    if response.status_code != 200:
+        return False, f"{response.status_code}  {response.text[:100]}  {url}"
+    chain_id = (response.json() or {}).get("result")
+    if chain_id != "0x89":  # 137
+        return False, f"answered, but chainId is {chain_id!r}, not Polygon's 0x89"
+    return True, f"chainId 0x89 (137)  {url}"
 
 
 def cmd_market(args: argparse.Namespace) -> int:
@@ -168,27 +291,27 @@ async def _watch(
                 # should cost you a rerun, not the data.
                 journal.write("raw", {"msg": message})
 
-                book = books.handle(message)
-                if book is None:
-                    continue
-
-                summary = book.summary()
-                label = plan.label_for(book.token_id)
-                journal.write("book", {"label": label, **summary})
-                if summary["crossed"]:
-                    journal.write("anomaly", {"reason": "crossed", "label": label, **summary})
-
                 def show(value: object) -> str:
                     return "-" if value is None else str(value)
 
-                print(
-                    f"  {label:<{width}} "
-                    f"bid {show(summary['best_bid']):<8} "
-                    f"ask {show(summary['best_ask']):<8} "
-                    f"spread {show(summary['spread']):<8} "
-                    f"mid {show(summary['mid'])}"
-                    + ("   << CROSSED" if summary["crossed"] else "")
-                )
+                # One frame can carry changes for several tokens.
+                for book in books.handle(message):
+                    summary = book.summary()
+                    label = plan.label_for(book.token_id)
+                    journal.write("book", {"label": label, **summary})
+                    if summary["crossed"]:
+                        journal.write(
+                            "anomaly", {"reason": "crossed", "label": label, **summary}
+                        )
+
+                    print(
+                        f"  {label:<{width}} "
+                        f"bid {show(summary['best_bid']):<8} "
+                        f"ask {show(summary['best_ask']):<8} "
+                        f"spread {show(summary['spread']):<8} "
+                        f"mid {show(summary['mid'])}"
+                        + ("   << CROSSED" if summary["crossed"] else "")
+                    )
 
         task = asyncio.ensure_future(run())
         try:
@@ -413,13 +536,16 @@ def cmd_live_check(args: argparse.Namespace) -> int:
 
 
 def cmd_approvals(args: argparse.Namespace) -> int:
-    """Grant the exchange permission to move USDC and outcome shares."""
+    """Grant the exchange permission to move collateral and outcome shares.
+
+    Not applicable to this account — see `refuse_for_proxy_wallet`."""
     from .live.approvals import (
         ApprovalConfig,
         ApprovalError,
         execute,
         plan,
         read_state,
+        refuse_for_proxy_wallet,
     )
     from .live.client import WalletConfig
 
@@ -461,10 +587,19 @@ def cmd_approvals(args: argparse.Namespace) -> int:
         print(f"error: bad private key: {type(exc).__name__}", file=sys.stderr)
         return 1
 
-    print(f"owner    {owner}")
-    print(f"rpc      {config.rpc_url}")
-    print(f"usdc     {config.usdc}")
-    print(f"ctf      {config.conditional_tokens}\n")
+    # Before anything touches the chain: approvals sent from a signing key
+    # that is not itself the funder grant rights over a wallet holding
+    # nothing at all.
+    try:
+        refuse_for_proxy_wallet(wallet.funder, owner)
+    except ApprovalError as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 1
+
+    print(f"owner       {owner}")
+    print(f"rpc         {config.rpc_url}")
+    print(f"collateral  {config.collateral}  (pUSD, not USDC)")
+    print(f"ctf         {config.conditional_tokens}\n")
 
     try:
         state = read_state(config, owner)
@@ -487,10 +622,10 @@ def cmd_approvals(args: argparse.Namespace) -> int:
         print("\nDry run. Re-run with --live to send these transactions.")
         return 0
 
-    print(f"\nUSDC allowance to set: "
-          f"{'UNLIMITED' if args.unlimited else f'{args.amount} USDC'}")
+    print(f"\ncollateral allowance to set: "
+          f"{'UNLIMITED' if args.unlimited else f'{args.amount} pUSD'}")
     if args.unlimited:
-        print("  An unlimited allowance means the contract can move every USDC")
+        print("  An unlimited allowance means the contract can move every pUSD")
         print("  this wallet will ever hold. Prefer a bounded amount unless you")
         print("  have a reason not to.")
     if not args.yes:
@@ -574,12 +709,12 @@ def build_parser() -> argparse.ArgumentParser:
 
     p_appr = sub.add_parser(
         "approvals",
-        help="grant the exchange permission to move your USDC and shares",
+        help="grant the exchange permission to move your collateral and shares",
     )
     p_appr.add_argument("--config", default="approvals.json")
     p_appr.add_argument("--init", action="store_true", help="write a config template")
     p_appr.add_argument("--amount", type=float, default=100.0,
-                        help="USDC allowance to grant (default: 100)")
+                        help="pUSD allowance to grant (default: 100)")
     p_appr.add_argument("--unlimited", action="store_true",
                         help="grant an unlimited allowance (not recommended)")
     p_appr.add_argument("--live", action="store_true", help="actually send the txs")

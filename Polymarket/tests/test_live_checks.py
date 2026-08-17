@@ -4,6 +4,8 @@ The live client is faked throughout: these prove the *safety rails* hold,
 which is the only part that can be verified without a venue.
 """
 
+from decimal import Decimal
+
 import pytest
 
 from pmbot.discovery import Market, Token
@@ -26,15 +28,57 @@ MARKET = Market(
 )
 
 
+class FakeLevel:
+    """The SDK returns attribute-carrying models, not dicts."""
+
+    def __init__(self, price, size):
+        self.price = Decimal(str(price))
+        self.size = Decimal(str(size))
+
+
+class FakeBook:
+    """Mirrors `polymarket.OrderBook`: the book and this market's trading
+    parameters arrive together, in one read."""
+
+    def __init__(self, bids=(("0.45", "100"),), asks=(("0.55", "100"),),
+                 tick_size="0.01", min_order_size="5"):
+        self.bids = [FakeLevel(p, s) for p, s in bids]
+        self.asks = [FakeLevel(p, s) for p, s in asks]
+        self.tick_size = Decimal(tick_size)
+        self.min_order_size = Decimal(min_order_size)
+
+
+class FakeOrder:
+    """`polymarket.OpenOrder` names its id `id`; an accepted order names it
+    `order_id`. The adapter has to read both."""
+
+    def __init__(self, order_id, price, size):
+        self.id = order_id
+        self.price = price
+        self.size = size
+
+
+class FakeAccepted:
+    def __init__(self, order_id):
+        self.ok = True
+        self.order_id = order_id
+        self.status = "live"
+
+
+class FakeRejected:
+    def __init__(self, code="INVALID_ORDER_MIN_SIZE", message="order below minimum"):
+        self.ok = False
+        self.code = code
+        self.message = message
+
+
 class FakeClient:
-    def __init__(self, book=None, fail_on=None, keeps_order=False):
-        self.book = book or {
-            "bids": [{"price": "0.45", "size": "100"}],
-            "asks": [{"price": "0.55", "size": "100"}],
-        }
+    def __init__(self, book=None, fail_on=None, keeps_order=False, rejects=False):
+        self.book = book if book is not None else FakeBook()
         self.fail_on = fail_on
         self.keeps_order = keeps_order
-        self.orders: dict[str, dict] = {}
+        self.rejects = rejects
+        self.orders: dict[str, FakeOrder] = {}
         self.cancel_all_called = False
         self._n = 0
 
@@ -49,18 +93,17 @@ class FakeClient:
     def ok(self):
         return self.fail_on != "ok"
 
-    def tick_size(self, token_id):
-        return 0.01
-
     def order_book(self, token_id):
         return self.book
 
-    def place_limit(self, token_id, side, price, size, tick_size):
+    def place_limit(self, token_id, side, price, size):
         self._maybe_fail("place")
+        if self.rejects:
+            return FakeRejected()
         self._n += 1
         oid = f"o{self._n}"
-        self.orders[oid] = {"id": oid, "price": price, "size": size}
-        return {"orderID": oid}
+        self.orders[oid] = FakeOrder(oid, price, size)
+        return FakeAccepted(oid)
 
     def open_orders(self):
         return list(self.orders.values())
@@ -189,12 +232,46 @@ def test_place_failure_leaves_nothing_resting(tmp_path):
 
 
 def test_empty_book_aborts_before_ordering(tmp_path):
-    fake = FakeClient(book={"bids": [], "asks": []})
+    fake = FakeClient(book=FakeBook(bids=(), asks=()))
     with Journal(tmp_path, "lc") as journal:
         run = run_checks(MARKET, "Yes", journal, lambda: fake, dry_run=False)
 
     assert not steps(run)["read order book"].ok
     assert fake.orders == {}
+
+
+def test_market_parameters_come_from_the_book(tmp_path):
+    """Tick size and minimum order size are read, never assumed: the SDK
+    has no separate tick-size call and both are per-market."""
+    fake = FakeClient(book=FakeBook(tick_size="0.001", min_order_size="5"))
+    with Journal(tmp_path, "lc") as journal:
+        run = run_checks(MARKET, "Yes", journal, lambda: fake, dry_run=False)
+
+    params = steps(run)["read market parameters"]
+    assert params.data == {"tick_size": 0.001, "min_order_size": 5.0}
+    assert fake.orders == {}  # cancelled before the run ended
+
+
+def test_order_clears_the_venue_minimum_share_count(tmp_path):
+    fake = FakeClient(book=FakeBook(min_order_size="5"))
+    with Journal(tmp_path, "lc") as journal:
+        run_checks(MARKET, "Yes", journal, lambda: fake, dry_run=False)
+
+    assert fake._n == 1
+    assert fake.cancel_all_called is False
+
+
+def test_a_rejected_order_reports_the_venue_reason(tmp_path):
+    """A rejection carries a code and a message; printing the whole object
+    instead buries them."""
+    fake = FakeClient(rejects=True)
+    with Journal(tmp_path, "lc") as journal:
+        run = run_checks(MARKET, "Yes", journal, lambda: fake, dry_run=False)
+
+    step = steps(run)["post resting order"]
+    assert not step.ok
+    assert "INVALID_ORDER_MIN_SIZE" in step.detail
+    assert "order below minimum" in step.detail
 
 
 def test_unknown_outcome_raises_before_connecting(tmp_path):
@@ -217,7 +294,17 @@ def test_wallet_config_requires_a_key(monkeypatch):
 
 def test_wallet_config_never_prints_the_key(monkeypatch):
     monkeypatch.setenv("PMBOT_PRIVATE_KEY", "0xsupersecretkey1234")
+    monkeypatch.setenv("PMBOT_FUNDER", "0xproxy")
     config = WalletConfig.from_env()
     rendered = config.redacted()
     assert "supersecret" not in rendered
     assert rendered.endswith("1234") is False or "..." in rendered
+
+
+def test_wallet_config_shows_the_funder_because_it_is_not_a_secret(monkeypatch):
+    """The funder is the one field most likely to be wrong, and it is a
+    public address — printing it is how you catch pointing at the wrong
+    wallet before an order is signed."""
+    monkeypatch.setenv("PMBOT_PRIVATE_KEY", "0xsupersecretkey1234")
+    monkeypatch.setenv("PMBOT_FUNDER", "0xproxywallet")
+    assert "0xproxywallet" in WalletConfig.from_env().redacted()

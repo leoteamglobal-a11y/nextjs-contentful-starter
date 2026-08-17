@@ -1,6 +1,13 @@
 # Only needed for phase 3 (approvals and live orders). Phases 1 and 2 run
 # on requirements.txt alone, and deliberately cannot sign anything.
+#
+# NOTE: both of these belong to INTERNATIONAL Polymarket. This bot's account
+# is on Polymarket US (CFTC-regulated), which has no wallet to sign for and
+# no contracts to approve. See docs/VERIFICATION.md before installing.
 -r requirements.txt
 
 web3>=6.0
-py-clob-client-v2
+
+# The official unified SDK. `py-clob-client` and `py-clob-client-v2` are
+# both superseded; the docs' migration guide says to uninstall them.
+polymarket-client>=0.6.0

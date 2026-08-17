@@ -16,18 +16,19 @@ from pmbot.live.approvals import (
     Spender,
     looks_like_address,
     plan,
+    refuse_for_proxy_wallet,
 )
 
 A = "0x" + "a" * 40
 B = "0x" + "b" * 40
-USDC = "0x" + "c" * 40
+COLLATERAL = "0x" + "c" * 40
 CTF = "0x" + "d" * 40
 
 
 def config(spenders=None) -> ApprovalConfig:
     return ApprovalConfig(
         rpc_url="https://polygon-rpc.com",
-        usdc=USDC,
+        collateral=COLLATERAL,
         conditional_tokens=CTF,
         spenders=tuple(spenders or [Spender("exchange", A)]),
     )
@@ -52,7 +53,7 @@ def test_config_rejects_a_placeholder(tmp_path):
     path = tmp_path / "approvals.json"
     path.write_text(json.dumps({
         "rpc_url": "https://polygon-rpc.com",
-        "usdc": "0x<fill me in>",
+        "collateral": "0x<fill me in>",
         "conditional_tokens": CTF,
         "spenders": [{"name": "exchange", "address": A}],
     }))
@@ -68,14 +69,14 @@ def test_config_rejects_duplicate_spenders():
 def test_config_rejects_empty_spenders():
     # Built directly: the `config()` helper substitutes a default for an
     # empty list, which would make this test pass without testing anything.
-    bare = ApprovalConfig("https://polygon-rpc.com", USDC, CTF, ())
+    bare = ApprovalConfig("https://polygon.drpc.org", COLLATERAL, CTF, ())
     with pytest.raises(ApprovalError, match="nothing to approve"):
         bare.validate()
 
 
 def test_config_rejects_a_bad_rpc_url():
     with pytest.raises(ApprovalError, match="rpc_url"):
-        ApprovalConfig("ftp://nope", USDC, CTF, (Spender("e", A),)).validate()
+        ApprovalConfig("ftp://nope", COLLATERAL, CTF, (Spender("e", A),)).validate()
 
 
 def test_missing_config_explains_how_to_create_one(tmp_path):
@@ -108,14 +109,14 @@ def test_fresh_wallet_needs_both_approvals():
 
 def test_nothing_to_do_when_already_approved():
     state = ApprovalState(
-        usdc_allowances={A.lower(): 1_000}, ctf_approved={A.lower(): True}
+        collateral_allowances={A.lower(): 1_000}, ctf_approved={A.lower(): True}
     )
     assert plan(config(), state, min_allowance=100) == []
 
 
 def test_insufficient_allowance_is_topped_up():
     state = ApprovalState(
-        usdc_allowances={A.lower(): 50}, ctf_approved={A.lower(): True}
+        collateral_allowances={A.lower(): 50}, ctf_approved={A.lower(): True}
     )
     actions = plan(config(), state, min_allowance=100)
     assert len(actions) == 1
@@ -123,9 +124,9 @@ def test_insufficient_allowance_is_topped_up():
     assert "50 < required 100" in actions[0].reason
 
 
-def test_erc1155_alone_is_planned_when_usdc_is_fine():
+def test_erc1155_alone_is_planned_when_collateral_is_fine():
     state = ApprovalState(
-        usdc_allowances={A.lower(): 1_000}, ctf_approved={A.lower(): False}
+        collateral_allowances={A.lower(): 1_000}, ctf_approved={A.lower(): False}
     )
     actions = plan(config(), state, min_allowance=100)
     assert [a.kind for a in actions] == ["erc1155"]
@@ -133,7 +134,7 @@ def test_erc1155_alone_is_planned_when_usdc_is_fine():
 
 def test_each_spender_is_planned_independently():
     state = ApprovalState(
-        usdc_allowances={A.lower(): 1_000, B.lower(): 0},
+        collateral_allowances={A.lower(): 1_000, B.lower(): 0},
         ctf_approved={A.lower(): True, B.lower(): False},
     )
     actions = plan(
@@ -149,3 +150,28 @@ def test_action_renders_the_spender_address():
     action = plan(config(), ApprovalState(), min_allowance=100)[0]
     assert A in action.render()
     assert "exchange" in action.render()
+
+
+# -- the proxy-wallet refusal -----------------------------------------
+
+
+def test_proxy_wallet_is_refused_before_any_chain_call():
+    """This account is an email/Magic proxy. Its collateral and shares sit
+    at the proxy address, so approvals signed by the key would grant rights
+    over an empty wallet: gas spent, nothing granted, orders still rejected
+    for a reason the output never names."""
+    with pytest.raises(ApprovalError, match="proxy-wallet account"):
+        refuse_for_proxy_wallet(funder="0x" + "f" * 40, signer="0x" + "e" * 40)
+
+
+def test_an_eoa_funding_itself_is_not_refused():
+    """A plain EOA whose funder is its own address is exactly the case
+    approvals exist for."""
+    address = "0x" + "e" * 40
+    refuse_for_proxy_wallet(funder=address, signer=address)
+    refuse_for_proxy_wallet(funder=address.upper().replace("0X", "0x"), signer=address)
+
+
+def test_no_funder_configured_is_not_refused():
+    """Nothing to compare against is not evidence of a proxy."""
+    refuse_for_proxy_wallet(funder=None, signer="0x" + "e" * 40)

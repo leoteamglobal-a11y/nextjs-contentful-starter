@@ -7,7 +7,10 @@ Phase 2 adds paper trading on top: a strategy interface, a fill simulator, a
 risk veto layer and a backtest that replays those journals.
 
 Phase 3a adds a live plumbing check — a capped, cancelled test order that
-proves the real path works before any strategy is pointed at it.
+proves the real path works before any strategy is pointed at it. It is
+currently **blocked**: it was built for international Polymarket's
+wallet-signed order flow, and this account is on Polymarket US. See
+"Which venue this is pointed at" below.
 
 **Phases 1 and 2 cannot trade.** They hold no signing code and read no
 private key, and the SDK that can sign is imported lazily, only by
@@ -94,7 +97,7 @@ the run — a typo'd slug is a bad reason to lose an overnight recording.
 ## Tests
 
 ```bash
-python -m pytest -q     # 138 tests, no network required
+python -m pytest -q     # 148 tests, no network required
 ```
 
 The suite runs entirely against recorded fixtures in `tests/fixtures/`. This
@@ -105,25 +108,49 @@ crossed-book detection, malformed-level tolerance, outcome pairing under
 reordering, multi-market planning and label collisions, book reset on
 reconnect, batched vs single WebSocket frames, journal recovery from a
 truncated final line, cost-basis and realised/unrealised P&L including
-flipping through zero, every risk veto and the sticky halt, maker quoting
+flipping through zero, batched multi-token price changes and the legacy
+flat shape, every risk veto and the sticky halt, maker quoting
 and inventory skew, trade-tape fills by price priority, and the absence of
 lookahead in the replay loop, plus every safety rail on the live plumbing
 check (dry run builds no client, orders are journalled before they are sent,
 a failed cancel triggers cleanup, private keys never reach a log line).
 
+## Which venue this is pointed at
+
+**The account this is meant to trade is on Polymarket US** — the
+CFTC-regulated, KYC'd entity — **not international Polymarket.** That
+distinction decides how much of phase 3 exists at all: a US account holds
+its positions in a brokerage account, not in a wallet you sign for, so
+there is no Polygon signing, no contract approvals and no `signature_type`.
+
+Phases 1 and 2 read public market data and are unaffected by *who* you are.
+Phase 3a is **blocked**: it posts orders through the international CLOB via
+wallet signing, and that path does not exist for a US account. What replaces
+it depends on what Polymarket US's order API turns out to be, which is an
+open question — see `docs/VERIFICATION.md`.
+
+One thing that has not been checked, and matters most: whether
+`gamma-api.polymarket.com` and `clob.polymarket.com` serve Polymarket US
+markets at all, or only international ones. Everything phases 1 and 2 record
+rests on that answer.
+
 ## Status of the endpoints
 
-`src/pmbot/endpoints.py` holds every URL. They were written **without live
-verification** — the environment this was authored in had outbound access to
-`*.polymarket.com` blocked by network policy, so nothing here has been run
-against the real venue. `doctor` is the first thing to run on a machine with
-real network access; if an endpoint has moved, it is a one-file fix.
+`src/pmbot/endpoints.py` holds every URL. All of them are now **verified
+live** (2026-08-17) against the international venue, and cross-checked
+against the `PRODUCTION` config inside Polymarket's own SDK, which matches
+byte for byte. `doctor` re-runs every one of those probes on demand,
+including the WebSocket. If an endpoint moves, it is still a one-file fix.
 
-Note also that the SDK most tutorials use, `py-clob-client`, is **archived**.
-The current one is [`polymarket-client`](https://github.com/Polymarket/py-sdk)
-(`pip install polymarket-client`). Phases 1 and 2 talk to the public REST
-and WebSocket endpoints directly and need neither; only `live-check` loads
-an SDK, and it does so lazily.
+The one URL that is genuinely dead: `polygon-rpc.com` now answers HTTP 401
+(`tenant disabled`). Only `approvals` ever used it.
+
+Note also that the SDK most tutorials use, `py-clob-client`, is **archived**,
+and `py-clob-client-v2` is superseded too. The current one is
+[`polymarket-client`](https://github.com/Polymarket/py-sdk)
+(`pip install polymarket-client`), imported as `polymarket`. Phases 1 and 2
+talk to the public REST and WebSocket endpoints directly and need none of
+them; only `live-check` loads an SDK, and it does so lazily.
 
 ## Phase 2 — paper trading
 
@@ -188,15 +215,22 @@ price band, halts on drawdown — **stickily**, because a limit you recover
 from automatically is not a limit — and reads a kill switch from a file on
 disk, so stopping the bot never requires a redeploy.
 
-## Phase 3a — the plumbing test
+## Phase 3a — the plumbing test (blocked for this account)
+
+**Do not run this against the Polymarket US account.** It signs orders with
+a Polygon wallet, which is how the international venue works and not how a
+regulated US brokerage account does. It stays here because the checklist
+shape below is the right shape whatever the venue turns out to be — only
+the broker underneath changes.
 
 ```bash
 # Dry run: prints what it would do, reads no credentials, sends nothing.
 python -m pmbot.cli live-check <url-or-slug>
 
-# The real thing.
-pip install py-clob-client-v2
+# The real thing — international venue only.
+pip install polymarket-client
 export PMBOT_PRIVATE_KEY=0x...        # a FRESH wallet, nothing else in it
+export PMBOT_FUNDER=0x...             # the wallet address, if it is a proxy
 python -m pmbot.cli live-check <url-or-slug> --live
 ```
 
@@ -232,18 +266,26 @@ The rails, and why each exists:
 
 1. **A fresh wallet.** Only what you can afford to lose. A private key in a
    `.env` next to unproven code is not where savings belong.
-2. **POL (ex-MATIC) for gas**, separate from your USDC — USDC cannot pay for
-   Polygon transactions.
-3. **Approvals** — see below. Without them every order is rejected.
+2. **POL (ex-MATIC) for gas**, separate from your collateral — an ERC-20
+   cannot pay for Polygon transactions.
+3. **Approvals** — see below. Not applicable to a Polymarket US account.
 4. **Check the current fee schedule.** In market making the difference
    between 0 and 20bps decides whether the strategy exists at all.
 
-### Approvals
+### Approvals — not applicable to this account
+
+**A Polymarket US account has nothing to approve**, because it holds no
+tokens you control the keys to. The command refuses to run when the funder
+differs from the signing address, which covers every proxy-wallet case on
+the international venue too. The rest of this section describes that venue.
 
 The exchange cannot settle a trade until it has permission to move your
-USDC (ERC-20 `approve`) and your outcome shares (ERC-1155
+collateral (ERC-20 `approve`) and your outcome shares (ERC-1155
 `setApprovalForAll`). Email/Magic wallets have this done for them; a plain
 wallet does not, and every order it posts is rejected until it does.
+
+Note the collateral is **pUSD**, Polymarket's own USDC-backed ERC-20
+wrapper — not USDC. Approving USDC grants a permission nothing uses.
 
 ```bash
 pip install -r requirements-live.txt
@@ -286,9 +328,15 @@ and is worth far more than $7 before scaling.
 |---|---|---|
 | **1. Observe** ✅ | discovery, feed, book, journal | none |
 | **2. Paper trade** ✅ | strategy, fill sim, risk veto, backtest | none |
-| **3a. Plumbing test** ✅ | live auth, one order, cancel | gas + a capped ~$1 order |
+| **3a. Plumbing test** ⛔ | live auth, one order, cancel | blocked: built for the wrong venue |
 | 3b. Strategy live | `LiveBroker` behind the existing `RiskManager` | hard-capped, small |
 | 4. Scale | only if 3b shows a real edge over weeks | your call |
+
+Phase 3a is written and tested, but against international Polymarket's
+wallet-signed CLOB. Unblocking it needs one question answered first: what
+API does Polymarket US expose for orders? Until then the honest status is
+blocked, not done — a checklist that proves the wrong venue works proves
+nothing.
 
 Phase 3b reuses phases 1 and 2 whole: the same `Strategy`, the same
 `RiskManager`, the same intents. Only the broker changes — `PaperBroker`

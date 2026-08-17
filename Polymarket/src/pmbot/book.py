@@ -92,8 +92,14 @@ class OrderBook:
         """Apply an incremental `price_change` event.
 
         A size of zero means the level is gone.
+
+        The live venue batches one frame per *market*, carrying a
+        `price_changes` list whose entries each name their own `asset_id`,
+        so entries for other tokens are skipped here. Older recordings (and
+        the synthetic journals) use a flat `changes` list with the asset id
+        at the top level; both are accepted so old journals still replay.
         """
-        for change in message.get("changes") or []:
+        for change in price_changes_for(message, self.token_id):
             side = str(change.get("side", "")).upper()
             book = self.bids if side == "BUY" else self.asks if side == "SELL" else None
             if book is None:
@@ -157,25 +163,82 @@ class BookSet:
     def all(self) -> list[OrderBook]:
         return list(self._books.values())
 
-    def handle(self, message: dict[str, Any]) -> OrderBook | None:
-        """Route one decoded feed message to its book.
+    def handle(self, message: dict[str, Any]) -> list[OrderBook]:
+        """Route one decoded feed message to the book(s) it touches.
 
-        Returns the touched book, or None for messages that carry no book
-        state (heartbeats, tick size changes, unknown future event types).
+        Returns every book whose state changed — empty for messages that
+        carry none (heartbeats, tick size changes, unknown future event
+        types).
+
+        A list rather than a single book because a live `price_change`
+        frame is scoped to a *market*, not a token: one frame routinely
+        carries changes for both the YES and the NO side, and an earlier
+        version of this that returned one book silently dropped the rest.
         """
-        token_id = message.get("asset_id") or message.get("token_id")
-        if not token_id:
-            return None
         event = str(message.get("event_type", "")).lower()
-        book = self.get(str(token_id))
 
         if event == "book":
+            token_id = message.get("asset_id") or message.get("token_id")
+            if not token_id:
+                return []
+            book = self.get(str(token_id))
             book.apply_snapshot(message)
-            return book
+            return [book]
+
         if event == "price_change":
-            book.apply_price_change(message)
-            return book
-        return None
+            touched = [self.get(tid) for tid in changed_token_ids(message)]
+            for book in touched:
+                book.apply_price_change(message)
+            return touched
+
+        return []
+
+
+def _change_entries(message: dict[str, Any]) -> list[dict[str, Any]]:
+    """The per-level entries of a `price_change`, under either key.
+
+    Live: `price_changes`. Recorded fixtures and synthetic journals:
+    `changes`. Nothing else about the entries differs.
+    """
+    raw = message.get("price_changes")
+    if raw is None:
+        raw = message.get("changes")
+    return [entry for entry in (raw or []) if isinstance(entry, dict)]
+
+
+def changed_token_ids(message: dict[str, Any]) -> list[str]:
+    """Every token id a `price_change` frame touches, in first-seen order.
+
+    Falls back to the top-level asset id for the flat legacy shape, whose
+    entries carry no asset id of their own.
+    """
+    ordered: dict[str, None] = {}
+    for entry in _change_entries(message):
+        token_id = entry.get("asset_id") or entry.get("token_id")
+        if token_id:
+            ordered[str(token_id)] = None
+    if not ordered:
+        fallback = message.get("asset_id") or message.get("token_id")
+        if fallback:
+            ordered[str(fallback)] = None
+    return list(ordered)
+
+
+def price_changes_for(message: dict[str, Any], token_id: str) -> list[dict[str, Any]]:
+    """The entries of a `price_change` that apply to one token."""
+    entries = _change_entries(message)
+    scoped = [
+        entry
+        for entry in entries
+        if str(entry.get("asset_id") or entry.get("token_id") or "") == token_id
+    ]
+    if scoped:
+        return scoped
+    # Legacy shape: entries are unlabelled and the frame is for one token.
+    if any(entry.get("asset_id") or entry.get("token_id") for entry in entries):
+        return []
+    owner = message.get("asset_id") or message.get("token_id")
+    return entries if owner is None or str(owner) == token_id else []
 
 
 def _levels_to_dict(levels: Any) -> dict[float, float]:
