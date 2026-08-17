@@ -219,14 +219,46 @@ def fetch_market_by_id(market_id: int | str, *, timeout_s: float = 15.0) -> Mark
         return market_from_payload(response.json())
 
 
+@dataclass(frozen=True)
+class SearchResult:
+    """What a search found, and how much of the catalogue it looked at.
+
+    The second part matters as much as the first. Matching happens on one
+    page of markets fetched from the venue, so an empty result means "not in
+    the markets I looked at", never "does not exist". Reporting only the
+    matches invites exactly the wrong conclusion — someone asks whether a
+    market exists, sees nothing, and believes it.
+    """
+
+    markets: list[Market]
+    scanned: int
+    limit: int
+
+    @property
+    def page_was_full(self) -> bool:
+        """True when the venue returned as many markets as we asked for,
+        which means there are probably more we never saw."""
+        return self.scanned >= self.limit
+
+    def __iter__(self):
+        return iter(self.markets)
+
+    def __len__(self) -> int:
+        return len(self.markets)
+
+
 def search_markets(
     query: str, *, limit: int = 20, timeout_s: float = 15.0
-) -> list[Market]:
+) -> SearchResult:
     """Find tradeable markets by free text.
 
     Slugs here are venue-generated and unguessable (`aec-nfl-lac-ten-...`),
     so a search that works without credentials is not a convenience — it is
     the only practical way to get the first slug.
+
+    Matching is done here rather than by the venue, over a single page. See
+    `SearchResult.page_was_full` before reading anything into an empty
+    result.
     """
     url = endpoints.gateway_url(endpoints.markets_path())
     params: dict[str, Any] = {"limit": limit, "active": True, "closed": False}
@@ -235,9 +267,10 @@ def search_markets(
         response.raise_for_status()
         payload = response.json()
 
+    raw_markets = payload.get("markets") or []
     needle = query.strip().lower()
     found: list[Market] = []
-    for raw in payload.get("markets") or []:
+    for raw in raw_markets:
         try:
             market = market_from_payload(raw)
         except DiscoveryError:
@@ -245,4 +278,5 @@ def search_markets(
         haystack = f"{market.slug} {market.question} {market.category}".lower()
         if not needle or needle in haystack:
             found.append(market)
-    return found
+
+    return SearchResult(markets=found, scanned=len(raw_markets), limit=limit)

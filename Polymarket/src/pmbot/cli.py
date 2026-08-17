@@ -116,22 +116,32 @@ def cmd_search(args: argparse.Namespace) -> int:
     """
     settings = Settings.from_env()
     try:
-        markets = search_markets(
+        result = search_markets(
             args.text, limit=args.limit, timeout_s=settings.http_timeout_s
         )
     except (DiscoveryError, httpx.HTTPError) as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 1
 
-    if not markets:
-        print("no open markets matched")
-        return 1
-
-    for market in markets:
+    for market in result.markets:
         print(f"{market.slug}")
         print(f"  {market.question}  [{market.category}]")
-    print(f"\n{len(markets)} market(s)")
-    return 0
+
+    if result.markets:
+        print(f"\n{len(result.markets)} match(es) in {result.scanned} market(s) scanned")
+    else:
+        print(f"no match in the {result.scanned} market(s) scanned")
+
+    # Never let an empty result read as "this market does not exist". The
+    # search filters one page locally, so a full page means the catalogue
+    # continues past where it looked.
+    if result.page_was_full:
+        print(
+            f"\n  Only the first {result.scanned} open markets were searched, and "
+            f"the venue\n  returned a full page — there are probably more. "
+            f"Raise it with --limit,\n  or check the Polymarket US app to be sure."
+        )
+    return 0 if result.markets else 1
 
 
 def _print_market(market: Market) -> None:
