@@ -1,8 +1,15 @@
-"""In-memory order book, rebuilt from the CLOB market feed.
+"""In-memory order book, rebuilt from the market data feed.
 
-Prices on Polymarket are probabilities in (0, 1) quoted in cents, and sizes
-are share counts. A YES share pays $1 if the outcome happens, $0 otherwise,
-so `mid` doubles as the market's implied probability.
+Prices are probabilities in (0, 1) and sizes are contract counts. A YES
+contract pays $1 if the outcome happens, $0 otherwise, so `mid` doubles as
+the market's implied probability.
+
+This file is venue-agnostic and was not changed in the move to Polymarket
+US: it consumes the canonical message shape that `feed.py` normalises to,
+not the venue's wire format. `apply_price_change` has no counterpart on
+Polymarket US — every book message there is a full snapshot — but it is
+kept because it is the correct handling for any venue that does send
+increments.
 
 Everything here is pure: it takes decoded messages and returns state. That
 keeps it testable without a network, which matters because the exchange is

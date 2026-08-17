@@ -1,13 +1,18 @@
 """Command line entry point.
 
     python -m pmbot.cli doctor
-    python -m pmbot.cli market <url-or-slug> [<url-or-slug> ...]
-    python -m pmbot.cli watch  <url-or-slug> [<url-or-slug> ...] [--seconds N]
+    python -m pmbot.cli search  <text>
+    python -m pmbot.cli market  <url-or-slug> [<url-or-slug> ...]
+    python -m pmbot.cli watch   <url-or-slug> [<url-or-slug> ...] [--seconds N]
     python -m pmbot.cli report   <journal-file.jsonl>
     python -m pmbot.cli backtest <journal-file.jsonl> [...]
+    python -m pmbot.cli live-check <url-or-slug> [--live]
 
-None of these commands can place an order. There is no signing code in this
-package at all.
+Only `live-check --live` can place an order. Everything else reads.
+
+`doctor`, `search` and `market` need no credentials. `watch` does: on
+Polymarket US the market data socket is authenticated, so recording a book
+requires an API key even though it cannot trade.
 """
 
 from __future__ import annotations
@@ -22,10 +27,11 @@ from pathlib import Path
 import httpx
 
 from . import endpoints
+from .auth import AuthError, Credentials
 from .book import BookSet
 from .config import Settings
-from .discovery import DiscoveryError, Market, fetch_market
-from .feed import MarketFeed
+from .discovery import DiscoveryError, Market, fetch_market, search_markets
+from .feed import FeedAuthError, MarketFeed
 from .journal import Journal, replay
 from .plan import WatchPlan, build_plan, label_width
 from .replay import run_replay
@@ -57,25 +63,91 @@ def resolve_markets(refs: list[str], settings: Settings) -> list[Market]:
 
 
 def cmd_doctor(args: argparse.Namespace) -> int:
-    """Check that this machine can actually reach the venue."""
+    """Check that this machine can reach the venue and hold a valid key."""
     settings = Settings.from_env()
     checks = [
-        ("gamma", endpoints.gamma_markets_by_slug("will-it-rain")),
-        ("clob", f"{endpoints.CLOB_BASE}/ok"),
+        ("gateway", endpoints.gateway_url(endpoints.markets_path()) + "?limit=1"),
+        ("api", endpoints.api_url(endpoints.balances_path())),
     ]
     failed = False
     for name, url in checks:
         try:
             response = httpx.get(url, timeout=settings.http_timeout_s)
-            print(f"  {name:<8} {response.status_code}  {url}")
+            note = ""
+            if name == "api" and response.status_code == 401:
+                # Expected: this probe is deliberately unsigned. It proves the
+                # host is reachable and rejecting properly, which is exactly
+                # what you want to know before blaming your key.
+                note = "  (401 unsigned — reachable, as expected)"
+            print(f"  {name:<8} {response.status_code}  {url}{note}")
         except Exception as exc:  # noqa: BLE001
             failed = True
             print(f"  {name:<8} FAIL  {type(exc).__name__}: {exc}")
-    print(f"  {'ws':<8} (not probed) {endpoints.CLOB_WS}")
+
+    print(f"  {'ws':<8} (not probed) {endpoints.WS_MARKETS}")
+
+    credentials = settings.credentials
+    if credentials is None:
+        print("\n  credentials  MISSING")
+        print("    export POLYMARKET_KEY_ID=... POLYMARKET_SECRET_KEY=...")
+        print("    Create a key at https://polymarket.us/developer")
+        print("    Needed for: watch, live-check. Not for: search, market, backtest.")
+    else:
+        try:
+            credentials.validate()
+            print(f"\n  credentials  OK   {credentials.redacted()}")
+        except AuthError as exc:
+            failed = True
+            print(f"\n  credentials  BAD  {exc}")
+
     if failed:
-        print("\nAt least one endpoint is unreachable. Check egress/DNS before")
-        print("assuming the bot is broken.")
+        print("\nAt least one check failed. Fix that before assuming the bot is")
+        print("broken — and check the system clock: timestamps more than 30s")
+        print("out of sync are rejected exactly like a bad key.")
     return 1 if failed else 0
+
+
+def cmd_search(args: argparse.Namespace) -> int:
+    """Find a market slug by free text.
+
+    Slugs here are venue-generated and unguessable (`aec-nfl-lac-ten-...`),
+    unlike the readable ones on polymarket.com, so this is usually the first
+    command you run.
+    """
+    settings = Settings.from_env()
+    try:
+        markets = search_markets(
+            args.text, limit=args.limit, timeout_s=settings.http_timeout_s
+        )
+    except (DiscoveryError, httpx.HTTPError) as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 1
+
+    if not markets:
+        print("no open markets matched")
+        return 1
+
+    for market in markets:
+        print(f"{market.slug}")
+        print(f"  {market.question}  [{market.category}]")
+    print(f"\n{len(markets)} market(s)")
+    return 0
+
+
+def _print_market(market: Market) -> None:
+    print(f"question    {market.question}")
+    print(f"slug        {market.slug}")
+    print(f"id          {market.market_id}")
+    print(f"category    {market.category}")
+    print(f"tradable    {market.tradable} "
+          f"(active={market.active} closed={market.closed} "
+          f"archived={market.archived})")
+    print(f"tick size   {market.tick_size}")
+    print(f"min qty     {market.min_qty}")
+    if market.end_date:
+        print(f"ends        {market.end_date}")
+    for side in market.sides:
+        print(f"  {side.direction:<6} {side.description}")
 
 
 def cmd_market(args: argparse.Namespace) -> int:
@@ -86,33 +158,27 @@ def cmd_market(args: argparse.Namespace) -> int:
         return 1
 
     for market in markets:
-        print(f"question    {market.question}")
-        print(f"slug        {market.slug}")
-        print(f"conditionId {market.condition_id}")
-        print(f"closed      {market.closed}")
-        for token in market.tokens:
-            print(f"  {token.outcome:<12} {token.token_id}")
+        _print_market(market)
         print()
 
     if len(markets) > 1:
-        plan = build_plan(markets)
-        print(plan.describe())
+        print(build_plan(markets).describe())
     return 0
 
 
 def _print_plan(plan: WatchPlan) -> None:
     for market in plan.markets:
-        flag = "  [CLOSED]" if market.closed else ""
+        flag = "" if market.tradable else "  [NOT TRADABLE]"
         print(f"{market.slug}{flag}")
         print(f"  {market.question}")
-        for token in market.tokens:
-            print(f"    {token.outcome:<12} {token.token_id}")
     print(f"\n{plan.describe()}\n")
 
 
 async def _watch(
     refs: list[str], seconds: float | None, settings: Settings, stream_name: str
 ) -> int:
+    credentials: Credentials = settings.require_credentials()
+
     markets = resolve_markets(refs, settings)
     if not markets:
         print("error: no markets could be resolved", file=sys.stderr)
@@ -124,30 +190,37 @@ async def _watch(
         print(f"error: {exc}", file=sys.stderr)
         return 1
 
-    if plan.closed_markets:
-        names = ", ".join(m.slug for m in plan.closed_markets)
-        print(f"warning: already-closed market(s): {names}", file=sys.stderr)
+    if plan.untradable_markets:
+        names = ", ".join(m.slug for m in plan.untradable_markets)
+        print(f"warning: not currently tradable: {names}", file=sys.stderr)
 
     _print_plan(plan)
 
-    books = BookSet(plan.token_ids)
-    feed = MarketFeed(list(plan.token_ids), settings=settings)
+    books = BookSet(plan.slugs)
+    feed = MarketFeed(list(plan.slugs), settings=settings, credentials=credentials)
     width = label_width(plan.labels.values())
 
     with Journal(settings.journal_dir, stream_name) as journal:
-        # One record per market, so `report` can label token ids later without
-        # needing the network.
+        # One record per market, so `report` and `backtest` can label
+        # instruments later without needing the network. The `tokens` key is
+        # kept for journal compatibility: on this venue there is exactly one
+        # instrument per market and its id is the slug.
         for market in plan.markets:
+            long_side = market.long_side
             journal.write(
                 "market",
                 {
-                    "condition_id": market.condition_id,
                     "slug": market.slug,
+                    "market_id": market.market_id,
                     "question": market.question,
-                    "closed": market.closed,
+                    "tradable": market.tradable,
+                    "tick_size": market.tick_size,
+                    "min_qty": market.min_qty,
                     "tokens": [
-                        {"token_id": t.token_id, "outcome": t.outcome}
-                        for t in market.tokens
+                        {
+                            "token_id": market.slug,
+                            "outcome": long_side.description if long_side else "long",
+                        }
                     ],
                 },
             )
@@ -163,8 +236,12 @@ async def _watch(
                 if event == "_disconnected":
                     journal.write("disconnected", {"error": message.get("error")})
                     continue
+                if event == "_error":
+                    journal.write("feed_error", {"error": message.get("error")})
+                    print(f"feed error: {message.get('error')}", file=sys.stderr)
+                    continue
 
-                # Record the raw message before interpreting it: a parser bug
+                # Record the message before interpreting it: a parser bug
                 # should cost you a rerun, not the data.
                 journal.write("raw", {"msg": message})
 
@@ -176,7 +253,9 @@ async def _watch(
                 label = plan.label_for(book.token_id)
                 journal.write("book", {"label": label, **summary})
                 if summary["crossed"]:
-                    journal.write("anomaly", {"reason": "crossed", "label": label, **summary})
+                    journal.write(
+                        "anomaly", {"reason": "crossed", "label": label, **summary}
+                    )
 
                 def show(value: object) -> str:
                     return "-" if value is None else str(value)
@@ -212,6 +291,9 @@ def cmd_watch(args: argparse.Namespace) -> int:
     settings = Settings.from_env()
     try:
         return asyncio.run(_watch(args.market, args.seconds, settings, args.name))
+    except (AuthError, FeedAuthError) as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 1
     except KeyboardInterrupt:
         return 130
 
@@ -255,17 +337,25 @@ def cmd_report(args: argparse.Namespace) -> int:
 
     if updates:
         width = min(max(len(k) for k in updates), 44)
-        print("\nper token")
+        print("\nper instrument")
         for label in sorted(updates, key=lambda k: -updates[k]):
             spreads = sorted(per_label.get(label, []))
             median = f"{spreads[len(spreads) // 2]:.4f}" if spreads else "-"
-            print(f"  {label:<{width}}  updates={updates[label]:<7} median_spread={median}")
+            print(
+                f"  {label:<{width}}  updates={updates[label]:<7} "
+                f"median_spread={median}"
+            )
 
     reconnects = counts.get("reconnected", 0)
     if reconnects > 1:
         print(f"\n  feed reconnected {reconnects - 1} time(s) during this run")
+    if counts.get("feed_error"):
+        print(f"\n  {counts['feed_error']} feed error(s) — check the journal")
     if anomalies:
-        print(f"\n  {anomalies} crossed-book anomalies — investigate before trusting this data")
+        print(
+            f"\n  {anomalies} crossed-book anomalies — investigate before "
+            "trusting this data"
+        )
     return 0
 
 
@@ -283,6 +373,7 @@ def cmd_backtest(args: argparse.Namespace) -> int:
         size=args.size,
         min_edge=args.min_edge,
         max_inventory=args.max_inventory,
+        tick=args.tick,
     )
     risk = RiskManager(
         RiskLimits(
@@ -298,7 +389,7 @@ def cmd_backtest(args: argparse.Namespace) -> int:
 
     print(f"strategy      {strategy.name} "
           f"(half_spread={args.half_spread}, size={args.size}, "
-          f"min_edge={args.min_edge})")
+          f"min_edge={args.min_edge}, tick={args.tick})")
     print(f"fill model    queue_factor={args.queue_factor}, fee_bps={args.fee_bps}")
     print(f"\nmessages      {result.messages}")
     print(f"book updates  {result.updates}")
@@ -308,11 +399,11 @@ def cmd_backtest(args: argparse.Namespace) -> int:
 
     pf = result.portfolio
     print(f"\nfills         {pf.fills}")
-    print(f"volume        {pf.volume:,.2f} USDC")
-    print(f"fees          {pf.fees_paid:,.4f} USDC")
-    print(f"\nrealized      {result.realized:+,.4f} USDC")
-    print(f"unrealized    {result.unrealized:+,.4f} USDC")
-    print(f"total         {result.total_pnl:+,.4f} USDC")
+    print(f"volume        {pf.volume:,.2f} USD")
+    print(f"fees          {pf.fees_paid:,.4f} USD")
+    print(f"\nrealized      {result.realized:+,.4f} USD")
+    print(f"unrealized    {result.unrealized:+,.4f} USD")
+    print(f"total         {result.total_pnl:+,.4f} USD")
 
     open_positions = pf.open_positions()
     if open_positions:
@@ -345,6 +436,9 @@ def cmd_backtest(args: argparse.Namespace) -> int:
         print("\n  Fills are inferred, not observed. Latency, queue position and "
               "\n  cancel races are all unmodelled, and every one of them costs "
               "money\n  live. Treat a marginally profitable result as a losing one.")
+        print("  Fees here are whatever you passed in --fee-bps. Polymarket US "
+              "charges\n  real trading fees; check docs.polymarket.us/fees and put "
+              "the actual\n  number in before believing a thin edge.")
         if args.queue_factor >= 1.0:
             print("\n  queue_factor=1.0 assumes you are always first in the queue. "
                   "You are\n  not. This number is optimistic by construction.")
@@ -354,7 +448,7 @@ def cmd_backtest(args: argparse.Namespace) -> int:
 def cmd_live_check(args: argparse.Namespace) -> int:
     """Plumbing test: prove the live path works, spending as close to nothing
     as the venue allows."""
-    from .live import LiveClient, WalletConfig, run_checks
+    from .live import ClientConfig, LiveClient, run_checks
     from .live.checks import PLUMBING_MAX_NOTIONAL
 
     settings = Settings.from_env()
@@ -366,9 +460,9 @@ def cmd_live_check(args: argparse.Namespace) -> int:
     if args.live:
         print("=" * 62)
         print("  LIVE MODE — this will post a real order with real money.")
-        print(f"  Ceiling: {PLUMBING_MAX_NOTIONAL} USDC per order, cancelled "
+        print(f"  Ceiling: {PLUMBING_MAX_NOTIONAL} USD per order, cancelled "
               "before exit.")
-        print("  Use a wallet holding only what you can afford to lose.")
+        print("  The order rests far below the touch and should never fill.")
         print("=" * 62)
         if not args.yes:
             reply = input("\nType 'yes' to continue: ").strip().lower()
@@ -376,11 +470,11 @@ def cmd_live_check(args: argparse.Namespace) -> int:
                 print("aborted")
                 return 1
         try:
-            config = WalletConfig.from_env()
+            config = ClientConfig.from_env()
         except Exception as exc:  # noqa: BLE001
             print(f"error: {exc}", file=sys.stderr)
             return 1
-        print(f"\nwallet   {config.redacted()}\n")
+        print(f"\ncredentials   {config.redacted()}\n")
         factory = lambda: LiveClient(config)  # noqa: E731
     else:
         factory = None
@@ -388,14 +482,14 @@ def cmd_live_check(args: argparse.Namespace) -> int:
     with Journal(settings.journal_dir, "live-check") as journal:
         run = run_checks(
             market,
-            args.outcome,
+            args.side,
             journal,
             client_factory=factory,
             dry_run=not args.live,
             fill_test=args.fill_test,
         )
 
-    print(f"plumbing check — {market.slug} / {args.outcome}\n")
+    print(f"plumbing check — {market.slug} / {args.side}\n")
     for step in run.steps:
         print(step.render())
 
@@ -407,109 +501,9 @@ def cmd_live_check(args: argparse.Namespace) -> int:
     print("\nFAILED at:")
     for step in run.failed:
         print(f"  {step.name}: {step.detail}")
-    print("\nSee the ADAPTER NOTES at the top of src/pmbot/live/client.py — an\n"
-          "SDK rename or a wrong signature_type explains most failures here.")
+    print("\nMost failures here are a revoked key, a clock more than 30s out of\n"
+          "sync, or a market that is flagged active but already closed.")
     return 1
-
-
-def cmd_approvals(args: argparse.Namespace) -> int:
-    """Grant the exchange permission to move USDC and outcome shares."""
-    from .live.approvals import (
-        ApprovalConfig,
-        ApprovalError,
-        execute,
-        plan,
-        read_state,
-    )
-    from .live.client import WalletConfig
-
-    path = Path(args.config)
-
-    if args.init:
-        try:
-            ApprovalConfig.write_template(path)
-        except ApprovalError as exc:
-            print(f"error: {exc}", file=sys.stderr)
-            return 1
-        print(f"wrote a template to {path}\n")
-        print("Fill in every address from the OFFICIAL Polymarket docs before")
-        print("running this again. An approval to a wrong address hands over")
-        print("your balance, and no amount of care later undoes it.")
-        return 0
-
-    try:
-        config = ApprovalConfig.load(path)
-    except ApprovalError as exc:
-        print(f"error: {exc}", file=sys.stderr)
-        return 1
-
-    try:
-        wallet = WalletConfig.from_env()
-    except Exception as exc:  # noqa: BLE001
-        print(f"error: {exc}", file=sys.stderr)
-        return 1
-
-    try:
-        from web3 import Web3  # noqa: F401  (import check only)
-        from eth_account import Account
-
-        owner = Account.from_key(wallet.private_key).address
-    except ImportError:
-        print("error: pip install -r requirements-live.txt", file=sys.stderr)
-        return 1
-    except Exception as exc:  # noqa: BLE001
-        print(f"error: bad private key: {type(exc).__name__}", file=sys.stderr)
-        return 1
-
-    print(f"owner    {owner}")
-    print(f"rpc      {config.rpc_url}")
-    print(f"usdc     {config.usdc}")
-    print(f"ctf      {config.conditional_tokens}\n")
-
-    try:
-        state = read_state(config, owner)
-    except ApprovalError as exc:
-        print(f"error: {exc}", file=sys.stderr)
-        return 1
-
-    amount = (1 << 256) - 1 if args.unlimited else int(args.amount * 10**6)
-    actions = plan(config, state, min_allowance=int(args.amount * 10**6))
-
-    if not actions:
-        print("Nothing to do — every approval is already in place.")
-        return 0
-
-    print("Pending approvals:")
-    for action in actions:
-        print(f"  - {action.render()}")
-
-    if not args.live:
-        print("\nDry run. Re-run with --live to send these transactions.")
-        return 0
-
-    print(f"\nUSDC allowance to set: "
-          f"{'UNLIMITED' if args.unlimited else f'{args.amount} USDC'}")
-    if args.unlimited:
-        print("  An unlimited allowance means the contract can move every USDC")
-        print("  this wallet will ever hold. Prefer a bounded amount unless you")
-        print("  have a reason not to.")
-    if not args.yes:
-        reply = input("\nType 'approve' to send: ").strip().lower()
-        if reply != "approve":
-            print("aborted")
-            return 1
-
-    try:
-        hashes = execute(config, actions, wallet.private_key, amount)
-    except ApprovalError as exc:
-        print(f"error: {exc}", file=sys.stderr)
-        return 1
-
-    print()
-    for tx_hash in hashes:
-        print(f"  confirmed  https://polygonscan.com/tx/{tx_hash}")
-    print("\nApprovals done. Now run: pmbot live-check <slug> --live")
-    return 0
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -517,19 +511,24 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("-v", "--verbose", action="store_true")
     sub = parser.add_subparsers(dest="command", required=True)
 
-    sub.add_parser("doctor", help="check connectivity to the venue").set_defaults(
-        func=cmd_doctor
-    )
+    sub.add_parser(
+        "doctor", help="check connectivity and credentials"
+    ).set_defaults(func=cmd_doctor)
 
-    p_market = sub.add_parser("market", help="resolve markets to their token ids")
-    p_market.add_argument("market", nargs="+", help="Polymarket URL(s) or slug(s)")
+    p_search = sub.add_parser("search", help="find open markets by free text")
+    p_search.add_argument("text", help="text to match against slug/question")
+    p_search.add_argument("--limit", type=int, default=100)
+    p_search.set_defaults(func=cmd_search)
+
+    p_market = sub.add_parser("market", help="resolve markets and show their details")
+    p_market.add_argument("market", nargs="+", help="Polymarket US URL(s) or slug(s)")
     p_market.set_defaults(func=cmd_market)
 
     p_watch = sub.add_parser(
         "watch",
         help="stream one or more markets' order books over a single connection",
     )
-    p_watch.add_argument("market", nargs="+", help="Polymarket URL(s) or slug(s)")
+    p_watch.add_argument("market", nargs="+", help="Polymarket US URL(s) or slug(s)")
     p_watch.add_argument("--seconds", type=float, default=None, help="stop after N s")
     p_watch.add_argument(
         "--name", default="feed", help="journal stream name (default: feed)"
@@ -549,6 +548,9 @@ def build_parser() -> argparse.ArgumentParser:
     p_back.add_argument("--min-edge", type=float, default=0.01,
                         help="skip markets whose spread is tighter than this")
     p_back.add_argument("--max-inventory", type=float, default=200.0)
+    p_back.add_argument("--tick", type=float, default=0.01,
+                        help="price increment to quote on; see `market` for the "
+                             "venue's tick (often 0.001)")
     p_back.add_argument("--queue-factor", type=float, default=0.5,
                         help="haircut on every fill; 1.0 assumes perfect queue position")
     p_back.add_argument("--fee-bps", type=float, default=0.0)
@@ -561,8 +563,10 @@ def build_parser() -> argparse.ArgumentParser:
         "live-check",
         help="plumbing test against the real venue (dry run unless --live)",
     )
-    p_live.add_argument("market", help="Polymarket URL or slug")
-    p_live.add_argument("--outcome", default="Yes", help="outcome to test (default: Yes)")
+    p_live.add_argument("market", help="Polymarket US URL or slug")
+    p_live.add_argument("--side", default="long",
+                        help="market side to test: long/short, or the venue's "
+                             "own label (default: long)")
     p_live.add_argument(
         "--live",
         action="store_true",
@@ -571,20 +575,6 @@ def build_parser() -> argparse.ArgumentParser:
     p_live.add_argument("--yes", action="store_true", help="skip the confirmation prompt")
     p_live.add_argument("--fill-test", action="store_true", help="not yet implemented")
     p_live.set_defaults(func=cmd_live_check)
-
-    p_appr = sub.add_parser(
-        "approvals",
-        help="grant the exchange permission to move your USDC and shares",
-    )
-    p_appr.add_argument("--config", default="approvals.json")
-    p_appr.add_argument("--init", action="store_true", help="write a config template")
-    p_appr.add_argument("--amount", type=float, default=100.0,
-                        help="USDC allowance to grant (default: 100)")
-    p_appr.add_argument("--unlimited", action="store_true",
-                        help="grant an unlimited allowance (not recommended)")
-    p_appr.add_argument("--live", action="store_true", help="actually send the txs")
-    p_appr.add_argument("--yes", action="store_true", help="skip the confirmation")
-    p_appr.set_defaults(func=cmd_approvals)
 
     return parser
 

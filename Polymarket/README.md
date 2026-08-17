@@ -1,40 +1,148 @@
-# Polymarket — a trading bot, built in phases
+# Polymarket US — a trading bot, built in phases
 
-A market-data client for Polymarket: resolve a market, stream its order book
-over WebSocket, and journal everything to disk for later analysis.
+A trading bot for **Polymarket US** (polymarket.us): resolve a market,
+stream its order book over WebSocket, journal everything to disk, replay
+those journals through a strategy, and — behind an explicit opt-in — place a
+capped live order.
 
-Phase 2 adds paper trading on top: a strategy interface, a fill simulator, a
-risk veto layer and a backtest that replays those journals.
+> **This targets Polymarket US, not polymarket.com.** They are different
+> exchanges. Polymarket US is CFTC-regulated, KYC'd and USD-settled; there
+> is no wallet, no private key and no chain. An account and a balance on one
+> venue does not exist on the other, and the APIs have nothing in common.
 
-Phase 3a adds a live plumbing check — a capped, cancelled test order that
-proves the real path works before any strategy is pointed at it.
+---
 
-**Phases 1 and 2 cannot trade.** They hold no signing code and read no
-private key, and the SDK that can sign is imported lazily, only by
-`live-check`. Everything up to that point is unable to lose money by
-construction.
+## The migration: what was reused, what was rebuilt
+
+This started life against the international CLOB (polymarket.com: Gamma +
+CLOB REST, a public WebSocket, orders signed with an Ethereum key on
+Polygon). Moving it to Polymarket US replaced the entire venue.
+
+The interesting result is how little of the *thinking* had to move. Roughly
+60% of the code was untouched, and not by luck: the original split put
+everything venue-specific behind a narrow boundary, and this migration is
+the test of whether that boundary was drawn in the right place. It was —
+with one adjustment, described below.
+
+### Reused unchanged
+
+| Module | What it does | Why it survived |
+|---|---|---|
+| `portfolio.py` | positions, cash, weighted-average cost basis, realised/unrealised P&L | arithmetic on fills. No venue in it. |
+| `risk.py` | the veto layer: order size, position, exposure, price band, sticky halt, kill-switch file | operates on intents and a portfolio, both venue-neutral |
+| `sim.py` | paper broker and the fill model (trade-tape priority, queue haircut) | consumes canonical book/trade events |
+| `strategy/` | the `Strategy` protocol, `Context`, and the maker | sees books and returns intents; never touches a client |
+| `replay.py` | the backtest loop and its ordering guarantee | drives the above over journal records |
+| `intents.py` | `PlaceQuote` / `CancelQuote` / `CancelAll` | a price, a size and a side mean the same thing everywhere |
+| `journal.py` | append-only JSONL, daily rotation, truncation-tolerant replay | a log is a log |
+| `book.py` | in-memory order book, best bid/ask, spread, mid, crossed detection | pure state machine over canonical messages |
+
+Old journals still replay. Old backtests still run. Every one of the
+original tests in these modules still passes, unmodified.
+
+### Rebuilt
+
+| Module | Before | After |
+|---|---|---|
+| `endpoints.py` | `gamma-api` + `clob.polymarket.com` + a Polygonscan link | `gateway.polymarket.us` (public) + `api.polymarket.us` (auth), paths kept separate from URLs for signing |
+| `auth.py` | *did not exist* — phase 1 deliberately held no credentials | **new.** Ed25519 signing of `timestamp + METHOD + path` |
+| `config.py` | refused to read a private key | reads an API key pair; still cannot enable trading from the environment |
+| `discovery.py` | slug → `conditionId` → one CLOB token id per outcome, paired by label | slug **is** the instrument; sides are directions, not assets |
+| `plan.py` | N markets → 2N token ids | N markets → N slugs, chunked at the venue's 100-per-subscription cap |
+| `feed.py` | public `market` channel, no auth, snapshot + increments | authenticated handshake, full snapshots, and **normalisation** (below) |
+| `live/client.py` | `py-clob-client`, wallet, `signature_type`, funder, L1→L2 key derivation | the official `polymarket_us` SDK and four order intents |
+| `live/checks.py` | connect → derive credentials → post → cancel | adds a free `preview` step before the first real order |
+| `cli.py` | `doctor`, `market`, `watch`, `report`, `backtest`, `live-check`, `approvals` | same, minus `approvals`, plus `search` |
+
+### Deleted outright
+
+`live/approvals.py` (344 lines) and its 12 tests. On the international venue
+a fresh wallet had to grant the exchange standing permission to move its
+USDC (ERC-20 `approve`) and its outcome shares (ERC-1155
+`setApprovalForAll`) before a single order could rest — an on-chain
+transaction to an address that had to be exactly right, because approving
+the wrong one is not a failed transaction, it is a working one that hands a
+stranger your balance.
+
+Polymarket US settles USD on a regulated exchange. There is no wallet, no
+chain, no approval, and no `web3` dependency. That entire failure mode is
+gone, and with it the most dangerous file in the repo.
+
+Also gone: `signature_type` (0/1/2 for EOA vs Magic vs browser proxy —
+wrong value meant every order silently rejected), the `funder` address, gas,
+and POL/MATIC balance management.
+
+### The two decisions that made the reuse possible
+
+**1. Normalise at the feed, not at the strategy.**
+
+The venue's wire format is protobuf-derived JSON: camelCase envelopes,
+prices as `{"value": "0.555", "currency": "USD"}`, sizes as strings,
+RFC-3339 timestamps with nanosecond precision, and the sell side called
+`offers`. `feed.normalize()` translates all of that into the small canonical
+shape the package already used — `event_type`, `asset_id`, float `price` and
+`size` — before anything else sees a message.
+
+That single function is why the fill simulator, the risk layer, the replay
+engine and the strategies needed no changes at all. It is also the seam a
+third venue would be adapted at, and it is the most heavily tested code in
+the file, because it is the one place where a schema change can quietly
+corrupt every downstream number.
+
+**2. The slug is the instrument key.**
+
+Downstream code says `token_id`. On this venue that field carries a **market
+slug**. Renaming it would have touched `portfolio.py`, `risk.py`, `sim.py`,
+`strategy/` and `replay.py` — five modules that have no venue-specific logic
+in them — to no functional end, since the key is an opaque string either
+way. The name stayed; the meaning is documented here and at each boundary.
+
+### What genuinely changed in the model
+
+| | polymarket.com | Polymarket US |
+|---|---|---|
+| Instrument | two ERC-1155 token ids per market (YES, NO) | **one** per market, addressed by slug |
+| Going short | buy the complementary token | sell the long instrument (`ORDER_INTENT_SELL_LONG`) |
+| Auth | Ethereum key → L1 signature → L2 HMAC creds | API key id + Ed25519 secret |
+| Market data feed | public, anonymous | **authenticated** |
+| Book updates | snapshot + `price_change` increments | full snapshot every message |
+| Order key | `token_id` | `marketSlug` + `intent` + `type` + `price` + `quantity` + `tif` |
+| Settlement | USDC on Polygon | USD, exchange-settled |
+| Pre-trade | token approvals, gas | KYC (already done in the app) |
+| Tick size | 0.01 typically | per-market `orderPriceMinTickSize`, often **0.001** |
+| Fees | maker rebates, taker fees | see [docs.polymarket.us/fees](https://docs.polymarket.us/fees) |
+
+Two of these have teeth:
+
+- **The feed is authenticated.** The old design's proudest property — phase
+  1 *cannot* lose money because it holds no credentials — does not survive.
+  Recording a book now requires the same key that can trade. The guard rail
+  that replaces it is narrower and honest: credentials are read, but the
+  only code that can send an order lives in `live/` and asks first.
+- **The tick is often 0.001, not 0.01.** A maker quoting on a 0.01 grid on a
+  0.001-tick market is leaving nine ticks of queue position on the table.
+  `market` prints the real tick; `backtest --tick` takes it.
+
+---
 
 ## Why this shape
 
-Most Polymarket bot tutorials stop after "here is how to POST one order from
-Python". That is the easy 10%. The parts that decide whether a bot survives
-contact with a live venue are the ones they skip: streaming instead of
-polling, surviving disconnects, and recording enough to reconstruct what the
-bot believed when it made a bad decision. Those come first here.
+Most prediction-market bot tutorials stop after "here is how to POST one
+order from Python". That is the easy 10%. The parts that decide whether a
+bot survives contact with a live venue are the ones they skip: streaming
+instead of polling, surviving disconnects, and recording enough to
+reconstruct what the bot believed when it made a bad decision.
 
-Three specific things it does differently:
+Three things it does differently:
 
-- **Pairs outcomes to tokens by label, never by array index.** Tutorials dig
-  YES out of position `[0]` and hope. Both Gamma and the CLOB label every
-  token with its outcome name, so `market.outcome_token("Yes")` is exact.
-  `test_outcome_lookup_survives_reordering` pins this down.
-- **Throws the book away on reconnect.** Increments missed while
-  disconnected are unrecoverable. Resuming the old state would leave you
-  quoting against a book that silently drifted from reality, so the feed
-  emits a synthetic `_reconnected` event and the consumer resets to wait for
-  a fresh snapshot.
-- **Journals the raw message before parsing it.** A parser bug should cost
-  you a re-run, not the data.
+- **Normalises the venue's format at one seam.** Everything above `feed.py`
+  speaks one message shape, which is why a whole-venue migration touched
+  none of the trading logic.
+- **Throws the book away on reconnect.** What you missed while disconnected
+  may have included a state change, and quoting against a stale book is the
+  failure this exists to prevent.
+- **Journals the message before parsing it.** A parser bug should cost you a
+  re-run, not the data.
 
 ## Install
 
@@ -45,26 +153,43 @@ pip install -r requirements.txt
 export PYTHONPATH=src
 ```
 
+Get an API key: create an account in the Polymarket US app, complete
+identity verification, then go to
+[polymarket.us/developer](https://polymarket.us/developer). The secret is
+shown **once**.
+
+```bash
+export POLYMARKET_KEY_ID=...
+export POLYMARKET_SECRET_KEY=...
+```
+
+`search`, `market`, `report` and `backtest` work without them. `watch` and
+`live-check` do not.
+
 ## Use
 
 ```bash
-# Can this machine actually reach the venue?
+# Can this machine reach the venue, and is the key valid?
 python -m pmbot.cli doctor
 
-# Resolve market URLs to their conditionIds and per-outcome token ids.
-python -m pmbot.cli market https://polymarket.com/event/<slug>
+# Find a slug. Slugs here are venue-generated (aec-nfl-lac-ten-2025-11-02),
+# not readable like on polymarket.com — so this is usually step one.
+python -m pmbot.cli search "world series"
 
-# Stream the book, print top-of-book, write a journal.
-python -m pmbot.cli watch <url-or-slug> --seconds 300
+# Market details: sides, tick size, minimum quantity, tradability.
+python -m pmbot.cli market <url-or-slug>
+
+# Stream the book, print top-of-book, write a journal. Needs credentials.
+python -m pmbot.cli watch <slug> --seconds 300
 
 # Several markets at once — one connection, one journal.
 python -m pmbot.cli watch <slug-a> <slug-b> <slug-c> --name overnight
 
-# Summarise what a journal captured, broken down per market.
+# Summarise what a journal captured.
 python -m pmbot.cli report journal/overnight-<date>.jsonl
 
-# Replay a journal through a paper-trading strategy (phase 2, see below).
-python -m pmbot.cli backtest journal/overnight-<date>.jsonl
+# Replay a journal through a paper-trading strategy.
+python -m pmbot.cli backtest journal/overnight-<date>.jsonl --tick 0.001
 ```
 
 Journals land in `./journal/` as one JSONL file per stream per UTC day, and
@@ -72,65 +197,59 @@ are gitignored.
 
 ## Watching several markets
 
-Pass as many markets as you like. They are **multiplexed onto one WebSocket
-connection**, because the CLOB market channel accepts a list of asset ids in
-a single subscription — one socket to reconnect, one ordering of events, one
-journal to replay. Opening a connection per market would buy nothing and
-multiply the failure modes.
+Markets are **multiplexed onto one WebSocket connection** — one socket to
+reconnect, one ordering of events, one journal to replay. The venue caps a
+subscription at 100 markets, so `plan.py` chunks beyond that; it is still
+one connection.
 
 ```
-2 market(s), 4 token(s), 1 connection
-  btc-up-or-down/Up     bid 0.49   ask 0.51   mid 0.5
-  btc-up-or-down/Down   bid 0.49   ask 0.51   mid 0.5
-  madrid-barca/Yes      bid 0.61   ask 0.63   mid 0.62
-  madrid-barca/No       bid 0.37   ask 0.39   mid 0.38
+3 market(s), 3 instrument(s), 1 connection, 1 subscription(s)
+  tec-mlb-champ-2026-09-27-ath (World Series Champion)  bid 0.21  ask 0.22  mid 0.215
 ```
 
-Every row is labelled `slug/outcome`, which matters as soon as two markets
-both have a "Yes". Duplicate token ids across references are subscribed once.
-A market that fails to resolve is reported and skipped rather than aborting
+Each market is one instrument, so there is no longer a row per outcome. A
+market that fails to resolve is reported and skipped rather than aborting
 the run — a typo'd slug is a bad reason to lose an overnight recording.
+
+An authentication failure on the handshake is **not** retried. A key does
+not become valid by being retried, and a bot that spins on 401 forever looks
+alive in the logs while recording nothing.
 
 ## Tests
 
 ```bash
-python -m pytest -q     # 138 tests, no network required
+python -m pytest -q     # 176 tests, no network required
 ```
 
-The suite runs entirely against recorded fixtures in `tests/fixtures/`. This
-is deliberate: an exchange is the one dependency you cannot spin up locally,
-so every piece of parsing and book-keeping logic is pure and testable
-offline. Covered: snapshot/increment application, level removal on zero size,
-crossed-book detection, malformed-level tolerance, outcome pairing under
-reordering, multi-market planning and label collisions, book reset on
-reconnect, batched vs single WebSocket frames, journal recovery from a
-truncated final line, cost-basis and realised/unrealised P&L including
-flipping through zero, every risk veto and the sticky halt, maker quoting
-and inventory skew, trade-tape fills by price priority, and the absence of
-lookahead in the replay loop, plus every safety rail on the live plumbing
-check (dry run builds no client, orders are journalled before they are sent,
-a failed cancel triggers cleanup, private keys never reach a log line).
+Every test runs offline against fixtures and hand-built payloads: an
+exchange is the one dependency you cannot spin up locally, so all parsing
+and book-keeping is pure and testable without one.
 
-## Status of the endpoints
+Covered, beyond the original suite: Ed25519 signing (including that the
+signature covers the path and **not** the query string — the mistake that
+costs an afternoon), venue-format normalisation for books, trades, BBO,
+heartbeats and errors, that normalised messages feed the *existing* book and
+replay engines unchanged, that BBO is never passed off as a book snapshot,
+subscription chunking at the venue's 100-market cap, halted-vs-empty market
+distinction, order intent mapping, decimal-string price encoding, tick
+snapping, and that auth rejections stop rather than retry.
 
-`src/pmbot/endpoints.py` holds every URL. They were written **without live
-verification** — the environment this was authored in had outbound access to
-`*.polymarket.com` blocked by network policy, so nothing here has been run
-against the real venue. `doctor` is the first thing to run on a machine with
-real network access; if an endpoint has moved, it is a one-file fix.
+## Endpoint verification
 
-Note also that the SDK most tutorials use, `py-clob-client`, is **archived**.
-The current one is [`polymarket-client`](https://github.com/Polymarket/py-sdk)
-(`pip install polymarket-client`). Phases 1 and 2 talk to the public REST
-and WebSocket endpoints directly and need neither; only `live-check` loads
-an SDK, and it does so lazily.
+Unlike the previous version of this file, these endpoints **were verified
+against the live API** — the market list, market-by-slug, order book and BBO
+responses were fetched and parsed, and the WebSocket handshake was confirmed
+to reach the venue and reject an invalid key with HTTP 401. `doctor` re-runs
+the reachability half on your machine.
+
+Not verified, because it needs your credentials and real money: placing,
+listing and cancelling an order. That is exactly what `live-check` is for.
 
 ## Phase 2 — paper trading
 
 ```bash
 # No real data yet? Generate a synthetic journal to exercise the machinery.
 python tools/synth_journal.py --out /tmp/synth.jsonl --updates 3000
-
 python -m pmbot.cli backtest /tmp/synth.jsonl --half-spread 0.02 --size 25
 ```
 
@@ -146,21 +265,20 @@ the reason so many paper P&Ls do not survive a real venue.
 
 ### How fills are inferred, and why it matters
 
-There are two paths, and they are not equally important:
+- **Trade prints.** A trade at price *p* means anyone bidding at or above
+  *p* should have been hit first, so a resting bid at ≥ *p* fills — at its
+  own price, since the taker crosses to it. **This is how a maker actually
+  gets filled**, which is why `watch` subscribes to the trade tape alongside
+  the book by default.
+- **Book crossing.** The best ask drops below your resting bid. Real, but
+  rare.
 
-- **Trade prints** (`last_trade_price`). A trade at price *p* means anyone
-  bidding at or above *p* should have been hit first, so a resting bid at
-  ≥ *p* fills — at its own price, since the taker crosses to it. **This is
-  how a maker actually gets filled.**
-- **Book crossing.** The best ask drops below your resting bid, i.e. the
-  market jumped clean through you. Real, but rare.
-
-This distinction was not obvious up front, and it broke the first version:
-with book-only data a maker quoting outside the spread needs a single-tick
-jump larger than the spread to fill, which essentially never happens — so
-the first backtest reported **zero fills over 2000 updates**. Market making
-looked impossible when it was merely unmeasured. If your journal has no
-trade prints, `backtest` says so rather than reporting a confident zero.
+This broke the first version: with book-only data a maker quoting outside
+the spread needs a single-tick jump larger than the spread to fill, which
+essentially never happens — the first backtest reported **zero fills over
+2000 updates**. Market making looked impossible when it was merely
+unmeasured. If your journal has no trade prints, `backtest` says so rather
+than reporting a confident zero.
 
 Everything still unmodelled points the same way — optimistic:
 
@@ -170,6 +288,7 @@ Everything still unmodelled points the same way — optimistic:
 | Queue position | `queue_factor` haircuts fills; 1.0 assumes you are always first |
 | Cancel races | here a cancel always wins; live it can lose to a fill |
 | Sub-snapshot moves | trades that happen and revert between snapshots |
+| Fees | `--fee-bps` defaults to 0; the venue's real schedule is not 0 |
 
 **Treat a marginally profitable backtest as a losing one.**
 
@@ -188,35 +307,30 @@ price band, halts on drawdown — **stickily**, because a limit you recover
 from automatically is not a limit — and reads a kill switch from a file on
 disk, so stopping the bot never requires a redeploy.
 
+This module was not touched by the migration.
+
 ## Phase 3a — the plumbing test
 
 ```bash
-# Dry run: prints what it would do, reads no credentials, sends nothing.
-python -m pmbot.cli live-check <url-or-slug>
+# Dry run: prints what it would do, uses no credentials, sends nothing.
+python -m pmbot.cli live-check <slug>
 
 # The real thing.
-pip install py-clob-client-v2
-export PMBOT_PRIVATE_KEY=0x...        # a FRESH wallet, nothing else in it
-python -m pmbot.cli live-check <url-or-slug> --live
+pip install -r requirements-live.txt
+python -m pmbot.cli live-check <slug> --live
 ```
 
 This is **not the bot running**. It is a checklist that proves the live path
 works, one step at a time:
 
 ```
-connect -> derive API credentials -> read tick size -> read the book
--> post a resting order -> see it listed -> cancel it -> see it gone
+connect + authenticate -> venue reachable -> read tick size -> read the book
+-> preview the order -> post it -> see it listed -> cancel it -> see it gone
 ```
 
-The default run **costs nothing but gas**. The order it posts sits ~10 cents
-below the touch specifically so it cannot fill, and it is cancelled before
-the run ends.
-
-Why a checklist rather than the strategy: there is code in `live/client.py`
-that has never executed against the real venue. Finding out that
-`create_or_derive_api_key` was renamed, or that `signature_type` is wrong
-for your wallet, is cheap when one $1 order is in flight and expensive when
-a strategy is quoting. When a step fails, it names the step.
+The default run **costs nothing at all** — there is no gas on this venue, so
+an unfilled, cancelled order is free. The order sits ~10 cents below the
+touch specifically so it cannot fill.
 
 The rails, and why each exists:
 
@@ -224,60 +338,32 @@ The rails, and why each exists:
 |---|---|
 | `--live` required, dry run default | posting real orders should never be the accidental path |
 | `PLUMBING_MAX_NOTIONAL` is a constant, not a flag | raising the ceiling requires a diff, which requires a thought |
+| Order previewed before it is sent | the venue will tell you an order is malformed for free |
 | Order journalled *before* it is sent | a process that dies mid-request still leaves a record of what was in flight |
 | `cancel_all()` in a `finally` | a crash must never leave an order resting |
-| Typed confirmation prompt | the last chance to notice you are pointed at the wrong wallet |
+| Typed confirmation prompt | the last chance to notice you are pointed at the wrong market |
+| Secrets never rendered | `redacted()` prints a length, never the key |
 
 ### Before the first live run
 
-1. **A fresh wallet.** Only what you can afford to lose. A private key in a
-   `.env` next to unproven code is not where savings belong.
-2. **POL (ex-MATIC) for gas**, separate from your USDC — USDC cannot pay for
-   Polygon transactions.
-3. **Approvals** — see below. Without them every order is rejected.
-4. **Check the current fee schedule.** In market making the difference
-   between 0 and 20bps decides whether the strategy exists at all.
+1. **Check the fee schedule.** In market making the difference between 0 and
+   20bps decides whether the strategy exists at all —
+   [docs.polymarket.us/fees](https://docs.polymarket.us/fees).
+2. **Check the tick.** `market <slug>` prints it. Often 0.001.
+3. **Check trading hours.** Unlike a 24/7 crypto venue, this one has
+   scheduled maintenance and per-market hours.
+4. **Check your clock.** Timestamps more than 30 seconds out of sync are
+   rejected exactly like a bad key, with an error that says nothing useful.
 
-### Approvals
-
-The exchange cannot settle a trade until it has permission to move your
-USDC (ERC-20 `approve`) and your outcome shares (ERC-1155
-`setApprovalForAll`). Email/Magic wallets have this done for them; a plain
-wallet does not, and every order it posts is rejected until it does.
-
-```bash
-pip install -r requirements-live.txt
-python -m pmbot.cli approvals --init          # writes approvals.json
-# fill in the addresses from the official docs, then:
-python -m pmbot.cli approvals                 # dry run: shows what is missing
-python -m pmbot.cli approvals --live --amount 100
-```
-
-**There are no default contract addresses in this repo, on purpose.** An
-approval is not a payment you can dispute — it is a standing right for a
-contract to move your tokens, and approving a wrong address is a *successful*
-transaction that hands your balance to a stranger. Every address here was
-unverifiable from the machine this was written on, so rather than ship
-plausible constants for you to trust, the config starts empty and the
-template placeholders are rejected by validation.
-
-Fill them from the official Polymarket docs. Not from a blog, not from this
-README, and not from a model's memory — including mine.
-
-What the command checks before sending anything: every address is
-well-formed, there is actual contract code deployed at each one (approving
-an address with no code is a classic way to lose funds), no two spenders
-collide, and existing approvals are skipped rather than re-sent. It prints
-each pending approval with its target address and requires you to type
-`approve`. `--amount` bounds the allowance; `--unlimited` exists but warns,
-because unlimited means every USDC the wallet will ever hold.
+No wallet funding, no gas token, and no approvals: your KYC'd USD balance is
+the whole story.
 
 ### On $70
 
 $70 is the right size for this and the wrong size for trading. Even a great
 10% monthly return is $7 — less than the time spent reading the logs. Treat
 it as a validation budget: it buys proof that auth, ordering, fills,
-cancellation and redemption all work, which cannot be bought any other way
+cancellation and settlement all work, which cannot be bought any other way
 and is worth far more than $7 before scaling.
 
 ## What comes next
@@ -286,27 +372,34 @@ and is worth far more than $7 before scaling.
 |---|---|---|
 | **1. Observe** ✅ | discovery, feed, book, journal | none |
 | **2. Paper trade** ✅ | strategy, fill sim, risk veto, backtest | none |
-| **3a. Plumbing test** ✅ | live auth, one order, cancel | gas + a capped ~$1 order |
+| **3a. Plumbing test** ✅ | live auth, one order, cancel | a capped, cancelled order |
 | 3b. Strategy live | `LiveBroker` behind the existing `RiskManager` | hard-capped, small |
 | 4. Scale | only if 3b shows a real edge over weeks | your call |
 
 Phase 3b reuses phases 1 and 2 whole: the same `Strategy`, the same
 `RiskManager`, the same intents. Only the broker changes — `PaperBroker`
-becomes one that signs and posts. That swap is the entire remaining surface
-where money can be lost, which is exactly how small you want it to be.
+becomes one that posts through `LiveClient`. That swap is the entire
+remaining surface where money can be lost, which is exactly how small you
+want it to be.
+
+The private WebSocket (`/v1/ws/private`) is the natural companion: order,
+position and balance updates pushed rather than polled, which is both
+correct and how you stay inside 20 req/s. `endpoints.py` has the URL;
+nothing consumes it yet.
 
 It should not be built until 3a passes and a backtest on **real** recorded
 data says there is an edge worth defending.
 
 ## A word on strategy
 
-The "Bitcoin up or down in 5 minutes" markets that make these bots look
-lucrative are a **latency race**, not a prediction problem. Winning there
-means seeing the spot price move and repricing before the resting quotes do,
-which is an infrastructure game against colocated competitors. From Python on
-an ordinary VPS you are the liquidity, not the one taking it.
+The fast crypto markets that make these bots look lucrative are a **latency
+race**, not a prediction problem. Winning there means repricing before the
+resting quotes do, which is an infrastructure game against colocated
+competitors. From Python on an ordinary VPS you are the liquidity, not the
+one taking it.
 
-Market making on slower markets — sports, politics with distant resolution —
-is where a retail-scale bot has a defensible reason to exist: you earn the
-spread for providing liquidity, and the edge decays in hours rather than
-milliseconds.
+Market making on slower markets — sports with distant resolution, futures
+like a season champion — is where a retail-scale bot has a defensible reason
+to exist: you earn the spread for providing liquidity, and the edge decays in
+hours rather than milliseconds. Polymarket US is heavily sports-weighted,
+which suits that better than the old venue did.

@@ -1,90 +1,90 @@
 import pytest
 
-from pmbot.discovery import Market, Token
+from pmbot.discovery import Market, Side
 from pmbot.plan import Label, build_plan, label_width
 
 
-def market(slug: str, *outcomes: tuple[str, str], closed: bool = False) -> Market:
+def market(slug: str, *, question: str = "", tradable: bool = True) -> Market:
     return Market(
-        condition_id=f"0x{slug}",
-        question=f"{slug}?",
         slug=slug,
-        tokens=tuple(Token(token_id=tid, outcome=out) for out, tid in outcomes),
-        closed=closed,
+        question=question or f"{slug}?",
+        active=tradable,
+        closed=not tradable,
+        sides=(Side("Yes", long=True), Side("No", long=False)),
     )
 
 
-RAIN = market("rain", ("Yes", "r-yes"), ("No", "r-no"))
-ELECTION = market("election", ("Yes", "e-yes"), ("No", "e-no"))
+RAIN = market("rain")
+ELECTION = market("election")
 
 
 def test_single_market_plan():
     plan = build_plan([RAIN])
-    assert plan.token_ids == ("r-yes", "r-no")
-    assert plan.label_for("r-yes") == "rain/Yes"
+    assert plan.slugs == ("rain",)
+    assert plan.label_for("rain").startswith("rain")
 
 
-def test_multiple_markets_share_one_subscription():
+def test_multiple_markets_share_one_connection():
     plan = build_plan([RAIN, ELECTION])
-    assert plan.token_ids == ("r-yes", "r-no", "e-yes", "e-no")
+    assert plan.slugs == ("rain", "election")
     assert len(plan.markets) == 2
-    assert "2 market(s), 4 token(s), 1 connection" == plan.describe()
-
-
-def test_labels_disambiguate_identical_outcome_names():
-    """Both markets have a 'Yes'; the label must say which market."""
-    plan = build_plan([RAIN, ELECTION])
-    assert plan.label_for("r-yes") == "rain/Yes"
-    assert plan.label_for("e-yes") == "election/Yes"
-
-
-def test_duplicate_tokens_are_subscribed_once():
-    plan = build_plan([RAIN, RAIN])
-    assert plan.token_ids == ("r-yes", "r-no")
-    assert plan.label_for("r-yes") == "rain/Yes"
-
-
-def test_overlapping_markets_keep_first_label():
-    shared = market("rain-alias", ("Yes", "r-yes"), ("No", "r-no"))
-    plan = build_plan([RAIN, shared])
-    assert plan.token_ids == ("r-yes", "r-no")
-    assert plan.label_for("r-yes") == "rain/Yes"
-
-
-def test_open_and_closed_are_separated():
-    done = market("old", ("Yes", "o-yes"), closed=True)
-    plan = build_plan([RAIN, done])
-    assert [m.slug for m in plan.open_markets] == ["rain"]
-    assert [m.slug for m in plan.closed_markets] == ["old"]
-    # A closed market is still subscribed: the caller warns, it does not drop.
-    assert "o-yes" in plan.token_ids
-
-
-def test_unknown_token_falls_back_to_truncated_id():
-    plan = build_plan([RAIN])
-    assert plan.label_for("abcdefghijklmnop") == "abcdefghijkl"
-
-
-def test_slugless_market_labels_by_condition_id():
-    anonymous = Market(
-        condition_id="0xdeadbeefcafe",
-        question="?",
-        slug="",
-        tokens=(Token(token_id="t1", outcome="Yes"),),
-        closed=False,
+    assert plan.describe() == (
+        "2 market(s), 2 instrument(s), 1 connection, 1 subscription(s)"
     )
-    assert build_plan([anonymous]).label_for("t1") == "0xdeadbeef/Yes"
+
+
+def test_one_instrument_per_market():
+    """The structural change: no more two token ids per market."""
+    assert len(build_plan([RAIN, ELECTION]).slugs) == 2
+
+
+def test_labels_carry_the_question_so_slugs_are_recognisable():
+    plan = build_plan([market("aec-nfl-lac-ten-2025-11-02", question="LA vs Tennessee")])
+    assert "LA vs Tennessee" in plan.label_for("aec-nfl-lac-ten-2025-11-02")
+
+
+def test_duplicate_markets_are_subscribed_once():
+    plan = build_plan([RAIN, RAIN])
+    assert plan.slugs == ("rain",)
+
+
+def test_first_label_wins_for_a_repeated_slug():
+    plan = build_plan([RAIN, market("rain", question="different question")])
+    assert "rain?" in plan.label_for("rain")
+
+
+def test_tradable_and_untradable_are_separated():
+    done = market("old", tradable=False)
+    plan = build_plan([RAIN, done])
+    assert [m.slug for m in plan.tradable_markets] == ["rain"]
+    assert [m.slug for m in plan.untradable_markets] == ["old"]
+    # An untradable market is still subscribed: the caller warns, it does not
+    # drop. Recording a market through its close is useful.
+    assert "old" in plan.slugs
+
+
+def test_unknown_slug_falls_back_to_itself():
+    assert build_plan([RAIN]).label_for("mystery") == "mystery"
+
+
+def test_large_fleets_are_chunked_at_the_venue_limit():
+    plan = build_plan([market(f"m{i}") for i in range(250)])
+    assert [len(c) for c in plan.chunks] == [100, 100, 50]
+    assert "3 subscription(s)" in plan.describe()
+
+
+def test_small_fleets_are_one_chunk():
+    assert len(build_plan([RAIN, ELECTION]).chunks) == 1
 
 
 def test_empty_inputs_raise():
     with pytest.raises(ValueError, match="at least one market"):
         build_plan([])
-    with pytest.raises(ValueError, match="no tradeable tokens"):
-        build_plan([market("empty")])
+    with pytest.raises(ValueError, match="no tradeable instruments"):
+        build_plan([Market(slug="", question="?")])
 
 
 def test_label_width_is_capped():
-    long = Label(slug="x" * 200, outcome="Yes")
-    assert label_width([long]) == 44
-    assert label_width([Label("rain", "Yes")]) == len("rain/Yes")
+    assert label_width([Label(slug="x" * 200)]) == 44
+    assert label_width([Label("rain")]) == len("rain")
     assert label_width([]) == 12

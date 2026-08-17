@@ -1,13 +1,17 @@
 """Turn a set of markets into a single watch plan.
 
-Watching N markets does not mean opening N connections. The CLOB market
-channel takes a list of asset ids in one subscription, so the whole fleet
+Watching N markets does not mean opening N connections. The markets
+WebSocket takes a list of slugs in one subscription, so the whole fleet
 rides one socket: one thing to reconnect, one ordering of events, one
-journal. Each message carries its own `asset_id`, so routing is a dict
+journal. Each message carries its own `marketSlug`, so routing is a dict
 lookup.
 
-The only real work is deduplication and labelling, and both are pure — which
-is why they live here rather than inline in the CLI.
+The venue caps a single subscription at 100 markets, so the plan also
+chunks. That limit is the venue's, not ours, which is why it lives in
+`endpoints.py` next to the URLs it constrains.
+
+The only real work is deduplication and labelling, and both are pure —
+which is why they live here rather than inline in the CLI.
 """
 
 from __future__ import annotations
@@ -15,72 +19,81 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Iterable, Sequence
 
+from . import endpoints
 from .discovery import Market
 
 
 @dataclass(frozen=True)
 class Label:
     slug: str
-    outcome: str
+    question: str = ""
 
     def __str__(self) -> str:
-        return f"{self.slug}/{self.outcome}"
+        if not self.question:
+            return self.slug
+        # Slugs are long and mostly boilerplate; the question is what a human
+        # actually recognises in a column of scrolling output.
+        return f"{self.slug} ({self.question[:28]})" if self.question else self.slug
 
 
 @dataclass(frozen=True)
 class WatchPlan:
     markets: tuple[Market, ...]
-    token_ids: tuple[str, ...]
+    slugs: tuple[str, ...]
     labels: dict[str, Label]
 
     @property
-    def open_markets(self) -> tuple[Market, ...]:
-        return tuple(m for m in self.markets if not m.closed)
+    def tradable_markets(self) -> tuple[Market, ...]:
+        return tuple(m for m in self.markets if m.tradable)
 
     @property
-    def closed_markets(self) -> tuple[Market, ...]:
-        return tuple(m for m in self.markets if m.closed)
+    def untradable_markets(self) -> tuple[Market, ...]:
+        return tuple(m for m in self.markets if not m.tradable)
 
-    def label_for(self, token_id: str) -> str:
-        label = self.labels.get(token_id)
-        return str(label) if label else token_id[:12]
+    @property
+    def chunks(self) -> tuple[tuple[str, ...], ...]:
+        """Slugs split into subscription-sized batches."""
+        size = endpoints.MAX_MARKETS_PER_SUBSCRIPTION
+        return tuple(
+            tuple(self.slugs[i : i + size]) for i in range(0, len(self.slugs), size)
+        )
+
+    def label_for(self, slug: str) -> str:
+        label = self.labels.get(slug)
+        return str(label) if label else slug
 
     def describe(self) -> str:
+        n = len(self.chunks)
         return (
-            f"{len(self.markets)} market(s), {len(self.token_ids)} token(s), "
-            "1 connection"
+            f"{len(self.markets)} market(s), {len(self.slugs)} instrument(s), "
+            f"1 connection, {n} subscription(s)"
         )
 
 
 def build_plan(markets: Iterable[Market]) -> WatchPlan:
-    """Flatten markets into a deduplicated, labelled token list.
+    """Flatten markets into a deduplicated, labelled slug list.
 
-    Two markets can legitimately reference the same token id (the same market
-    passed twice under different URLs, for instance). Subscribing twice would
-    mean handling every update for it twice, so first label wins and the
-    duplicate is dropped.
+    The same market can legitimately arrive twice — passed once as a URL and
+    once as a bare slug, say. Subscribing twice would mean handling every
+    update for it twice, so first label wins and the duplicate is dropped.
     """
     markets = tuple(markets)
     if not markets:
         raise ValueError("a watch plan needs at least one market")
 
-    token_ids: list[str] = []
+    slugs: list[str] = []
     labels: dict[str, Label] = {}
 
     for market in markets:
-        for token in market.tokens:
-            if token.token_id in labels:
-                continue
-            labels[token.token_id] = Label(
-                slug=market.slug or market.condition_id[:10],
-                outcome=token.outcome,
-            )
-            token_ids.append(token.token_id)
+        if not market.slug or market.slug in labels:
+            continue
+        labels[market.slug] = Label(slug=market.slug, question=market.question)
+        slugs.append(market.slug)
 
-    if not token_ids:
-        raise ValueError("no tradeable tokens across the given markets")
+    if not slugs:
+        raise ValueError("no tradeable instruments across the given markets")
 
-    return WatchPlan(markets=markets, token_ids=tuple(token_ids), labels=labels)
+    return WatchPlan(markets=markets, slugs=tuple(slugs), labels=labels)
 
 
 def label_width(labels: Sequence[Label] | Iterable[Label]) -> int:

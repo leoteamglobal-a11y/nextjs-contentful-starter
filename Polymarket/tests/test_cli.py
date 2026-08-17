@@ -29,6 +29,28 @@ def test_journal_stream_name_is_overridable():
     assert args.name == "overnight"
 
 
+def test_search_takes_free_text():
+    """Slugs here are venue-generated, so search is the entry point."""
+    args = build_parser().parse_args(["search", "super bowl"])
+    assert args.text == "super bowl"
+
+
+def test_live_check_defaults_to_the_long_side_and_a_dry_run():
+    args = build_parser().parse_args(["live-check", "rain"])
+    assert args.side == "long"
+    assert args.live is False
+
+
+def test_live_check_side_is_selectable():
+    args = build_parser().parse_args(["live-check", "rain", "--side", "No"])
+    assert args.side == "No"
+
+
+def test_backtest_tick_is_settable_for_the_venues_finer_grid():
+    args = build_parser().parse_args(["backtest", "j.jsonl", "--tick", "0.001"])
+    assert args.tick == 0.001
+
+
 def test_bookset_reset_clears_state_but_keeps_tokens():
     books = BookSet(["t1", "t2"])
     books.handle(

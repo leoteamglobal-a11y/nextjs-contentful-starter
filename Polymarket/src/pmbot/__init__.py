@@ -1,11 +1,14 @@
-"""Read-only Polymarket market-data client.
+"""A trading bot for Polymarket US, the CFTC-regulated exchange.
 
-Phase 1 of a trading bot: observe and record. This package contains no
-order-signing code and no private key handling, by design — you cannot lose
-money with it, which makes it the right place to find out whether you have
-an edge at all.
+This targets polymarket.us — the KYC'd, USD-settled, CFTC-regulated venue —
+and not polymarket.com. They are different exchanges with different APIs;
+an account and a balance on one does not exist on the other.
+
+Reading, recording and backtesting need only an API key and cannot place an
+order. The one module that can, `pmbot.live`, imports its SDK lazily and
+asks before it does anything.
 """
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"
 
 __all__ = ["__version__"]

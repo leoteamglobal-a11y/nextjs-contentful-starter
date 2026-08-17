@@ -1,6 +1,9 @@
-# Only needed for phase 3 (approvals and live orders). Phases 1 and 2 run
-# on requirements.txt alone, and deliberately cannot sign anything.
+# Only needed to place orders (`live-check --live`). Reading, recording and
+# backtesting run on requirements.txt alone and import nothing from here.
+#
+# No web3, no eth-account, no chain RPC: Polymarket US settles in USD on a
+# regulated exchange, so there is no wallet to sign with and no token
+# approval to grant.
 -r requirements.txt
 
-web3>=6.0
-py-clob-client-v2
+polymarket-us>=0.1.2

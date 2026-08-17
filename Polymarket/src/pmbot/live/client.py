@@ -1,95 +1,128 @@
-"""Thin adapter over the Polymarket SDK.
+"""Thin adapter over the Polymarket US SDK.
 
-Everything that knows an SDK's method names lives in this one file, so when
-the SDK changes — and it has, twice: `py-clob-client` is archived,
-`py-clob-client-v2` points at a newer unified SDK — there is exactly one
-file to fix rather than a rewrite.
+Everything that knows an SDK's method names lives in this one file, so an
+SDK change is one file to fix rather than a rewrite. That rule earned its
+keep: the previous version of this file wrapped `py-clob-client`, which was
+archived and replaced mid-project, and this rewrite replaced it again.
 
-⚠️ ADAPTER NOTES — UNVERIFIED SURFACE ⚠️
+## What went away
 
-None of the calls below have been run against the real venue: the machine
-this was written on had `*.polymarket.com` blocked by network policy. The
-shapes come from the published SDK README. Before trusting any of it, run
+The old adapter had a long list of things that could silently break: which
+`create_or_derive_api_key` spelling the SDK used, whether `signature_type`
+was 0, 1 or 2 (getting it wrong signed orders for the wrong address and
+every order was rejected), whether `funder` had to be passed separately,
+and whether the wallet had approved the exchange to move its tokens.
 
-    python -m pmbot.cli live-check <market>
+None of that exists on Polymarket US. There is no wallet, no chain, no
+signature type, no funder, and no approvals. There is an API key, and the
+exchange already knows who you are because you completed KYC. The entire
+class of "the order was rejected and the error does not say why" failures
+that came from wallet configuration is gone.
 
-which exercises each call in order and tells you which one broke. The list
-of things most likely to be wrong, in order:
+## What replaced it
 
-1. `create_or_derive_api_key()` vs `create_api_key()` / `derive_api_key()`.
-2. Whether `signature_type` must be set: 0 for a plain EOA wallet, 1 for an
-   email/Magic proxy, 2 for a browser proxy. Getting this wrong signs
-   orders for the wrong address and every order is rejected.
-3. Whether `funder` (the address holding the USDC) must be passed
-   separately from the signing key.
-4. The tick size of the specific market, which limits price precision.
+One thing genuinely new: **intent**. The international venue had a separate
+token per outcome, so "buy NO" meant buying a different asset. Here there is
+one instrument per market and four intents over it:
+
+    BUY_LONG    open/increase a YES position
+    SELL_LONG   reduce/close a YES position (also how you go short)
+    BUY_SHORT   open/increase a NO position
+    SELL_SHORT  reduce/close a NO position
+
+The strategy layer upstream only knows BUY and SELL. This file is where
+that widens into an intent, using the market side the caller asked for.
 """
 
 from __future__ import annotations
 
-import os
 from dataclasses import dataclass
 from typing import Any
+
+from ..auth import AuthError, Credentials
+
+# Time in force. GTC is the only one a resting maker quote wants; the others
+# are here so the mapping is stated once rather than spelled inline.
+TIF_GTC = "TIME_IN_FORCE_GOOD_TILL_CANCEL"
+TIF_GTD = "TIME_IN_FORCE_GOOD_TILL_DATE"
+TIF_IOC = "TIME_IN_FORCE_IMMEDIATE_OR_CANCEL"
+TIF_FOK = "TIME_IN_FORCE_FILL_OR_KILL"
+
+TYPE_LIMIT = "ORDER_TYPE_LIMIT"
+TYPE_MARKET = "ORDER_TYPE_MARKET"
+
+CURRENCY = "USD"
 
 
 class LiveClientError(RuntimeError):
     """Anything that goes wrong talking to the venue."""
 
 
+def order_intent(side: str, *, long: bool = True) -> str:
+    """Map a BUY/SELL on a chosen market side to a venue order intent."""
+    side = (side or "").strip().upper()
+    if side not in {"BUY", "SELL"}:
+        raise LiveClientError(f"side must be BUY or SELL, got {side!r}")
+    direction = "LONG" if long else "SHORT"
+    return f"ORDER_INTENT_{side}_{direction}"
+
+
+def price_amount(price: float) -> dict[str, str]:
+    """Prices go over the wire as decimal strings, not floats.
+
+    Sending a float would let `0.1 + 0.2` reach the exchange as
+    `0.30000000000000004` and be rejected for violating the tick — the
+    classic way a working strategy fails only in production.
+    """
+    return {"value": f"{price:.4f}", "currency": CURRENCY}
+
+
+def round_to_tick(price: float, tick: float) -> float:
+    """Snap a price to the market's tick, which the venue enforces."""
+    if tick <= 0:
+        return round(price, 4)
+    return round(round(price / tick) * tick, 6)
+
+
 def _require_sdk() -> Any:
     """Import the SDK only when actually going live.
 
-    Phases 1 and 2 must stay installable and runnable without it — nothing
-    that can sign an order should be a dependency of code that only reads.
+    Reading, recording and backtesting must stay runnable without it —
+    nothing that can send an order should be a dependency of code that only
+    reads.
     """
     try:
-        import py_clob_client_v2 as sdk  # type: ignore
-    except ImportError:  # pragma: no cover - exercised only with the SDK absent
-        try:
-            import py_clob_client as sdk  # type: ignore
-        except ImportError as exc:
-            raise LiveClientError(
-                "No Polymarket SDK installed. For live use:\n"
-                "    pip install py-clob-client-v2\n"
-                "See https://github.com/Polymarket/py-sdk for the newer "
-                "unified SDK if this adapter needs updating."
-            ) from exc
+        import polymarket_us as sdk  # type: ignore
+    except ImportError as exc:
+        raise LiveClientError(
+            "The Polymarket US SDK is not installed. For live use:\n"
+            "    pip install -r requirements-live.txt\n"
+            "(or: pip install polymarket-us)"
+        ) from exc
     return sdk
 
 
 @dataclass
-class WalletConfig:
-    private_key: str
-    funder: str | None = None
-    chain_id: int = 137  # Polygon
-    signature_type: int = 0  # 0 = EOA, 1 = email/Magic proxy, 2 = browser proxy
-    host: str = "https://clob.polymarket.com"
+class ClientConfig:
+    """What the live client needs. No key material beyond the API key."""
+
+    credentials: Credentials
+    timeout_s: float = 30.0
 
     @classmethod
-    def from_env(cls) -> "WalletConfig":
-        key = os.getenv("PMBOT_PRIVATE_KEY") or os.getenv("PRIVATE_KEY")
-        if not key:
-            raise LiveClientError(
-                "No private key. Set PMBOT_PRIVATE_KEY in your environment.\n"
-                "Use a FRESH wallet holding only what you are willing to lose."
-            )
-        return cls(
-            private_key=key,
-            funder=os.getenv("PMBOT_FUNDER") or None,
-            chain_id=int(os.getenv("PMBOT_CHAIN_ID", "137")),
-            signature_type=int(os.getenv("PMBOT_SIGNATURE_TYPE", "0")),
-            host=os.getenv("PMBOT_CLOB_HOST", "https://clob.polymarket.com"),
-        )
+    def from_env(cls) -> "ClientConfig":
+        credentials = Credentials.from_env()
+        credentials.validate()
+        return cls(credentials=credentials)
 
     def redacted(self) -> str:
-        tail = self.private_key[-4:] if len(self.private_key) > 4 else "????"
-        return f"key=...{tail} chain={self.chain_id} sig_type={self.signature_type}"
+        return self.credentials.redacted()
 
 
 class LiveClient:
     """Wraps the SDK client. Constructed only when going live."""
 
-    def __init__(self, config: WalletConfig) -> None:
+    def __init__(self, config: ClientConfig) -> None:
         self.config = config
         self._sdk = _require_sdk()
         self._client: Any = None
@@ -97,115 +130,223 @@ class LiveClient:
     # -- setup ---------------------------------------------------------
 
     def connect(self) -> str:
-        """Build the client and derive L2 credentials. Returns the address."""
-        sdk = self._sdk
+        """Build the client and prove the credentials work.
+
+        There is no key derivation step any more, so "connect" is really
+        "construct, then make one authenticated call". Doing that call here
+        means a bad key fails on the first line of output rather than
+        halfway through a run.
+        """
         try:
-            kwargs: dict[str, Any] = {
-                "host": self.config.host,
-                "chain_id": self.config.chain_id,
-                "key": self.config.private_key,
-            }
-            if self.config.signature_type:
-                kwargs["signature_type"] = self.config.signature_type
-            if self.config.funder:
-                kwargs["funder"] = self.config.funder
-
-            self._client = sdk.ClobClient(**kwargs)  # type: ignore[attr-defined]
-
-            # L1 wallet signature -> L2 HMAC credentials.
-            creds = self._call_first(
-                self._client,
-                ["create_or_derive_api_key", "derive_api_key", "create_api_key"],
+            self._client = self._sdk.PolymarketUS(
+                key_id=self.config.credentials.key_id,
+                secret_key=self.config.credentials.secret_key,
+                timeout=self.config.timeout_s,
             )
-            if creds is not None and hasattr(self._client, "set_api_creds"):
-                self._client.set_api_creds(creds)
+        except Exception as exc:  # noqa: BLE001
+            raise LiveClientError(f"could not build client: {exc}") from exc
+
+        balances = self.balances()
+        currency = balances.get("currency", CURRENCY)
+        buying_power = balances.get("buyingPower")
+        return f"authenticated, buying power {buying_power} {currency}"
+
+    def _require_client(self) -> Any:
+        if self._client is None:
+            raise LiveClientError("not connected: call connect() first")
+        return self._client
+
+    def _wrap(self, what: str, call) -> Any:
+        """Run one SDK call, turning its exceptions into ours."""
+        try:
+            return call()
         except LiveClientError:
             raise
         except Exception as exc:  # noqa: BLE001
-            raise LiveClientError(f"connect failed: {type(exc).__name__}: {exc}") from exc
-
-        return self.address()
-
-    def _call_first(self, obj: Any, names: list[str]) -> Any:
-        """Call the first method that exists, so an SDK rename is survivable."""
-        for name in names:
-            method = getattr(obj, name, None)
-            if callable(method):
-                return method()
-        raise LiveClientError(
-            f"SDK exposes none of {names}. The adapter needs updating for this "
-            "SDK version — see the ADAPTER NOTES at the top of this file."
-        )
-
-    def address(self) -> str:
-        for name in ("get_address", "get_wallet_address"):
-            method = getattr(self._client, name, None)
-            if callable(method):
-                return str(method())
-        return str(getattr(self._client, "address", "<unknown>"))
+            sdk = self._sdk
+            if isinstance(exc, getattr(sdk, "AuthenticationError", ())):
+                raise LiveClientError(
+                    f"{what} rejected the credentials. Check the key is not "
+                    "revoked, and that this machine's clock is correct — "
+                    "timestamps more than 30s out look identical to a bad key."
+                ) from exc
+            if isinstance(exc, getattr(sdk, "RateLimitError", ())):
+                raise LiveClientError(
+                    f"{what} was rate limited (20 req/s per key). Back off, or "
+                    "move the polling to the WebSocket."
+                ) from exc
+            raise LiveClientError(f"{what} failed: {type(exc).__name__}: {exc}") from exc
 
     # -- reads ---------------------------------------------------------
 
     def ok(self) -> bool:
+        """Cheap reachability check on the public side."""
         try:
-            return bool(self._client.get_ok())
+            self._require_client().markets.list({"limit": 1})
+            return True
         except Exception:  # noqa: BLE001
             return False
 
-    def tick_size(self, token_id: str) -> float:
+    def balances(self) -> dict[str, Any]:
+        return dict(
+            self._wrap("balances", lambda: self._require_client().account.balances())
+            or {}
+        )
+
+    def buying_power(self) -> float:
         try:
-            return float(self._client.get_tick_size(token_id))
-        except Exception:  # noqa: BLE001
+            return float(self.balances().get("buyingPower") or 0.0)
+        except (TypeError, ValueError):
+            return 0.0
+
+    def positions(self) -> dict[str, Any]:
+        result = self._wrap(
+            "positions", lambda: self._require_client().portfolio.positions()
+        )
+        return dict((result or {}).get("positions") or {})
+
+    def market(self, slug: str) -> dict[str, Any]:
+        result = self._wrap(
+            "market lookup",
+            lambda: self._require_client().markets.retrieve_by_slug(slug),
+        )
+        return dict((result or {}).get("market") or result or {})
+
+    def tick_size(self, slug: str) -> float:
+        """The market's minimum price increment.
+
+        Falls back to a coarse tick rather than raising: a wrong-but-coarse
+        tick rounds a price to something legal, while guessing finer than the
+        venue allows gets every order rejected.
+        """
+        try:
+            value = float(self.market(slug).get("orderPriceMinTickSize") or 0)
+        except (LiveClientError, TypeError, ValueError):
             return 0.01
+        return value if value > 0 else 0.01
 
-    def order_book(self, token_id: str) -> Any:
-        return self._client.get_order_book(token_id)
+    def order_book(self, slug: str) -> dict[str, Any]:
+        result = self._wrap(
+            "order book", lambda: self._require_client().markets.book(slug)
+        )
+        return dict((result or {}).get("marketData") or {})
 
-    def open_orders(self) -> list[dict[str, Any]]:
-        try:
-            orders = self._client.get_orders()
-        except Exception as exc:  # noqa: BLE001
-            raise LiveClientError(f"get_orders failed: {exc}") from exc
-        return list(orders or [])
+    def open_orders(self, slug: str | None = None) -> list[dict[str, Any]]:
+        params = {"marketSlug": slug} if slug else None
+        result = self._wrap(
+            "open orders", lambda: self._require_client().orders.list(params)
+        )
+        return list((result or {}).get("orders") or [])
 
     # -- writes --------------------------------------------------------
 
     def place_limit(
-        self, token_id: str, side: str, price: float, size: float, tick_size: float
+        self,
+        slug: str,
+        side: str,
+        price: float,
+        size: float,
+        tick_size: float = 0.01,
+        *,
+        long: bool = True,
+        tif: str = TIF_GTC,
     ) -> dict[str, Any]:
-        """Post a GTC limit order. This spends real money."""
-        sdk = self._sdk
-        try:
-            order_args = sdk.clob_types.OrderArgs(  # type: ignore[attr-defined]
-                token_id=token_id,
-                price=price,
-                size=size,
-                side=sdk.order_builder.constants.BUY  # type: ignore[attr-defined]
-                if side == "BUY"
-                else sdk.order_builder.constants.SELL,  # type: ignore[attr-defined]
+        """Post a resting limit order. This spends real money."""
+        snapped = round_to_tick(price, tick_size)
+        params = {
+            "marketSlug": slug,
+            "intent": order_intent(side, long=long),
+            "type": TYPE_LIMIT,
+            "price": price_amount(snapped),
+            "quantity": size,
+            "tif": tif,
+        }
+        return dict(
+            self._wrap(
+                "place order", lambda: self._require_client().orders.create(params)
             )
-            return self._client.create_and_post_order(order_args)
-        except AttributeError:
-            # Newer SDKs expose the enums differently; try the simple path.
+            or {}
+        )
+
+    def preview_limit(
+        self,
+        slug: str,
+        side: str,
+        price: float,
+        size: float,
+        tick_size: float = 0.01,
+        *,
+        long: bool = True,
+    ) -> dict[str, Any]:
+        """Ask the venue what an order would do, without sending it.
+
+        The international venue had no equivalent, so the only way to learn
+        an order was malformed was to have it rejected. Using this before the
+        first real order turns a rejection into a dry run.
+        """
+        params = {
+            "marketSlug": slug,
+            "intent": order_intent(side, long=long),
+            "type": TYPE_LIMIT,
+            "price": price_amount(round_to_tick(price, tick_size)),
+            "quantity": size,
+        }
+        return dict(
+            self._wrap(
+                "preview order", lambda: self._require_client().orders.preview(params)
+            )
+            or {}
+        )
+
+    def cancel(self, order_id: str, slug: str) -> Any:
+        """Cancel one order. The venue wants the market slug alongside the id."""
+        return self._wrap(
+            "cancel",
+            lambda: self._require_client().orders.cancel(
+                order_id, {"marketSlug": slug}
+            ),
+        )
+
+    def cancel_all(self, slug: str | None = None) -> Any:
+        params = {"marketSlug": slug} if slug else None
+        return self._wrap(
+            "cancel all", lambda: self._require_client().orders.cancel_all(params)
+        )
+
+    def close(self) -> None:
+        client, self._client = self._client, None
+        if client is not None:
             try:
-                return self._client.create_and_post_order(
-                    {"token_id": token_id, "price": price, "size": size, "side": side}
-                )
-            except Exception as exc:  # noqa: BLE001
-                raise LiveClientError(
-                    f"place_limit failed: {exc}. See ADAPTER NOTES."
-                ) from exc
-        except Exception as exc:  # noqa: BLE001
-            raise LiveClientError(f"place_limit failed: {exc}") from exc
+                client.close()
+            except Exception:  # noqa: BLE001 - closing must never raise
+                pass
 
-    def cancel(self, order_id: str) -> Any:
-        try:
-            return self._client.cancel(order_id)
-        except Exception as exc:  # noqa: BLE001
-            raise LiveClientError(f"cancel failed: {exc}") from exc
 
-    def cancel_all(self) -> Any:
-        try:
-            return self._client.cancel_all()
-        except Exception as exc:  # noqa: BLE001
-            raise LiveClientError(f"cancel_all failed: {exc}") from exc
+def order_id_of(response: Any) -> str | None:
+    """Pull an order id out of whatever shape the SDK handed back."""
+    if response is None:
+        return None
+    for key in ("id", "orderId", "order_id", "orderID"):
+        value = getattr(response, key, None)
+        if value is None and isinstance(response, dict):
+            value = response.get(key)
+        if value:
+            return str(value)
+    return None
+
+
+__all__ = [
+    "ClientConfig",
+    "LiveClient",
+    "LiveClientError",
+    "AuthError",
+    "order_intent",
+    "order_id_of",
+    "price_amount",
+    "round_to_tick",
+    "TIF_GTC",
+    "TIF_IOC",
+    "TIF_FOK",
+    "TYPE_LIMIT",
+    "TYPE_MARKET",
+]

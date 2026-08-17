@@ -2,8 +2,12 @@
 
 This is a test harness, NOT a market simulator. The price is a random walk
 with a fixed spread: there is no order flow, no adverse selection beyond
-what the walk produces by accident, and no relationship to how Polymarket
+what the walk produces by accident, and no relationship to how Polymarket US
 actually behaves.
+
+It emits two synthetic markets rather than a YES and a NO leg of one, because
+on Polymarket US a market is a single instrument keyed by its slug — there is
+no second token to walk independently.
 
 Use it to check that the machinery runs and that your strategy parameters
 do what you think. Never use it to decide whether a strategy is profitable
@@ -36,7 +40,8 @@ def generate(
     path.parent.mkdir(parents=True, exist_ok=True)
     start = datetime(2026, 1, 1, tzinfo=timezone.utc)
 
-    tokens = [("t-yes", "Yes", 0.50), ("t-no", "No", 0.50)]
+    # (slug, starting mid). One instrument per market, as on the venue.
+    instruments = [("synthetic-market-a", 0.50), ("synthetic-market-b", 0.50)]
 
     with path.open("w", encoding="utf-8") as handle:
 
@@ -48,24 +53,24 @@ def generate(
             }
             handle.write(json.dumps(record, separators=(",", ":")) + "\n")
 
-        emit(
-            "market",
-            {
-                "condition_id": "0xsynthetic",
-                "slug": "synthetic-market",
-                "question": "Synthetic random walk (NOT a real market)",
-                "closed": False,
-                "tokens": [
-                    {"token_id": tid, "outcome": out} for tid, out, _ in tokens
-                ],
-            },
-            0,
-        )
+        for slug, _ in instruments:
+            emit(
+                "market",
+                {
+                    "slug": slug,
+                    "question": "Synthetic random walk (NOT a real market)",
+                    "tradable": True,
+                    "tick_size": 0.01,
+                    "min_qty": 1,
+                    "tokens": [{"token_id": slug, "outcome": "Yes"}],
+                },
+                0,
+            )
         emit("reconnected", {"n": 0}, 0)
 
-        mids = {tid: mid for tid, _, mid in tokens}
+        mids = {slug: mid for slug, mid in instruments}
         for i in range(1, updates + 1):
-            tid, _, _ = tokens[i % len(tokens)]
+            tid = instruments[i % len(instruments)][0]
             mid = mids[tid] + rng.gauss(0, volatility)
             mid = min(max(mid, 0.05), 0.95)
             mids[tid] = mid
