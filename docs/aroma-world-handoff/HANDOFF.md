@@ -149,3 +149,30 @@ Decisión del dueño: **recolorear** desde la foto existente (no tiene fotos de 
    variante** (productVariantAppendMedia / variant.image) del producto correspondiente.
    IDs de variantes Tower: Black `45384898904373`, Silver `45384898937141`, Gold `47686166610229`.
 3. OK visual del dueño con Tower, luego repetir para Jet, Mist, Wave.
+
+---
+
+## Tower — fotos por color LISTAS para asignar (2026-08-19)
+
+Decisión: se usaron las **fotos reales del catálogo SCENTA (A326, 118×342mm)** — proporción
+slim correcta. Recortadas por color a `product-photos/tower-{gold,silver,black}-final.png`
+(900×1200, fondo blanco). El "silver" real es un **champán cálido** (no acero frío).
+
+Ya SUBIDAS a Shopify staged uploads (válidas hasta 2026-08-20T12:22Z). resourceUrls:
+- Gold:   `https://shopify-staged-uploads.storage.googleapis.com/tmp/76982944053/files/52db51f9-e0f1-4ec1-9cd8-dcb31845db1a/tower-gold.png`
+- Silver: `https://shopify-staged-uploads.storage.googleapis.com/tmp/76982944053/files/9e9ead40-7c40-458d-91a2-4e75b4cf676b/tower-silver.png`
+- Black:  `https://shopify-staged-uploads.storage.googleapis.com/tmp/76982944053/files/840fb830-2a46-4f7f-98f2-c6242d1d1f4b/tower-black.png`
+
+**PASO FINAL pendiente (solo 2 mutations, requiere Shopify conectado):**
+Producto Tower: `gid://shopify/Product/8373043855669`
+Variantes: Gold `47686166610229` · Silver `45384898937141` · Black `45384898904373`
+
+1. `productCreateMedia(productId, media:[{originalSource:<resourceUrl>, mediaContentType:IMAGE, alt:"..."}])`
+   para las 3 (guardar los MediaImage IDs devueltos). Si las staged URLs expiraron, re-subir
+   los PNG de `product-photos/` con stagedUploadsCreate(resource:IMAGE)+curl POST.
+2. `productVariantAppendMedia(productId, variantMedia:[{variantId:<gid>, mediaIds:[<mediaId>]}])`
+   emparejando cada foto con su variante (gold→gold, etc.). Verificar con get-product.
+
+Luego repetir el mismo enfoque para **Jet, Mist, Wave** usando sus fotos reales del catálogo
+SCENTA (buscar cada modelo en el PDF `fd8ee217-SCENTA_Product_Catalogue__Aroma_Diffuser.pdf`).
+Opcional que pidió el dueño: añadir el logo "AROMAWORLD" a cada foto (requiere Higgsfield estable).
