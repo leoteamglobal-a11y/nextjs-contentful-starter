@@ -11,7 +11,15 @@ MAIN (live, do NOT touch): gid://shopify/OnlineStoreTheme/190395777333.
   - Sky   (8845963231541) = A316
   - Tower/Wave: intentionally NOT set (model unverified — do not invent).
 
-## READY (file prepared + locally validated, PENDING upsert to the copy)
+## ✅ DONE — UPSERTED + VERIFIED ON THE COPY (2026-08-26)
+File `docs/aroma-world-handoff/agentrank/main-product.FIXED.liquid` was staged-uploaded and upserted to
+`sections/main-product.liquid` on theme 190716608821. Re-read from the theme (161,129 bytes, exact match).
+All 8 checks pass: CONTAINS `product.variants.size > 1`, `agentrank.manufacturer_model`, `if variant.available`,
+`if current_variant.available`, `00000123`; DOES NOT CONTAIN `Shopify Product Reviews` or barcode-as-MPN.
+Exactly **1** `application/ld+json` block in the file. `layout/theme.liquid` has **no** competing Product schema
+(only `content_for_header` + `meta-tags` render). No duplicate/conflicting Product schema store-wide.
+
+## READY (superseded — kept for history)
 File: docs/aroma-world-handoff/agentrank/main-product.FIXED.liquid  → upsert as sections/main-product.liquid on theme 190716608821.
 (Only the <script type="application/ld+json"> block changed; see jsonld-block.FIXED.liquid. Liquid tags balanced: if=endif 16, for/endfor 1, case/endcase 1, unless/endunless 1, capture 0.)
 
