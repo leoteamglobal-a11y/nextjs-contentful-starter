@@ -1,0 +1,109 @@
+<script type="application/ld+json">
+  {
+    "@context": "http://schema.org/",
+    "@type": "Product",
+    "name": {{ product.title | json }},
+    "url": "{{ request.origin }}{{ product.url }}",
+    {%- if seo_media != blank -%}
+      "image": [
+        "https:{{ seo_media | image_url: width: seo_media.preview_image.width }}"
+      ],
+    {%- endif -%}
+    "description": {{ product.description | strip_html | escape | strip_newlines | json }},
+    "sku": "{{ current_variant.sku | default: current_variant.id }}",
+    {%- assign aw_model = product.metafields.agentrank.manufacturer_model -%}
+    {%- if aw_model != blank -%}"mpn": {{ aw_model | json }},{%- endif -%}
+    "productID": "{{ product.id }}",
+    "brand": {
+      "@type": "Brand",
+      "name": "{{ product.vendor | escape }}"
+    },
+    {%- if product.variants.size > 1 -%}
+    "offers": [
+      {%- for variant in product.variants -%}
+        {%- assign v_barcode = variant.barcode | strip -%}
+        {%- assign barcode_size = v_barcode.size -%}
+        {%- assign gtin_ok = false -%}
+        {%- if v_barcode != blank and v_barcode != '00000123' -%}
+          {%- if barcode_size == 8 or barcode_size == 12 or barcode_size == 13 or barcode_size == 14 -%}{%- assign gtin_ok = true -%}{%- endif -%}
+        {%- endif -%}
+        {
+          "@type" : "Offer",
+          "sku": "{{ variant.sku | default: variant.id }}",
+          "price" : "{{ variant.price | divided_by: 100.00 }}",
+          "priceCurrency" : "{{ cart.currency.iso_code }}",
+          "availability" : "http://schema.org/{% if variant.available %}InStock{% else %}OutOfStock{% endif %}",
+          "itemCondition": "https://schema.org/NewCondition",
+          {%- if gtin_ok -%}"gtin{{ barcode_size }}": "{{ v_barcode }}",{%- endif -%}
+          "priceValidUntil": "{{ 'now' | date: '%s' | plus: 31536000 | date: '%Y-%m-%d' | url_encode | replace: '+', '%20' }}",
+          "url" : "{{ request.origin }}{{ variant.url }}"
+        }{% unless forloop.last %},{% endunless -%}
+      {%- endfor -%}
+    ]
+    {%- else -%}
+    {%- assign v_barcode = current_variant.barcode | strip -%}
+    {%- assign barcode_size = v_barcode.size -%}
+    {%- assign gtin_ok = false -%}
+    {%- if v_barcode != blank and v_barcode != '00000123' -%}
+      {%- if barcode_size == 8 or barcode_size == 12 or barcode_size == 13 or barcode_size == 14 -%}{%- assign gtin_ok = true -%}{%- endif -%}
+    {%- endif -%}
+    "offers": {
+      "@type" : "Offer",
+      "sku": "{{ current_variant.sku | default: current_variant.id }}",
+      "price" : "{{ current_variant.price | divided_by: 100.00 }}",
+      "priceCurrency" : "{{ cart.currency.iso_code }}",
+      "availability" : "http://schema.org/{% if current_variant.available %}InStock{% else %}OutOfStock{% endif %}",
+      "itemCondition": "https://schema.org/NewCondition",
+      {%- if gtin_ok -%}"gtin{{ barcode_size }}": "{{ v_barcode }}",{%- endif -%}
+      "priceValidUntil": "{{ 'now' | date: '%s' | plus: 31536000 | date: '%Y-%m-%d' | url_encode | replace: '+', '%20' }}",
+      "url" : "{{ request.origin }}{{ product.url }}"
+    }
+    {%- endif -%}
+    {%- assign review_app = settings.app_review | default: '1' -%}
+    {%- case review_app -%}
+      {%- when '1' -%}
+        {%- assign jm_count = product.metafields.reviews.rating_count | plus: 0 -%}
+        {%- if jm_count > 0 -%}
+        ,"aggregateRating": {
+          "@type": "AggregateRating",
+          "ratingValue": {{ product.metafields.reviews.rating.value.rating | default: 0 }},
+          "reviewCount": {{ jm_count }},
+          "bestRating": {{ product.metafields.reviews.rating.value.scale_max | default: 5 }},
+          "worstRating": {{ product.metafields.reviews.rating.value.scale_min | default: 1 }}
+        }
+        {%- endif -%}
+      {%- when '2' -%}{%- assign aggregateRating = product.metafields.ryviu.product_reviews_info | split: ";" -%}{%- assign ratingCount = aggregateRating[0] -%}
+        {%- if ratingCount != "0" and ratingCount != blank -%}
+        ,"aggregateRating": {
+        "@type": "AggregateRating",
+        "ratingCount": {{ ratingCount | plus: 0 }},
+        "ratingValue": {{ aggregateRating[1] | plus: 0 }}
+        }
+        {%- endif -%}
+      {%- when '3' -%}{%- assign ratingCount = product.metafields.ali.reviews_count -%}
+        {%- if ratingCount != "0" and ratingCount != blank -%}
+        ,"aggregateRating": {
+        "@type": "AggregateRating",
+        "ratingCount": {{ ratingCount }},
+        "ratingValue": {{ product.metafields.ali.reviews_average }}
+        }
+        {%- endif -%}
+      {%- when '4' -%}{%- assign ratingCount = product.metafields.loox.num_reviews -%}
+        {%- if ratingCount != "0" and ratingCount != blank -%}
+        ,"aggregateRating": {
+        "@type": "AggregateRating",
+        "ratingCount": {{ ratingCount }},
+        "ratingValue": {{ product.metafields.loox.avg_rating }}
+        }
+        {%- endif -%}
+      {%- when 'stamped' -%}{%- assign ratingCount = product.metafields.stamped.reviews_count -%}
+        {%- if ratingCount != "0" and ratingCount != blank -%}
+        ,"aggregateRating": {
+        "@type": "AggregateRating",
+        "ratingCount": {{ ratingCount }},
+        "ratingValue": {{ product.metafields.stamped.reviews_average }}
+        }
+        {%- endif -%}
+    {%- endcase -%}
+  }
+</script>

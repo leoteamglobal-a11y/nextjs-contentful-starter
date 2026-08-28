@@ -1,101 +1,63 @@
-# Netlify Next.js + Contentful Minimal Starter
+# Aroma World — Estudio de Fórmulas
 
-![Screenshot](https://assets.stackbit.com/docs/tutorial-shared-thumb.png)
+Herramienta web para **crear, gestionar y optimizar fórmulas únicas de fragancia**.
+Construida con Next.js 15 y Tailwind CSS 4. No requiere base de datos ni servicios
+externos: todo se guarda de forma persistente en tu navegador y puedes exportar un
+respaldo en JSON cuando quieras.
 
-**⚡ View demo:** [nextjs-contentful-starter.netlify.app](https://nextjs-contentful-starter.netlify.app/)
+## ¿Qué puedes hacer?
 
-## Prerequisites
+- **Registrar fórmulas** con nombre, familia olfativa, descripción y concentración.
+- **Añadir ingredientes** (materias primas) indicando su tipo de nota
+  (salida / corazón / fondo), porcentaje y costo por kilogramo.
+- **Ver la pirámide olfativa** con la distribución de notas y compararla con los
+  rangos clásicos de equilibrio (salida 15–25%, corazón 30–40%, fondo 40–55%).
+- **Optimizar** con un clic: normaliza todos los porcentajes para que sumen 100%
+  manteniendo las proporciones.
+- **Calcular costos**: costo del concentrado por kilogramo.
+- **Calculadora de lotes**: indica el tamaño del producto final y obtén la cantidad
+  exacta (en gramos) de cada ingrediente, el alcohol/diluyente necesario y el costo.
+- **Respaldo y portabilidad**: exporta e importa tus fórmulas en un archivo JSON.
 
-Before you begin, please make sure you have the following:
+## Cómo ejecutarlo
 
-- [Netlify account](https://www.netlify.com/)
-- [Contentful account](https://www.contentful.com/)
-- GitHub, GitLab or Bitbucket account
-- Node v18+ or later
-- (optional) [nvm](https://github.com/nvm-sh/nvm) for Node version management.
+```bash
+npm install
+npm run dev      # entorno de desarrollo en http://localhost:3000
+```
 
-## Getting Started
+Para producción:
 
-### Clone this repository
+```bash
+npm run build
+npm start
+```
 
-Fork and clone your repository, then run `npm install` in its root directory.
+## Dónde se guardan los datos
 
-### Create Contentful Space
+Las fórmulas se guardan en el `localStorage` del navegador, es decir, **en el
+dispositivo donde las creas**. Por eso:
 
-After signing into Contentful, create a new space. 
+- Usa **«Exportar respaldo»** con frecuencia para guardar un archivo JSON.
+- Para pasar tus fórmulas a otra computadora, expórtalas y luego usa **«Importar»**.
 
-### Generate Management Token
+> ¿Necesitas que las fórmulas se sincronicen entre varios dispositivos o usuarios?
+> Se puede añadir más adelante una base de datos (por ejemplo Postgres o SQLite)
+> con rutas de API de Next.js. La lógica de cálculo ya está separada en
+> `src/lib/formulas.js`, lista para conectarse a un backend.
 
-If you don't already have a management token (or _personal access token_), generate one. To do so, go into your new empty space, then:
+## Estructura del proyecto
 
-1. Click _Settings_
-1. Choose _API Keys_
-1. Select the _Content management tokens_ tab
-1. Click the button to generate a new token
-
-![Generate content management token](./docs/generate-mgmt-token.png)
-
-### Generate Preview & Delivery API Keys
-
-From the same place you generated the management token, you can now generate API access keys.
-
-1. Select the *content delivery / preview tokens* tab
-1. Choose *Add API key*
-
-### Set Environment Variables
-
-In your project, duplicate `.env.example` to `.env`. 
-
-Fill in the values in the file based on the keys you've created. 
-
-Note: the Contentful space ID can be viewed and copied via *Settings->General Settings* in Contentful.
-
-### Import Content
-
-Import the provided content models & content into Contentful by running the `import.js` script:
-
-    npm run import
-
-If the import fails to run, make sure that you've run `npm install` and that all keys in your `.env` file are set correctly.
-
-### Run the Website
-
-Run the Next.js development server:
-
-    npm run dev
-
-Visit [localhost:3000](http://localhost:3000) and you should see the example content you imported into your new Contentful space.
-
-### Run Netlify Visual Editor in Local Development Mode
-
-Keep the Next.js development server running, and open a new command-line window in the same directory.
-
-Install Stackbit's CLI tools (once):
-    
-    npm i -g @stackbit/cli@latest
-
-Run the CLI:
-
-    stackbit dev
-
-Click the displayed link to [localhost:8090/_stackbit](http://localhost:8090/_stackbit) and the visual editor will open.
-
-### Create a Cloud-Based Netlify Project
-
-To deploy a cloud-based Netlify project your need to connected your repository to Netlify:
-
-1. If you haven't created your GitHub project repository, create it and push your code to GitHub
-2. Open the [app.netlify.com](https://app.netlify.com/), and choose "Import from Git" in the "Import an existing project" section
-3. In the "Configure site and deploy" step you will see the "Visual editor" section. To make it work, you will need to install "Netlify Visual Editor GitHub App" in your GitHub account.
-4. Deploy your project
-
-## Next Steps
-
-Here are a few suggestions on what to do next if you're new to Netlify visual editor:
-
-- Learn [how Netlify visual editor works](https://docs.netlify.com/visual-editor/overview/)
-- Check [Netlify visual editor reference documentation](https://visual-editor-reference.netlify.com/)
-
-## Support
-
-If you get stuck along the way, get help in our [support forums](https://answers.netlify.com/).
+```
+src/
+  app/
+    layout.jsx           # Layout raíz (idioma es, metadatos)
+    page.jsx             # Página principal → renderiza la app
+  components/aroma/
+    AromaApp.jsx         # Estado principal, persistencia, importar/exportar
+    FormulaList.jsx      # Panel con la lista de fórmulas
+    FormulaEditor.jsx    # Editor de una fórmula + análisis y calculadora
+    PyramidBar.jsx       # Barra de la pirámide olfativa
+  lib/
+    formulas.js          # Modelo de datos, almacenamiento y cálculos
+```

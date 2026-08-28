@@ -1,0 +1,170 @@
+<style>
+  .awq{background:#010C1C;color:#f4ead2;padding:64px 20px;font-family:'Lato',Helvetica,Arial,sans-serif;text-align:center;}
+  .awq *{box-sizing:border-box;}
+  .awq__eyebrow{color:#D9C562;letter-spacing:4px;text-transform:uppercase;font-size:13px;font-weight:700;margin:0 0 10px;}
+  .awq__title{font-family:'Playfair Display',Georgia,serif;font-size:38px;line-height:1.1;margin:0 0 10px;color:#fff;}
+  .awq__sub{color:#b9bcc4;font-size:16px;margin:0 auto 34px;max-width:560px;}
+  .awq__wrap{max-width:900px;margin:0 auto;}
+  .awq__view{display:none;}
+  .awq__view.is-active{display:block;animation:awqf .4s ease;}
+  @keyframes awqf{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+  .awq__entries{display:grid;grid-template-columns:repeat(2,1fr);gap:20px;}
+  .awq__entry{background:rgba(255,255,255,.04);border:1px solid rgba(217,197,98,.3);border-radius:16px;padding:36px 26px;text-align:center;}
+  .awq__eicon{font-size:40px;margin-bottom:12px;}
+  .awq__ename{font-family:'Playfair Display',Georgia,serif;font-size:23px;color:#fff;margin:0 0 8px;}
+  .awq__edesc{color:#aeb2bb;font-size:14px;margin:0 0 22px;}
+  .awq__q{display:none;}
+  .awq__q.is-active{display:block;animation:awqf .4s ease;}
+  .awq__qtitle{font-family:'Playfair Display',Georgia,serif;font-size:24px;color:#fff;margin:0 0 22px;}
+  .awq__opts{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;}
+  .awq__opt{background:rgba(255,255,255,.04);border:1px solid rgba(217,197,98,.35);color:#f4ead2;border-radius:12px;padding:18px 18px;font-size:16px;cursor:pointer;transition:.2s;text-align:left;line-height:1.35;}
+  .awq__opt:hover{background:rgba(217,197,98,.14);border-color:#D9C562;transform:translateY(-2px);}
+  .awq__opt b{display:block;color:#fff;font-size:17px;margin-bottom:3px;}
+  .awq__opt span{color:#aeb2bb;font-size:13px;}
+  .awq__steps{color:#8a93a8;font-size:12px;letter-spacing:2px;text-transform:uppercase;margin-bottom:22px;}
+  .awq__card{background:#0b1730;border:1px solid rgba(217,197,98,.3);border-radius:16px;overflow:hidden;max-width:420px;margin:8px auto 22px;}
+  .awq__card img{width:100%;aspect-ratio:1;object-fit:cover;display:block;background:#0b1730;}
+  .awq__cbody{padding:20px 18px 24px;}
+  .awq__tag{color:#D9C562;font-size:12px;letter-spacing:2px;text-transform:uppercase;font-weight:700;}
+  .awq__cname{font-family:'Playfair Display',Georgia,serif;font-size:26px;color:#fff;margin:6px 0 4px;}
+  .awq__cdesc{color:#aeb2bb;font-size:14px;margin:0 0 18px;}
+  .awq__btn{display:inline-block;background:#D9C562;color:#010C1C;font-weight:700;text-decoration:none;padding:12px 30px;border-radius:8px;font-size:14px;letter-spacing:.5px;cursor:pointer;border:none;transition:.2s;}
+  .awq__btn:hover{filter:brightness(1.08);}
+  .awq__pet{background:rgba(217,197,98,.1);border:1px solid rgba(217,197,98,.3);border-radius:10px;padding:12px 16px;color:#f4ead2;font-size:13px;max-width:420px;margin:0 auto 18px;}
+  .awq__back{background:none;border:none;color:#8a93a8;text-decoration:underline;cursor:pointer;font-size:13px;margin-top:8px;}
+  @media(max-width:640px){.awq__entries{grid-template-columns:1fr;}.awq__opts{grid-template-columns:1fr;}.awq__title{font-size:30px;}}
+</style>
+
+<div class="awq" id="awq">
+  <div class="awq__wrap">
+    <p class="awq__eyebrow" data-en="Need help choosing?" data-es="¿Necesitas ayuda para elegir?"></p>
+    <h2 class="awq__title" data-en="We'll help you find yours" data-es="Te ayudamos a encontrar el tuyo"></h2>
+    <p class="awq__sub" data-en="Answer a few quick questions and we'll give you the perfect match." data-es="Responde unas preguntas rápidas y te damos la recomendación perfecta."></p>
+
+    <div class="awq__view is-active" data-view="home">
+      <div class="awq__entries">
+        <div class="awq__entry">
+          <div class="awq__eicon">🌸</div>
+          <h3 class="awq__ename" data-en="Not sure which scent to choose?" data-es="¿No sabes qué aroma escoger?"></h3>
+          <p class="awq__edesc" data-en="Find the perfect fragrance for your style." data-es="Encuentra la fragancia ideal para tu estilo."></p>
+          <button class="awq__btn" data-start="scent" data-en="Find your scent" data-es="Encuentra tu aroma"></button>
+        </div>
+        <div class="awq__entry">
+          <div class="awq__eicon">🌀</div>
+          <h3 class="awq__ename" data-en="Not sure which diffuser is best for you?" data-es="¿No sabes qué difusor es mejor para ti?"></h3>
+          <p class="awq__edesc" data-en="Find the ideal diffuser for your space." data-es="Encuentra el difusor ideal para tu espacio."></p>
+          <button class="awq__btn" data-start="dif" data-en="Find your diffuser" data-es="Encuentra tu difusor"></button>
+        </div>
+      </div>
+    </div>
+
+    <div class="awq__view" data-view="scent">
+      <div class="awq__q is-active" data-q="scent">
+        <p class="awq__steps" data-en="Scent quiz" data-es="Quiz de aroma"></p>
+        <h3 class="awq__qtitle" data-en="What scent style do you prefer?" data-es="¿Qué estilo de aroma prefieres?"></h3>
+        <div class="awq__opts">
+          <button class="awq__opt" data-scent="dreamy"><b data-en="Fresh & aquatic" data-es="Fresco y acuático"></b><span data-en="Citrus, sea breeze" data-es="Cítricos, brisa marina"></span></button>
+          <button class="awq__opt" data-scent="enigma"><b data-en="Green & herbal" data-es="Verde y herbal"></b><span data-en="Herbs, lily of the valley" data-es="Hierbas, lirio del valle"></span></button>
+          <button class="awq__opt" data-scent="temptation"><b data-en="Woody" data-es="Amaderado"></b><span data-en="Cardamom, incense, sandalwood" data-es="Cardamomo, incienso, sándalo"></span></button>
+          <button class="awq__opt" data-scent="eleganza"><b data-en="Fresh & elegant" data-es="Fresco y elegante"></b><span data-en="Citrus, freesia, leather" data-es="Cítricos, fresia, cuero"></span></button>
+          <button class="awq__opt" data-scent="utopia"><b data-en="Floral" data-es="Floral"></b><span data-en="Lily of the valley, clove" data-es="Lirio del valle, clavo"></span></button>
+        </div>
+        <button class="awq__back" data-back="1" data-en="← Back" data-es="← Volver"></button>
+      </div>
+      <div class="awq__q" data-q="scent-result">
+        <p class="awq__tag" data-en="Your ideal scent" data-es="Tu aroma ideal"></p>
+        <div class="awq__card">
+          <img id="awqScentImg" alt="">
+          <div class="awq__cbody">
+            <h4 class="awq__cname" id="awqScentName"></h4>
+            <p class="awq__cdesc" id="awqScentDesc"></p>
+            <a class="awq__btn" id="awqScentBtn" href="#" data-en="View scent" data-es="Ver aroma"></a>
+          </div>
+        </div>
+        <div class="awq__pet" data-en="🐾 Pet-conscious: made without the essential oils flagged as toxic to pets · IFRA compliant." data-es="🐾 Pet-conscious: formulado sin los aceites señalados como tóxicos para mascotas · cumple IFRA."></div>
+        <button class="awq__back" data-back="1" data-en="← Start over" data-es="← Empezar de nuevo"></button>
+      </div>
+    </div>
+
+    <div class="awq__view" data-view="dif">
+      <div class="awq__q is-active" data-q="dif">
+        <p class="awq__steps" data-en="Diffuser quiz" data-es="Quiz de difusor"></p>
+        <h3 class="awq__qtitle" data-en="Where will you use it?" data-es="¿Dónde lo vas a usar?"></h3>
+        <div class="awq__opts">
+          <button class="awq__opt" data-dif="jet"><b data-en="A bathroom, entryway or corner" data-es="Un baño, entrada o rincón"></b><span data-en="Small spaces · ~250 ft²" data-es="Espacios pequeños · ~250 ft²"></span></button>
+          <button class="awq__opt" data-dif="mist"><b data-en="My car or something portable" data-es="Mi auto o algo portátil"></b><span data-en="Car & small spaces" data-es="Auto y espacios pequeños"></span></button>
+          <button class="awq__opt" data-dif="tower"><b data-en="A living room or bedroom" data-es="Una sala o recámara"></b><span data-en="Up to ~900 ft²" data-es="Hasta ~900 ft²"></span></button>
+          <button class="awq__opt" data-dif="sky"><b data-en="A large hall, lobby or reception" data-es="Un salón grande, lobby o recepción"></b><span data-en="Elegant tower · ~7,500 ft²" data-es="Torre elegante · ~7,500 ft²"></span></button>
+          <button class="awq__opt" data-dif="power"><b data-en="Whole home via HVAC" data-es="Toda la casa conectada al aire (HVAC)"></b><span data-en="Office or business · ~7,000 ft²" data-es="Oficina o comercio · ~7,000 ft²"></span></button>
+        </div>
+        <button class="awq__back" data-back="1" data-en="← Back" data-es="← Volver"></button>
+      </div>
+      <div class="awq__q" data-q="dif-result">
+        <p class="awq__tag" data-en="Your ideal diffuser" data-es="Tu difusor ideal"></p>
+        <div class="awq__card">
+          <img id="awqDifImg" alt="">
+          <div class="awq__cbody">
+            <h4 class="awq__cname" id="awqDifName"></h4>
+            <p class="awq__cdesc" id="awqDifDesc"></p>
+            <a class="awq__btn" id="awqDifBtn" href="#" data-en="View diffuser" data-es="Ver difusor"></a>
+          </div>
+        </div>
+        <button class="awq__back" data-back="1" data-en="← Start over" data-es="← Empezar de nuevo"></button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  var root=document.getElementById('awq');if(!root)return;
+  var L=((document.documentElement.lang||'').toLowerCase().indexOf('es')===0)?'es':'en';
+  // apply static translations
+  root.querySelectorAll('[data-en]').forEach(function(el){
+    var t=el.getAttribute('data-'+L)||el.getAttribute('data-en');
+    if(t!=null) el.textContent=t;
+  });
+  var CDN='https://cdn.shopify.com/s/files/1/0769/8294/4053/files/';
+  var DIF={
+    jet:{n:'Jet',en:'Plug-in · bathrooms & corners · ~250 ft²',es:'Plug-in · baños y rincones · ~250 ft²',u:'/products/scentjet-diffuser',i:'hf_20260811_151445_ae935807-30be-49a4-933c-6883c0a41b2f.png'},
+    mist:{n:'Mist',en:'Wireless · car & small spaces',es:'Inalámbrico · auto y espacios pequeños',u:'/products/aromamist-diffuser',i:'hf_20260811_151445_09eb8c3f-f730-4c37-9962-64d6bc912757.png'},
+    tower:{n:'Tower',en:'Tabletop · living room & bedroom · ~900 ft²',es:'De mesa · sala y recámara · ~900 ft²',u:'/products/towermist-diffuser',i:'hf_20260811_151445_a747b7fa-e4f5-4435-bbf6-0d272c529af5.png'},
+    sky:{n:'Sky Tower',en:'Floor tower · lobbies & halls · ~7,500 ft²',es:'Torre de piso · lobby y salones · ~7,500 ft²',u:'/products/sky-tower',i:'hf_20260811_151445_b493a51a-dfb4-429e-bce4-79e50b30bcc2.png'},
+    power:{n:'Power',en:'HVAC · home, office or business · ~7,000 ft²',es:'HVAC · casa, oficina o negocio · ~7,000 ft²',u:'/products/aromapower-diffuser',i:'hf_20260811_151445_d6fcc732-3d40-43c6-94c3-50a4181f5a68.png'}
+  };
+  var SC={
+    dreamy:{n:'Dreamy',en:'Aquatic-citrus floral',es:'Acuático-cítrico floral',u:'/products/dreamy-scent',i:'hf_20260811_145605_26ed1a2b-28de-4260-a34e-bfce48e0a9ef.png'},
+    enigma:{n:'Enigma',en:'Green-herbal floral',es:'Verde-herbal floral',u:'/products/enigma-scent',i:'hf_20260811_145804_b0821874-8cc6-4a44-96bd-33496d4dfaea.png'},
+    temptation:{n:'Temptation',en:'Woody-spicy (incense)',es:'Amaderado-especiado (incienso)',u:'/products/temptation-scent',i:'hf_20260811_145804_1aabfd0a-c26c-4403-8df0-06d4401920fd.png'},
+    eleganza:{n:'Eleganza',en:'Citrus-floral chypre',es:'Cítrico-floral chipre',u:'/products/eleganza',i:'hf_20260811_145804_61d3f250-89bc-49fb-803f-26854987dc05.png'},
+    utopia:{n:'Utopia',en:'Floral-spicy',es:'Floral-especiado',u:'/products/utopia-scent',i:'hf_20260811_145804_fd745920-818b-477d-a0b3-7a8c72286ce5.png'}
+  };
+  function showView(v){root.querySelectorAll('.awq__view').forEach(function(e){e.classList.remove('is-active');});root.querySelector('[data-view="'+v+'"]').classList.add('is-active');}
+  function showQ(v,q){var view=root.querySelector('[data-view="'+v+'"]');view.querySelectorAll('.awq__q').forEach(function(e){e.classList.remove('is-active');});view.querySelector('[data-q="'+q+'"]').classList.add('is-active');}
+  root.querySelectorAll('[data-start]').forEach(function(b){b.addEventListener('click',function(){var v=b.dataset.start;showView(v);showQ(v,v);});});
+  root.querySelectorAll('[data-back]').forEach(function(b){b.addEventListener('click',function(){showView('home');showQ('scent','scent');showQ('dif','dif');});});
+  root.querySelectorAll('[data-scent]').forEach(function(b){b.addEventListener('click',function(){
+    var s=SC[b.dataset.scent];
+    root.querySelector('#awqScentImg').src=CDN+s.i;
+    root.querySelector('#awqScentName').textContent=s.n;
+    root.querySelector('#awqScentDesc').textContent=s[L]||s.en;
+    root.querySelector('#awqScentBtn').href=s.u;
+    showQ('scent','scent-result');
+  });});
+  root.querySelectorAll('[data-dif]').forEach(function(b){b.addEventListener('click',function(){
+    var d=DIF[b.dataset.dif];
+    root.querySelector('#awqDifImg').src=CDN+d.i;
+    root.querySelector('#awqDifName').textContent=d.n;
+    root.querySelector('#awqDifDesc').textContent=d[L]||d.en;
+    root.querySelector('#awqDifBtn').href=d.u;
+    showQ('dif','dif-result');
+  });});
+  function handleHash(){
+    var h=(location.hash||'').toLowerCase();
+    if(h==='#awq-scent'){showView('scent');showQ('scent','scent');root.scrollIntoView({behavior:'smooth',block:'start'});}
+    else if(h==='#awq-dif'){showView('dif');showQ('dif','dif');root.scrollIntoView({behavior:'smooth',block:'start'});}
+  }
+  window.addEventListener('hashchange',handleHash);
+  handleHash();
+})();
+</script>

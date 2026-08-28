@@ -1,1 +1,35 @@
 @import 'tailwindcss';
+
+@theme {
+  --color-cream: #faf6f0;
+  --color-sand: #f0e6d8;
+  --color-amber: #b8863b;
+  --color-amber-dark: #8a6428;
+  --color-ink: #2b2420;
+  --color-mocha: #6b5d4f;
+}
+
+:root {
+  color-scheme: light;
+}
+
+body {
+  background: var(--color-cream);
+  color: var(--color-ink);
+  font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+.font-serif {
+  font-family: 'Georgia', 'Times New Roman', ui-serif, serif;
+}
+
+/* Oculta las flechas de los inputs numéricos para una apariencia más limpia */
+input[type='number']::-webkit-outer-spin-button,
+input[type='number']::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type='number'] {
+  -moz-appearance: textfield;
+}
