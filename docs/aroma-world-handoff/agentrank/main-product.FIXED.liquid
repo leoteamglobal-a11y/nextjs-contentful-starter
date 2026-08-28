@@ -963,6 +963,21 @@ t4option0_0 | alt text
           "priceCurrency" : "{{ cart.currency.iso_code }}",
           "availability" : "http://schema.org/{% if variant.available %}InStock{% else %}OutOfStock{% endif %}",
           "itemCondition": "https://schema.org/NewCondition",
+          "validFrom": "{{ product.published_at | date: '%Y-%m-%d' }}",
+          "hasMerchantReturnPolicy": {
+            "@type": "MerchantReturnPolicy",
+            "applicableCountry": "US",
+            "returnPolicyCategory": "https://schema.org/MerchantReturnFiniteReturnWindow",
+            "merchantReturnDays": 30,
+            "returnMethod": "https://schema.org/ReturnByMail"
+          },
+          {%- if variant.price >= 10000 -%}
+          "shippingDetails": {
+            "@type": "OfferShippingDetails",
+            "shippingRate": { "@type": "MonetaryAmount", "value": "0", "currency": "{{ cart.currency.iso_code }}" },
+            "shippingDestination": { "@type": "DefinedRegion", "addressCountry": "US" }
+          },
+          {%- endif -%}
           {%- if gtin_ok -%}"gtin{{ barcode_size }}": "{{ v_barcode }}",{%- endif -%}
           "priceValidUntil": "{{ 'now' | date: '%s' | plus: 31536000 | date: '%Y-%m-%d' | url_encode | replace: '+', '%20' }}",
           "url" : "{{ request.origin }}{{ variant.url }}"
@@ -983,6 +998,21 @@ t4option0_0 | alt text
       "priceCurrency" : "{{ cart.currency.iso_code }}",
       "availability" : "http://schema.org/{% if current_variant.available %}InStock{% else %}OutOfStock{% endif %}",
       "itemCondition": "https://schema.org/NewCondition",
+      "validFrom": "{{ product.published_at | date: '%Y-%m-%d' }}",
+      "hasMerchantReturnPolicy": {
+        "@type": "MerchantReturnPolicy",
+        "applicableCountry": "US",
+        "returnPolicyCategory": "https://schema.org/MerchantReturnFiniteReturnWindow",
+        "merchantReturnDays": 30,
+        "returnMethod": "https://schema.org/ReturnByMail"
+      },
+      {%- if current_variant.price >= 10000 -%}
+      "shippingDetails": {
+        "@type": "OfferShippingDetails",
+        "shippingRate": { "@type": "MonetaryAmount", "value": "0", "currency": "{{ cart.currency.iso_code }}" },
+        "shippingDestination": { "@type": "DefinedRegion", "addressCountry": "US" }
+      },
+      {%- endif -%}
       {%- if gtin_ok -%}"gtin{{ barcode_size }}": "{{ v_barcode }}",{%- endif -%}
       "priceValidUntil": "{{ 'now' | date: '%s' | plus: 31536000 | date: '%Y-%m-%d' | url_encode | replace: '+', '%20' }}",
       "url" : "{{ request.origin }}{{ product.url }}"
